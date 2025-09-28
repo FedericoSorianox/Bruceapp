@@ -90,25 +90,36 @@ npm run server
 
 Render es una plataforma de cloud que permite desplegar aplicaciones Node.js de forma sencilla y escalable.
 
-### Configuración del Deployment
+### Configuración del Deployment (Web Services Manuales)
 
 1. **Crear cuenta en Render** (si no tienes una):
    - Ve a [render.com](https://render.com) y crea una cuenta gratuita
 
-2. **Crear blueprints separados**:
+2. **Crear Web Services separados**:
 
-   **Blueprint 1 - Frontend (Next.js):**
-   - En el dashboard de Render, haz clic en "New +" → "Blueprint"
+   **Web Service 1 - API (JSON Server):**
+   - En el dashboard de Render, haz clic en "New +" → "Web Service"
    - Conecta tu repositorio GitHub: `https://github.com/FedericoSorianox/Bruceapp`
-   - Render detectará automáticamente la configuración en `render.yaml`
-   - Nombre sugerido: `bruceapp-frontend`
+   - **Nombre**: `bruceapp-api`
+   - **Runtime**: Node.js
+   - **Build Command**: `echo "Installing json-server dependency"`
+   - **Start Command**: `npx json-server --watch db.json --port $PORT --host 0.0.0.0`
+   - **Variables de entorno**:
+     - `NODE_ENV`: production
 
-   **Blueprint 2 - API (JSON Server):**
-   - Crea un segundo blueprint con el mismo repositorio
-   - Render detectará automáticamente la configuración en `render-api.yaml`
-   - Nombre sugerido: `bruceapp-api`
+   **Web Service 2 - Frontend (Next.js):**
+   - Crea un segundo web service con el mismo repositorio
+   - **Nombre**: `bruceapp-frontend`
+   - **Runtime**: Node.js
+   - **Build Command**: `npm run build`
+   - **Start Command**: `npm run start`
+   - **Variables de entorno**:
+     - `NODE_ENV`: production
+     - `OPENAI_API_KEY`: Tu clave de OpenAI (como secreto)
+     - `JWT_SECRET`: Secret seguro para autenticación (como secreto)
+     - `NEXT_PUBLIC_API_URL`: URL del servicio API desplegado
 
-4. **Configurar variables de entorno**:
+3. **Configurar variables de entorno**:
    En cada servicio, configura estas variables en el panel de Render:
 
    **Para bruceapp-frontend:**
@@ -120,16 +131,31 @@ Render es una plataforma de cloud que permite desplegar aplicaciones Node.js de 
    **Para bruceapp-api:**
    - `NODE_ENV`: production
 
-5. **Deploy**:
+4. **Deploy**:
    - Render construirá e desplegará automáticamente ambos servicios
    - Una vez completado, tendrás URLs como:
      - Frontend: `https://bruceapp-frontend.onrender.com`
      - API: `https://bruceapp-api.onrender.com`
 
-6. **Configuración de la URL del API**:
-   - ⚠️ **IMPORTANTE**: Después de que ambos servicios estén desplegados, necesitas actualizar la URL del API en el archivo `render.yaml`
-   - Reemplaza `https://your-api-service-name.onrender.com` con la URL real del servicio API desplegado
-   - Redeploy el servicio frontend para aplicar los cambios
+5. **Configuración de la URL del API**:
+   - ⚠️ **IMPORTANTE**: Después de que ambos servicios estén desplegados, necesitas actualizar la variable `NEXT_PUBLIC_API_URL` en el servicio frontend
+   - Ve al dashboard de Render, selecciona el servicio frontend
+   - Actualiza la variable `NEXT_PUBLIC_API_URL` con la URL real del servicio API desplegado
+   - Render redeployará automáticamente el servicio frontend con la nueva configuración
+
+### Configuración Manual en Render Dashboard
+
+Los archivos `render.yaml` y `render-api.yaml` sirven como **referencia** para configurar los web services manualmente:
+
+- **API Service**: Usa la configuración del archivo `render-api.yaml`
+- **Frontend Service**: Usa la configuración del archivo `render.yaml`
+
+**Pasos detallados:**
+1. Crear el servicio API primero usando la configuración de `render-api.yaml`
+2. Una vez desplegado, copia su URL (ej: `https://bruceapp-api-abc123.onrender.com`)
+3. Crear el servicio frontend usando la configuración de `render.yaml`
+4. En el servicio frontend, configura la variable `NEXT_PUBLIC_API_URL` con la URL del API
+5. Configura los secretos `OPENAI_API_KEY` y `JWT_SECRET` en el servicio frontend
 
 ### Comandos Locales para Render
 

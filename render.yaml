@@ -1,3 +1,11 @@
+# Configuración de referencia para Render Web Services
+# ⚠️  NO se usa automáticamente - configura manualmente en el dashboard de Render
+#
+# Frontend Service Configuration:
+# - Build Command: npm run build
+# - Start Command: npm run start
+# - Environment Variables: NODE_ENV=production, OPENAI_API_KEY, JWT_SECRET, NEXT_PUBLIC_API_URL
+
 services:
   - type: web
     name: bruceapp-frontend
@@ -13,11 +21,11 @@ services:
         value: production
       - key: PORT
         value: 3000
+      # Configure these secrets in Render dashboard:
       - key: OPENAI_API_KEY
         fromSecret: openai-api-key
       - key: JWT_SECRET
         fromSecret: jwt-secret
-      # The NEXT_PUBLIC_API_URL will be set to the deployed API service URL
-      # You need to update this with your actual Render API service URL after deployment
+      # Update this with your actual API service URL after deployment
       - key: NEXT_PUBLIC_API_URL
         value: https://your-api-service-name.onrender.com

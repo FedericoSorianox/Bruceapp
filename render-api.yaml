@@ -1,5 +1,10 @@
-# Configuración para el servicio API JSON Server
-# Despliega este servicio primero, luego actualiza la URL en el frontend
+# Configuración de referencia para Render Web Services
+# ⚠️  NO se usa automáticamente - configura manualmente en el dashboard de Render
+#
+# API Service Configuration:
+# - Build Command: echo "Installing json-server dependency"
+# - Start Command: npx json-server --watch db.json --port $PORT --host 0.0.0.0
+# - Environment Variables: NODE_ENV=production
 
 services:
   - type: web
