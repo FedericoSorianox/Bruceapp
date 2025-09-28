@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "start": "next start",
     "server": "json-server --watch db.json --port 3002",
+    "dev:full": "concurrently \"npm run dev\" \"npm run server\"",
     "lint": "next lint",
     "lint:css": "stylelint '**/*.css' --ignore-path .gitignore",
     "format": "prettier --write .",
@@ -18,6 +19,7 @@
   },
   "_scripts_descripcion": {
     "dev": "Inicia servidor de desarrollo de Next.js en modo desarrollo",
+    "dev:full": "Inicia ambos servidores (Next.js + JSON Server) simultáneamente",
     "build": "Construye la aplicación para producción",
     "start": "Inicia servidor de producción de Next.js",
     "server": "Inicia JSON Server como API mock en puerto 3002",
@@ -50,6 +52,7 @@
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.3.7",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.1",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.7",
     "jsdom": "^27.0.0",

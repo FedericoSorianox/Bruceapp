@@ -110,7 +110,9 @@ const buildApiUrl = (path: string): string => {
     return `${window.location.origin}${path}`;
   }
   // Fallback para SSR (Server Side Rendering)
-  return `http://localhost:3000${path}`;
+  // En Render, la API está en un servicio separado, así que usamos la URL del servicio API
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.RENDER_API_URL || 'http://localhost:3002';
+  return `${baseUrl}${path}`;
 };
 
 /**

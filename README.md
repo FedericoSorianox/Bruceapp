@@ -77,7 +77,8 @@ npm run server
 
 ### Scripts Disponibles
 
-- `npm run dev` - Servidor de desarrollo
+- `npm run dev` - Servidor de desarrollo (solo Next.js)
+- `npm run dev:full` - Ambos servidores simultáneamente (Next.js + JSON Server)
 - `npm run build` - Construir para producción
 - `npm run start` - Servidor de producción
 - `npm run server` - JSON Server para API mock
@@ -85,31 +86,67 @@ npm run server
 - `npm run format` - Formatear código
 - `npm run test` - Ejecutar tests
 
-## 🚀 Deployment en Vercel
+## 🚀 Deployment en Render
 
-### Configuración Automática
+Render es una plataforma de cloud que permite desplegar aplicaciones Node.js de forma sencilla y escalable.
 
-1. **Login en Vercel**:
+### Configuración del Deployment
+
+1. **Crear cuenta en Render** (si no tienes una):
+   - Ve a [render.com](https://render.com) y crea una cuenta gratuita
+
+2. **Conectar repositorio de GitHub**:
+   - En el dashboard de Render, haz clic en "New +" → "Blueprint"
+   - Conecta tu repositorio GitHub: `https://github.com/FedericoSorianox/Bruceapp`
+   - Render detectará automáticamente la configuración en `render.yaml`
+
+3. **Configurar servicios**:
+   Render creará automáticamente dos servicios basándose en `render.yaml`:
+   - **bruceapp-frontend**: Aplicación Next.js en puerto 3000
+   - **bruceapp-api**: JSON Server en puerto 3002
+
+4. **Configurar variables de entorno**:
+   En cada servicio, configura estas variables en el panel de Render:
+
+   **Para bruceapp-frontend:**
+   - `OPENAI_API_KEY`: Tu clave de OpenAI para el chat IA
+   - `JWT_SECRET`: Secret seguro para autenticación (genera uno aleatorio)
+   - `NODE_ENV`: production
+   - `NEXT_PUBLIC_API_URL`: URL del servicio API (se configura automáticamente por Render)
+   - `RENDER`: true
+
+   **Para bruceapp-api:**
+   - `NODE_ENV`: production
+   - `PORT`: 3002
+
+5. **Deploy**:
+   - Render construirá e desplegará automáticamente tu aplicación
+   - Una vez completado, tendrás URLs como:
+     - Frontend: `https://bruceapp-frontend.onrender.com`
+     - API: `https://bruceapp-api.onrender.com`
+
+### Comandos Locales para Render
+
 ```bash
-npx vercel login
+# Construir la aplicación (igual que en Render)
+npm run build
+
+# Iniciar aplicación (igual que en Render)
+npm start
+
+# Iniciar API (igual que en Render)
+npm run server
 ```
 
-2. **Deploy**:
-```bash
-npx vercel --prod --yes
-```
+### Notas sobre Render
 
-### Configuración Manual
-
-1. Conectar el repositorio en [Vercel Dashboard](https://vercel.com/dashboard)
-2. Configurar variables de entorno en el panel de Vercel
-3. Deploy automático en cada push a main
-
-### Variables de Entorno en Vercel
-
-- `OPENAI_API_KEY`: Tu clave de OpenAI
-- `JWT_SECRET`: Secret para JWT (generar uno seguro)
-- `NODE_ENV`: production
+- **Plan gratuito**: Puedes usar el plan gratuito que incluye 512MB RAM
+- **Base de datos**: Actualmente usa JSON Server como mock. Para producción considera:
+  - PostgreSQL (disponible en Render)
+  - MongoDB Atlas
+  - O migrar a una base de datos real
+- **Persistencia**: Los archivos subidos se almacenan en el disco persistente configurado
+- **Auto-deploy**: Se configura en `render.yaml` como `autoDeploy: false` para control manual
 
 ## 📁 Estructura del Proyecto
 
@@ -132,7 +169,8 @@ bruceapp/
 │   └── types/             # Definiciones TypeScript
 ├── public/               # Archivos estáticos
 ├── db.json              # Base de datos mock
-└── vercel.json          # Configuración de deployment
+├── render.yaml          # Configuración de deployment para Render
+└── vercel.json          # Configuración de deployment para Vercel (opcional)
 ```
 
 ## 🔒 Autenticación

@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: bruceapp-frontend
+    env: node
+    buildCommand: npm run build
+    startCommand: npm start
+    port: 3000
+    autoDeploy: false
+    healthCheckPath: /
+    plan: free
+    disk:
+      name: bruceapp-data
+      mountPath: /opt/render/project/src
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+
+  - type: pserv
+    name: bruceapp-api
+    env: node
+    startCommand: npm run server
+    port: 3002
+    autoDeploy: false
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3002
