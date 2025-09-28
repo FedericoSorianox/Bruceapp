@@ -105,31 +105,31 @@ Render es una plataforma de cloud que permite desplegar aplicaciones Node.js de 
 
    **Blueprint 2 - API (JSON Server):**
    - Crea un segundo blueprint con el mismo repositorio
-   - Usa esta configuración personalizada:
-     - **Build Command**: `echo "No build needed for API"`
-     - **Start Command**: `npm run server`
-     - **Runtime**: Node.js
+   - Render detectará automáticamente la configuración en `render-api.yaml`
    - Nombre sugerido: `bruceapp-api`
 
 4. **Configurar variables de entorno**:
    En cada servicio, configura estas variables en el panel de Render:
 
    **Para bruceapp-frontend:**
-   - `OPENAI_API_KEY`: Tu clave de OpenAI para el chat IA
-   - `JWT_SECRET`: Secret seguro para autenticación (genera uno aleatorio)
+   - `OPENAI_API_KEY`: Tu clave de OpenAI para el chat IA (como secreto)
+   - `JWT_SECRET`: Secret seguro para autenticación (como secreto)
    - `NODE_ENV`: production
-   - `NEXT_PUBLIC_API_URL`: URL del servicio API (se configura automáticamente por Render)
-   - `RENDER`: true
+   - `NEXT_PUBLIC_API_URL`: URL del servicio API desplegado (se actualiza manualmente)
 
    **Para bruceapp-api:**
    - `NODE_ENV`: production
-   - `PORT`: 3002
 
 5. **Deploy**:
    - Render construirá e desplegará automáticamente ambos servicios
    - Una vez completado, tendrás URLs como:
      - Frontend: `https://bruceapp-frontend.onrender.com`
      - API: `https://bruceapp-api.onrender.com`
+
+6. **Configuración de la URL del API**:
+   - ⚠️ **IMPORTANTE**: Después de que ambos servicios estén desplegados, necesitas actualizar la URL del API en el archivo `render.yaml`
+   - Reemplaza `https://your-api-service-name.onrender.com` con la URL real del servicio API desplegado
+   - Redeploy el servicio frontend para aplicar los cambios
 
 ### Comandos Locales para Render
 

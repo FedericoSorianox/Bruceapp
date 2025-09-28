@@ -1,18 +1,15 @@
-# Configuración alternativa para la API JSON Server
-# Úsala si quieres tener archivos render.yaml separados
-# O configura manualmente en el dashboard de Render
+# Configuración para el servicio API JSON Server
+# Despliega este servicio primero, luego actualiza la URL en el frontend
 
 services:
   - type: web
     name: bruceapp-api
     env: node
-    buildCommand: echo "No build needed for API"
-    startCommand: npm run server
+    buildCommand: echo "Installing json-server dependency"
+    startCommand: npx json-server --watch db.json --port $PORT --host 0.0.0.0
     port: 3002
     autoDeploy: false
     plan: free
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3002

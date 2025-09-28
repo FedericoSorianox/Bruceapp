@@ -3,7 +3,7 @@ services:
     name: bruceapp-frontend
     env: node
     buildCommand: npm run build
-    startCommand: npm start
+    startCommand: npm run start
     port: 3000
     autoDeploy: false
     healthCheckPath: /
@@ -17,5 +17,7 @@ services:
         fromSecret: openai-api-key
       - key: JWT_SECRET
         fromSecret: jwt-secret
+      # The NEXT_PUBLIC_API_URL will be set to the deployed API service URL
+      # You need to update this with your actual Render API service URL after deployment
       - key: NEXT_PUBLIC_API_URL
-        fromSecret: api-url
+        value: https://your-api-service-name.onrender.com
