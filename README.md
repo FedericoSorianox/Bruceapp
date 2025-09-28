@@ -95,15 +95,21 @@ Render es una plataforma de cloud que permite desplegar aplicaciones Node.js de 
 1. **Crear cuenta en Render** (si no tienes una):
    - Ve a [render.com](https://render.com) y crea una cuenta gratuita
 
-2. **Conectar repositorio de GitHub**:
+2. **Crear blueprints separados**:
+
+   **Blueprint 1 - Frontend (Next.js):**
    - En el dashboard de Render, haz clic en "New +" → "Blueprint"
    - Conecta tu repositorio GitHub: `https://github.com/FedericoSorianox/Bruceapp`
    - Render detectará automáticamente la configuración en `render.yaml`
+   - Nombre sugerido: `bruceapp-frontend`
 
-3. **Configurar servicios**:
-   Render creará automáticamente dos servicios basándose en `render.yaml`:
-   - **bruceapp-frontend**: Aplicación Next.js en puerto 3000
-   - **bruceapp-api**: JSON Server en puerto 3002
+   **Blueprint 2 - API (JSON Server):**
+   - Crea un segundo blueprint con el mismo repositorio
+   - Usa esta configuración personalizada:
+     - **Build Command**: `echo "No build needed for API"`
+     - **Start Command**: `npm run server`
+     - **Runtime**: Node.js
+   - Nombre sugerido: `bruceapp-api`
 
 4. **Configurar variables de entorno**:
    En cada servicio, configura estas variables en el panel de Render:
@@ -120,7 +126,7 @@ Render es una plataforma de cloud que permite desplegar aplicaciones Node.js de 
    - `PORT`: 3002
 
 5. **Deploy**:
-   - Render construirá e desplegará automáticamente tu aplicación
+   - Render construirá e desplegará automáticamente ambos servicios
    - Una vez completado, tendrás URLs como:
      - Frontend: `https://bruceapp-frontend.onrender.com`
      - API: `https://bruceapp-api.onrender.com`
