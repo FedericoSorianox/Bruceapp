@@ -1,26 +1,79 @@
-@import "tailwindcss";
+/**
+ * Estilos globales de la aplicación Bruce
+ *
+ * Este archivo contiene:
+ * - Directivas de Tailwind CSS
+ * - Variables CSS personalizadas
+ * - Estilos base del documento
+ * - Soporte para modo oscuro automático
+ */
 
+/**
+ * Directivas de Tailwind CSS
+ *
+ * Estas directivas importan las capas base de Tailwind:
+ * - @tailwind base: Reset CSS y estilos base (normalize, box-sizing, etc.)
+ * - @tailwind components: Estilos para componentes personalizados
+ * - @tailwind utilities: Clases utilitarias de Tailwind (m-4, p-2, text-center, etc.)
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Variables CSS personalizadas - Tema Claro (por defecto)
+ *
+ * Definimos variables CSS en el selector :root que estarán disponibles
+ * globalmente en toda la aplicación. Estas variables se usan en
+ * tailwind.config.js para extender el tema.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Colores del tema claro */
+  --background: #ffffff;        /* Fondo blanco puro */
+  --foreground: #171717;        /* Texto casi negro para máximo contraste */
+
+  /* Fuentes - Variables pasadas desde layout.tsx */
+  --font-inter-sans: var(--font-inter-sans);           /* Fuente principal */
+  --font-jetbrains-mono: var(--font-jetbrains-mono);   /* Fuente monoespaciada */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/**
+ * Media Query para Modo Oscuro Automático
+ *
+ * Detecta si el usuario tiene configurado el modo oscuro en su sistema
+ * y aplica colores apropiados automáticamente.
+ *
+ * Solo se activa si el usuario tiene:
+ * - Sistema operativo en modo oscuro
+ * - Navegador configurado para respetar la preferencia del sistema
+ */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Colores del tema oscuro */
+    --background: #0a0a0a;    /* Fondo negro muy oscuro */
+    --foreground: #ededed;    /* Texto gris claro para buen contraste */
   }
 }
 
+/**
+ * Estilos base del elemento body
+ *
+ * Aplicamos los colores y fuente base a todo el documento.
+ * Estos estilos afectan a toda la aplicación.
+ */
 body {
+  /* Fondo dinámico que cambia con el modo claro/oscuro */
   background: var(--background);
+
+  /* Color de texto dinámico */
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+  /* Fuente principal con fallbacks para máxima compatibilidad */
+  font-family: var(--font-inter-sans), Arial, Helvetica, sans-serif;
+
+  /* Aquí podríamos agregar más estilos globales:
+     - line-height: 1.6;
+     - font-smoothing
+     - scroll-behavior: smooth;
+  */
 }

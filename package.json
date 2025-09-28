@@ -1,27 +1,82 @@
 {
+  "_comentario": "Package.json de Bruce App - Plataforma de Gestión Agrícola Inteligente. Framework: Next.js 14 con TypeScript, Tailwind CSS y JSON Server para API mock.",
   "name": "bruceapp",
   "version": "0.1.0",
   "private": true,
+  "_scripts_comentario": "Scripts disponibles para desarrollo, construcción y mantenimiento del proyecto",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "next dev",
+    "build": "next build",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "start": "next start",
-    "lint": "eslint"
+    "server": "json-server --watch db.json --port 3002",
+    "lint": "next lint",
+    "lint:css": "stylelint '**/*.css' --ignore-path .gitignore",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
+  "_scripts_descripcion": {
+    "dev": "Inicia servidor de desarrollo de Next.js en modo desarrollo",
+    "build": "Construye la aplicación para producción",
+    "start": "Inicia servidor de producción de Next.js",
+    "server": "Inicia JSON Server como API mock en puerto 3002",
+    "lint": "Ejecuta ESLint para verificar calidad del código",
+    "lint:css": "Ejecuta Stylelint para verificar estilos CSS",
+    "format": "Formatea código con Prettier",
+    "format:check": "Verifica formato del código sin modificarlo"
+  },
+  "_dependencies_comentario": "Dependencias de producción - incluidas en el bundle final",
   "dependencies": {
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.5.3"
+    "next": "^14.2.7",
+    "openai": "^4.67.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
+  "_dependencies_descripcion": {
+    "next": "Framework React para producción con App Router, SSR, SSG",
+    "openai": "SDK oficial de OpenAI para integración con GPT-4 y servicios de IA",
+    "react": "Biblioteca principal para crear interfaces de usuario",
+    "react-dom": "Renderizado de React para navegadores web"
+  },
+  "_devDependencies_comentario": "Dependencias de desarrollo - solo para desarrollo y construcción",
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.3",
-    "@eslint/eslintrc": "^3"
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.16.5",
+    "@types/react": "^18.3.24",
+    "@types/react-dom": "^18.3.7",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.7",
+    "jsdom": "^27.0.0",
+    "json-server": "^1.0.0-beta.3",
+    "postcss": "^8.4.45",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "stylelint": "^16.9.0",
+    "stylelint-config-tailwindcss": "^0.0.7",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4",
+    "vitest": "^3.2.4"
+  },
+  "_devDependencies_descripcion": {
+    "@types/node": "Tipos TypeScript para Node.js",
+    "@types/react": "Tipos TypeScript para React",
+    "@types/react-dom": "Tipos TypeScript para React DOM",
+    "autoprefixer": "Agrega prefijos CSS automáticamente para compatibilidad",
+    "eslint": "Linter de JavaScript/TypeScript",
+    "eslint-config-next": "Configuración ESLint específica para Next.js",
+    "json-server": "API mock para desarrollo (simula backend)",
+    "postcss": "Procesador CSS para Tailwind y Autoprefixer",
+    "prettier": "Formateador de código",
+    "prettier-plugin-tailwindcss": "Plugin Prettier para ordenar clases Tailwind",
+    "stylelint": "Linter de CSS",
+    "stylelint-config-tailwindcss": "Configuración Stylelint para Tailwind",
+    "tailwindcss": "Framework CSS utilitario",
+    "typescript": "Lenguaje de programación con tipado estático"
   }
 }
