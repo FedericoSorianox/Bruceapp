@@ -4,6 +4,29 @@
  */
 
 /**
+ * Interfaz para las notas del sistema
+ * Notas agrícolas para documentar observaciones, tareas y conocimientos
+ */
+export interface Nota {
+  id: string;                    // ID único de la nota
+  title: string;                 // Título de la nota
+  content: string;               // Contenido de la nota
+  category?: string;             // Categoría de la nota
+  tags?: string[];               // Etiquetas para categorización
+  date?: string;                 // Fecha de la nota
+  author?: string;               // Autor de la nota
+  priority?: string;             // Prioridad de la nota
+  hasImages?: boolean;           // Indica si tiene imágenes adjuntas
+  cropArea?: string;             // Área del cultivo relacionada
+  fechaCreacion: string;         // Fecha de creación
+  fechaActualizacion?: string;   // Fecha de última actualización
+  activo: boolean;               // Indica si la nota está activa
+  destacado?: boolean;           // Indica si es una nota destacada
+  creadoPor?: string;            // Email del usuario que creó la nota
+  editadoPor?: string;           // Email del usuario que editó por última vez
+}
+
+/**
  * Interfaz que define una imagen en la galería del cultivo
  * Estructura para almacenar información de cada imagen asociada al cultivo
  */

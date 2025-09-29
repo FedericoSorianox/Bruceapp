@@ -90,7 +90,12 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error en POST /api/notas:', error);
 
-    if (error.name === 'ValidationError') {
+    // Type guard para verificar si es un error de validación de Mongoose
+    const isValidationError = (err: unknown): err is { name: string; errors: Record<string, { message: string }> } => {
+      return typeof err === 'object' && err !== null && 'name' in err && 'errors' in err;
+    };
+
+    if (isValidationError(error) && error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map((err: any) => err.message);
       return NextResponse.json(
         { success: false, error: 'Datos inválidos', details: validationErrors },

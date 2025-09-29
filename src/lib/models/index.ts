@@ -20,7 +20,8 @@ import Comentario from './Comentario';
 import MensajeChat from './MensajeChat';
 
 // Exportar modelos individualmente para importación específica
-export { Cultivo, Tarea, Nota, Comentario, MensajeChat };
+export { Cultivo, Tarea, Nota, Comentario };
+export type { MensajeChat };
 
 // Exportar tipos de documentos para TypeScript
 export type { CultivoDocument } from './Cultivo';

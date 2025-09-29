@@ -232,7 +232,8 @@ export function crearComentarioRapido(
     tipo,
     prioridad,
     tags: [],
-    imagenes: []
+    imagenes: [],
+    activo: true
   };
 }
 

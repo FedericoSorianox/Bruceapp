@@ -155,10 +155,11 @@ export function crearMensajeUsuario(
     tipo: 'user',
     contenido,
     imagenes,
-    tipoContenido: imagenes && imagenes.length > 0 ? 
+    tipoContenido: imagenes && imagenes.length > 0 ?
       (contenido.trim() ? 'mixed' : 'image') : 'text',
     timestamp: new Date().toISOString(),
-    procesando: false
+    procesando: false,
+    activo: true
   };
 }
 
@@ -182,7 +183,8 @@ export function crearMensajeIA(
     tipoContenido: 'text',
     timestamp: new Date().toISOString(),
     procesando: false,
-    respuestaA: mensajeUsuarioId
+    respuestaA: mensajeUsuarioId,
+    activo: true
   };
 }
 
@@ -203,7 +205,8 @@ export function crearMensajeSistema(
     contenido,
     tipoContenido: 'text',
     timestamp: new Date().toISOString(),
-    procesando: true
+    procesando: true,
+    activo: true
   };
 }
 

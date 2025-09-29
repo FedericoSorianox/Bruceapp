@@ -20,7 +20,6 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import { Cultivo } from '@/lib/models';
-import type { Cultivo as CultivoType } from '@/types/cultivo';
 
 // Función para validar permisos desde token (simulación)
 function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
@@ -124,8 +123,18 @@ export async function GET(
   } catch (error) {
     console.error('Error en GET /api/cultivos/[id]:', error);
 
+    // Type guard para verificar si es un error de MongoDB
+    const isMongoError = (err: unknown): err is { name: string } => {
+      return typeof err === 'object' && err !== null && 'name' in err;
+    };
+
+    // Type guard para verificar si es un error de Cast de MongoDB
+    const isCastError = (err: unknown): err is { name: string; path: string; message: string } => {
+      return typeof err === 'object' && err !== null && 'name' in err && 'path' in err && 'message' in err;
+    };
+
     // Manejo específico de errores de MongoDB
-    if (error.name === 'CastError') {
+    if (isCastError(error) && error.name === 'CastError') {
       return NextResponse.json(
         {
           success: false,
@@ -137,7 +146,7 @@ export async function GET(
     }
 
     // Error de conexión a base de datos
-    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+    if (isMongoError(error) && (error.name === 'MongoError' || error.name === 'MongooseError')) {
       return NextResponse.json(
         {
           success: false,
@@ -282,9 +291,24 @@ export async function PATCH(
   } catch (error) {
     console.error('Error en PATCH /api/cultivos/[id]:', error);
 
+    // Type guard para verificar si es un error de validación de Mongoose
+    const isValidationError = (err: unknown): err is { name: string; errors: Record<string, { message: string }> } => {
+      return typeof err === 'object' && err !== null && 'name' in err && 'errors' in err;
+    };
+
+    // Type guard para verificar si es un error de MongoDB
+    const isMongoError = (err: unknown): err is { name: string } => {
+      return typeof err === 'object' && err !== null && 'name' in err;
+    };
+
+    // Type guard para verificar si es un error de Cast de MongoDB
+    const isCastError = (err: unknown): err is { name: string; path: string; message: string } => {
+      return typeof err === 'object' && err !== null && 'name' in err && 'path' in err && 'message' in err;
+    };
+
     // Manejar errores de validación de Mongoose
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+    if (isValidationError(error) && error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err) => err.message);
       return NextResponse.json(
         {
           success: false,
@@ -297,7 +321,7 @@ export async function PATCH(
     }
 
     // Manejo de errores de tipo de datos
-    if (error.name === 'CastError') {
+    if (isCastError(error) && error.name === 'CastError') {
       return NextResponse.json(
         {
           success: false,
@@ -321,7 +345,7 @@ export async function PATCH(
     }
 
     // Error de conexión a base de datos
-    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+    if (isMongoError(error) && (error.name === 'MongoError' || error.name === 'MongooseError')) {
       return NextResponse.json(
         {
           success: false,
@@ -451,8 +475,18 @@ export async function DELETE(
   } catch (error) {
     console.error('Error en DELETE /api/cultivos/[id]:', error);
 
+    // Type guard para verificar si es un error de Cast de MongoDB
+    const isCastError = (err: unknown): err is { name: string; path: string; message: string } => {
+      return typeof err === 'object' && err !== null && 'name' in err && 'path' in err && 'message' in err;
+    };
+
+    // Type guard para verificar si es un error de MongoDB
+    const isMongoError = (err: unknown): err is { name: string } => {
+      return typeof err === 'object' && err !== null && 'name' in err;
+    };
+
     // Manejo de errores de tipo de datos
-    if (error.name === 'CastError') {
+    if (isCastError(error) && error.name === 'CastError') {
       return NextResponse.json(
         {
           success: false,
@@ -464,7 +498,7 @@ export async function DELETE(
     }
 
     // Error de conexión a base de datos
-    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+    if (isMongoError(error) && (error.name === 'MongoError' || error.name === 'MongooseError')) {
       return NextResponse.json(
         {
           success: false,

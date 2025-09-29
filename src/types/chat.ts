@@ -48,6 +48,19 @@ export interface MensajeChat {
   procesando?: boolean;          // Indica si el mensaje se está procesando
   error?: string;                // Mensaje de error si hubo problemas
   respuestaA?: string;           // ID del mensaje al que responde (solo para mensajes de IA)
+  tokensUsados?: {               // Métricas de tokens de OpenAI (solo para mensajes assistant)
+    prompt: number;
+    completion: number;
+    total: number;
+  };
+  contextoEnviado?: boolean;     // Indica si se envió contexto del cultivo con este mensaje
+  versionContexto?: string;      // Versión del contexto del cultivo enviado
+  calificacion?: number;         // Calificación del usuario (1-5 estrellas)
+  feedback?: string;             // Feedback del usuario sobre la respuesta
+  usuarioId?: string;            // ID del usuario que envió el mensaje
+  ipAddress?: string;            // IP del usuario para analytics
+  activo: boolean;               // Indica si el mensaje está activo
+  destacado?: boolean;           // Indica si es un mensaje destacado
 }
 
 /**
@@ -150,6 +163,14 @@ export interface ComentarioCultivo {
   prioridad: PrioridadComentario; // Nivel de importancia
   imagenes?: ImagenMensaje[];    // Imágenes adjuntas al comentario
   tags?: string[];               // Etiquetas para categorización
+  // ===== ESTADO Y SEGUIMIENTO =====
+  resuelto?: boolean;            // Indica si el comentario está resuelto
+  resuelto_por?: string;         // Usuario que resolvió el comentario
+  fechaResolucion?: string;      // Fecha cuando se resolvió
+  editadoPor?: string;           // Usuario que editó el comentario
+  activo: boolean;               // Indica si el comentario está activo
+  destacado?: boolean;           // Indica si es un comentario destacado
+  numeroEdiciones?: number;      // Número de veces que se editó
 }
 
 /**

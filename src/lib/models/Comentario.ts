@@ -256,14 +256,40 @@ const ComentarioSchema = new Schema<ComentarioDocument>({
   // Opciones del schema
   timestamps: false, // Manejamos fechas manualmente
   collection: 'comentarios', // Nombre explícito de la colección
-  toJSON: { 
+  toJSON: {
     virtuals: true,
     transform: function(doc, ret) {
-      ret.id = ret._id.toString(); // Mapear _id a id para compatibilidad
-      delete ret._id;
-      delete ret.__v;
-      delete ret.activo;
-      delete ret.numeroEdiciones;
+      // Definir interface para el objeto ret para evitar usar any
+      interface ComentarioRet {
+        _id?: mongoose.Types.ObjectId;
+        __v?: number;
+        activo?: boolean;
+        numeroEdiciones?: number;
+        id?: string;
+        cultivoId?: string;
+        titulo?: string;
+        contenido?: string;
+        autor?: string;
+        fecha?: string;
+        fechaActualizacion?: string;
+        tipo?: string;
+        prioridad?: string;
+        imagenes?: ImagenMensaje[];
+        tags?: string[];
+        resuelto?: boolean;
+        fechaResolucion?: string;
+        resuelto_por?: string;
+        editadoPor?: string;
+        destacado?: boolean;
+      }
+
+      const retTyped = ret as ComentarioRet;
+
+      retTyped.id = retTyped._id?.toString(); // Mapear _id a id para compatibilidad
+      delete retTyped._id;
+      delete retTyped.__v;
+      delete retTyped.activo;
+      delete retTyped.numeroEdiciones;
       return ret;
     }
   },
@@ -354,61 +380,70 @@ ComentarioSchema.pre('save', function(next) {
 // ===== MÉTODOS ESTÁTICOS =====
 
 // Buscar comentarios por cultivo
-ComentarioSchema.statics.findByCultivo = function(cultivoId: string, options: any = {}) {
-  return this.find({ 
-    cultivoId, 
+ComentarioSchema.statics.findByCultivo = function(cultivoId: string, options: Record<string, unknown> = {}) {
+  return this.find({
+    cultivoId,
     activo: true,
-    ...options 
+    ...options
   }).sort({ fecha: -1 });
 };
 
 // Buscar comentarios por tipo
 ComentarioSchema.statics.findByTipo = function(tipo: TipoComentario, cultivoId?: string) {
-  const query: any = { tipo, activo: true };
+  const query: { tipo: TipoComentario; activo: boolean; cultivoId?: string } = { tipo, activo: true };
   if (cultivoId) query.cultivoId = cultivoId;
-  
+
   return this.find(query).sort({ fecha: -1 });
 };
 
 // Buscar comentarios pendientes (no resueltos)
 ComentarioSchema.statics.findPendientes = function(cultivoId?: string) {
-  const query: any = { resuelto: false, activo: true };
+  const query: { resuelto: boolean; activo: boolean; cultivoId?: string } = { resuelto: false, activo: true };
   if (cultivoId) query.cultivoId = cultivoId;
-  
+
   return this.find(query).sort({ prioridad: -1, fecha: -1 });
 };
 
 // Buscar comentarios críticos
 ComentarioSchema.statics.findCriticos = function(cultivoId?: string) {
-  const query: any = { 
-    prioridad: 'critica', 
-    resuelto: false, 
-    activo: true 
+  const query: {
+    prioridad: string;
+    resuelto: boolean;
+    activo: boolean;
+    cultivoId?: string
+  } = {
+    prioridad: 'critica',
+    resuelto: false,
+    activo: true
   };
   if (cultivoId) query.cultivoId = cultivoId;
-  
+
   return this.find(query).sort({ fecha: -1 });
 };
 
 // Búsqueda full-text
 ComentarioSchema.statics.search = function(query: string, cultivoId?: string) {
-  const searchQuery: any = {
+  const searchQuery: {
+    $text: { $search: string };
+    activo: boolean;
+    cultivoId?: string
+  } = {
     $text: { $search: query },
     activo: true
   };
   if (cultivoId) searchQuery.cultivoId = cultivoId;
-  
+
   return this.find(searchQuery, {
     score: { $meta: 'textScore' }
-  }).sort({ 
+  }).sort({
     score: { $meta: 'textScore' },
-    fecha: -1 
+    fecha: -1
   });
 };
 
 // Obtener estadísticas de comentarios
 ComentarioSchema.statics.getStats = async function(cultivoId?: string) {
-  const match: any = { activo: true };
+  const match: { activo: boolean; cultivoId?: string } = { activo: true };
   if (cultivoId) match.cultivoId = cultivoId;
   
   const stats = await this.aggregate([
@@ -454,13 +489,17 @@ ComentarioSchema.statics.getStats = async function(cultivoId?: string) {
 ComentarioSchema.statics.findRecientes = function(horas: number = 24, cultivoId?: string) {
   const fechaLimite = new Date();
   fechaLimite.setHours(fechaLimite.getHours() - horas);
-  
-  const query: any = { 
+
+  const query: {
+    fecha: { $gte: string };
+    activo: boolean;
+    cultivoId?: string
+  } = {
     fecha: { $gte: fechaLimite.toISOString() },
-    activo: true 
+    activo: true
   };
   if (cultivoId) query.cultivoId = cultivoId;
-  
+
   return this.find(query).sort({ fecha: -1 });
 };
 
@@ -505,20 +544,20 @@ ComentarioSchema.methods.agregarEtiqueta = function(etiqueta: string) {
 };
 
 // Quitar etiqueta
-ComentarioSchema.methods.quitarEtiqueta = function(etiqueta: string) {
+ComentarioSchema.methods.quitarEtiqueta = function(this: ComentarioDocument, etiqueta: string) {
   const tag = etiqueta.toLowerCase().trim();
-  this.tags = this.tags.filter(t => t !== tag);
+  this.tags = (this.tags || []).filter((t: string) => t !== tag);
   return this.save();
 };
 
 // Archivar comentario
-ComentarioSchema.methods.archivar = function() {
+ComentarioSchema.methods.archivar = function(this: ComentarioDocument) {
   this.activo = false;
   return this.save();
 };
 
 // Restaurar comentario archivado
-ComentarioSchema.methods.restaurar = function() {
+ComentarioSchema.methods.restaurar = function(this: ComentarioDocument) {
   this.activo = true;
   return this.save();
 };

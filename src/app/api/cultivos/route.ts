@@ -20,6 +20,8 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Cultivo } from '@/lib/models';
 import type { Cultivo as CultivoType } from '@/types/cultivo';
+import { FilterQuery } from 'mongoose';
+import type { CultivoDocument } from '@/lib/models/Cultivo';
 
 // Función para validar permisos desde token (simulación)
 function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
@@ -39,15 +41,6 @@ function puedeCrearCultivo(user: { email: string; role: 'admin' | 'user' } | nul
   return user?.role === 'admin';
 }
 
-// Función para verificar si el usuario puede eliminar cultivos
-function puedeEliminarCultivo(user: { email: string; role: 'admin' | 'user' } | null): boolean {
-  return user?.role === 'admin';
-}
-
-// Función para verificar si el usuario puede editar recursos
-function puedeEditarRecursos(user: { email: string; role: 'admin' | 'user' } | null): boolean {
-  return user !== null;
-}
 
 // Las interfaces y funciones de db.json han sido reemplazadas por MongoDB
 // Todas las operaciones ahora usan Mongoose para interactuar con MongoDB
@@ -80,7 +73,7 @@ export async function GET(request: Request) {
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
     // Construir query de MongoDB
-    let query: any = {};
+    const query: FilterQuery<CultivoDocument> = {};
 
     // Aplicar filtro por estado activo
     if (activoFilter !== null) {
@@ -220,9 +213,24 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error en POST /api/cultivos:', error);
 
+    // Type guard para verificar si es un error de validación de Mongoose
+    const isValidationError = (err: unknown): err is { name: string; errors: Record<string, { message: string }> } => {
+      return typeof err === 'object' && err !== null && 'name' in err && 'errors' in err && err.errors !== undefined;
+    };
+
+    // Type guard para verificar si es un error con código
+    const isErrorWithCode = (err: unknown): err is { code: number } => {
+      return typeof err === 'object' && err !== null && 'code' in err;
+    };
+
+    // Type guard para verificar si es un error de MongoDB/Mongoose
+    const isMongooseError = (err: unknown): err is { name: string } => {
+      return typeof err === 'object' && err !== null && 'name' in err;
+    };
+
     // Manejar errores de validación de Mongoose
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+    if (isValidationError(error) && error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err) => err.message);
       return NextResponse.json(
         {
           success: false,
@@ -235,7 +243,7 @@ export async function POST(request: Request) {
     }
 
     // Manejar errores de duplicación (índices únicos)
-    if (error.code === 11000) {
+    if (isErrorWithCode(error) && error.code === 11000) {
       return NextResponse.json(
         {
           success: false,
@@ -259,7 +267,7 @@ export async function POST(request: Request) {
     }
 
     // Error de conexión a base de datos
-    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+    if (isMongooseError(error) && (error.name === 'MongoError' || error.name === 'MongooseError')) {
       return NextResponse.json(
         {
           success: false,

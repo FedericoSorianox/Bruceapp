@@ -26,6 +26,12 @@ export interface Note {
   priority?: string;
   hasImages?: boolean;
   cropArea?: string;
+  fechaCreacion: string;
+  fechaActualizacion?: string;
+  activo: boolean;
+  destacado?: boolean;
+  creadoPor?: string;
+  editadoPor?: string;
 }
 
 // Extender el tipo base con las propiedades de Mongoose Document
@@ -170,12 +176,12 @@ const NotaSchema = new Schema<NotaDocument>({
   },
 
   // ===== ESTADO Y VISIBILIDAD =====
-  activa: {
+  activo: {
     type: Boolean,
     default: true,
     index: true // Para filtrar notas activas
   },
-  destacada: {
+  destacado: {
     type: Boolean,
     default: false,
     index: true // Para mostrar notas destacadas
@@ -188,14 +194,14 @@ const NotaSchema = new Schema<NotaDocument>({
     virtuals: true,
     transform: function(doc, ret) {
       ret.id = ret._id.toString(); // Mapear _id a id para compatibilidad
-      delete ret._id;
-      delete ret.__v;
-      delete ret.fechaCreacion; // Usar 'date' en lugar de fechaCreacion para compatibilidad
-      delete ret.fechaActualizacion;
-      delete ret.activa;
-      delete ret.destacada;
-      delete ret.creadoPor;
-      delete ret.editadoPor;
+      delete (ret as any)._id;
+      delete (ret as any).__v;
+      delete (ret as any).fechaCreacion; // Usar 'date' en lugar de fechaCreacion para compatibilidad
+      delete (ret as any).fechaActualizacion;
+      delete (ret as any).activo;
+      delete (ret as any).destacado;
+      delete (ret as any).creadoPor;
+      delete (ret as any).editadoPor;
       return ret;
     }
   },
@@ -444,9 +450,9 @@ NotaSchema.methods.agregarEtiqueta = function(etiqueta: string) {
 };
 
 // Quitar etiqueta
-NotaSchema.methods.quitarEtiqueta = function(etiqueta: string) {
+NotaSchema.methods.quitarEtiqueta = function(this: NotaDocument, etiqueta: string) {
   const tag = etiqueta.toLowerCase().trim();
-  this.tags = this.tags.filter(t => t !== tag);
+  this.tags = (this.tags || []).filter((t: string) => t !== tag);
   return this.save();
 };
 

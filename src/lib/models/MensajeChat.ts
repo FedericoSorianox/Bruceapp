@@ -239,10 +239,10 @@ const MensajeChatSchema = new Schema<MensajeChatDocument>({
     virtuals: true,
     transform: function(doc, ret) {
       ret.id = ret._id.toString(); // Mapear _id a id para compatibilidad
-      delete ret._id;
-      delete ret.__v;
-      delete ret.activo;
-      delete ret.ipAddress; // No exponer IP en respuestas
+      delete (ret as any)._id;
+      delete (ret as any).__v;
+      delete (ret as any).activo;
+      delete (ret as any).ipAddress; // No exponer IP en respuestas
       return ret;
     }
   },

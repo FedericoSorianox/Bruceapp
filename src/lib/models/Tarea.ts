@@ -224,8 +224,8 @@ const TareaSchema = new Schema<TareaDocument>({
     virtuals: true,
     transform: function(doc, ret) {
       ret.id = ret._id.toString(); // Mapear _id a id para compatibilidad
-      delete ret._id;
-      delete ret.__v;
+      delete (ret as any)._id;
+      delete (ret as any).__v;
       return ret;
     }
   },
@@ -256,8 +256,8 @@ TareaSchema.virtual('debeEnviarRecordatorio').get(function() {
   if (this.estado === 'completada' || this.estado === 'cancelada') return false;
   
   const ahora = new Date();
-  const fechaProgramada = new Date(`${this.fechaProgramada}T${this.horaProgramada || '12:00'}:00`);
-  const tiempoRecordatorio = new Date(fechaProgramada.getTime() - (this.minutosRecordatorio * 60 * 1000));
+  const fechaProgramada = new Date(`${this.fechaProgramada}T${this.horaProgramada || '12:00'}:00.000Z`);
+  const tiempoRecordatorio = new Date(fechaProgramada.getTime() - ((this.minutosRecordatorio || 0) * 60 * 1000));
   
   return ahora >= tiempoRecordatorio;
 });
@@ -339,10 +339,10 @@ TareaSchema.statics.findParaRecordatorio = function() {
     recordatorioActivado: true,
     recordatorioEnviado: false,
     estado: { $in: ['pendiente', 'en_progreso'] }
-  }).then(tareas => {
-    return tareas.filter(tarea => {
-      const fechaProgramada = new Date(`${tarea.fechaProgramada}T${tarea.horaProgramada || '12:00'}:00`);
-      const tiempoRecordatorio = new Date(fechaProgramada.getTime() - (tarea.minutosRecordatorio * 60 * 1000));
+  }).then((tareas: any[]) => {
+    return tareas.filter((tarea: any) => {
+      const fechaProgramada = new Date(`${tarea.fechaProgramada}T${tarea.horaProgramada || '12:00'}:00.000Z`);
+      const tiempoRecordatorio = new Date(fechaProgramada.getTime() - ((tarea.minutosRecordatorio || 0) * 60 * 1000));
       return ahora >= tiempoRecordatorio;
     });
   });
