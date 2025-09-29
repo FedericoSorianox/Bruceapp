@@ -70,6 +70,9 @@
     "typescript": "^5.5.4",
     "vitest": "^3.2.4"
   },
+  "engines": {
+    "node": ">=18.0.0 <19.0.0"
+  },
   "_devDependencies_descripcion": {
     "@types/node": "Tipos TypeScript para Node.js",
     "@types/react": "Tipos TypeScript para React",
