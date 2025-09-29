@@ -1,23 +1,18 @@
 /**
- * API Route para gestión de tareas de cultivo
- *
- * Esta API sirve como puente entre el frontend y los datos almacenados
- * en db.json. Proporciona operaciones CRUD para la gestión de tareas de cultivo.
- *
- * Endpoints:
- * - GET /api/tareas - Obtiene todas las tareas con filtros opcionales
- * - POST /api/tareas - Crea una nueva tarea
+ * API Route para gestión de tareas de cultivo con MongoDB
+ * 
+ * Migración completa de JSON Server a MongoDB usando Mongoose.
+ * Incluye validaciones automáticas, gestión de tareas recurrentes y auditoría.
  */
 
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import connectDB from '@/lib/mongodb';
+import { Tarea } from '@/lib/models';
 import type { TareaCultivo } from '@/types/planificacion';
 
-// Función para validar permisos desde token (simulación)
+// Funciones de permisos (reutilizadas)
 function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
   if (!token || !token.startsWith('fake-')) return null;
-
   try {
     const decoded = atob(token.replace('fake-', ''));
     const role: 'admin' | 'user' = decoded === 'admin@bruce.app' ? 'admin' : 'user';
@@ -27,353 +22,125 @@ function validarPermisos(token: string | null): { email: string; role: 'admin' |
   }
 }
 
-// Función para verificar si el usuario puede crear tareas
 function puedeCrearTarea(user: { email: string; role: 'admin' | 'user' } | null): boolean {
   return user?.role === 'admin';
 }
 
-// Función para verificar si el usuario puede eliminar tareas
-function puedeEliminarTarea(user: { email: string; role: 'admin' | 'user' } | null): boolean {
-  return user?.role === 'admin';
-}
-
-// Función para verificar si el usuario puede editar recursos
 function puedeEditarRecursos(user: { email: string; role: 'admin' | 'user' } | null): boolean {
   return user !== null;
 }
 
 /**
- * Interfaz para el esquema completo de la base de datos
- */
-interface DatabaseSchema {
-  persons: any[];
-  sampleNotes: any[];
-  cultivos: any[];
-  tareas: TareaCultivo[];
-}
-
-/**
- * Función para leer datos del archivo db.json
- *
- * @returns {DatabaseSchema} - Datos de la base de datos
- * @throws {Error} - Si no se puede leer el archivo
- */
-const readDatabase = (): DatabaseSchema => {
-  try {
-    // Construir la ruta al archivo db.json desde la raíz del proyecto
-    const dbPath = path.join(process.cwd(), 'db.json');
-
-    // Leer el archivo de forma síncrona
-    const data = fs.readFileSync(dbPath, 'utf8');
-
-    // Parsear el JSON
-    const database: DatabaseSchema = JSON.parse(data);
-
-    // Asegurar que existe el array de tareas
-    if (!database.tareas) {
-      database.tareas = [];
-    }
-
-    return database;
-  } catch (error) {
-    console.error('Error leyendo db.json:', error);
-    throw new Error('No se pudo cargar la base de datos');
-  }
-};
-
-/**
- * Función para escribir datos al archivo db.json
- *
- * @param database - Datos de la base de datos a escribir
- * @throws {Error} - Si no se puede escribir el archivo
- */
-const writeDatabase = (database: DatabaseSchema): void => {
-  try {
-    // Construir la ruta al archivo db.json desde la raíz del proyecto
-    const dbPath = path.join(process.cwd(), 'db.json');
-
-    // Convertir a JSON con formato legible
-    const data = JSON.stringify(database, null, 2);
-
-    // Escribir el archivo de forma síncrona
-    fs.writeFileSync(dbPath, data, 'utf8');
-  } catch (error) {
-    console.error('Error escribiendo db.json:', error);
-    throw new Error('No se pudo guardar la base de datos');
-  }
-};
-
-/**
- * GET /api/tareas
- *
- * Obtiene todas las tareas desde db.json con soporte para búsqueda y filtros
- * Parámetros de query soportados:
- * - cultivoId: filtrar por cultivo específico
- * - tipo: filtrar por tipo de tarea
- * - estado: filtrar por estado de tarea
- * - prioridad: filtrar por prioridad
- * - fechaDesde: tareas desde esta fecha
- * - fechaHasta: tareas hasta esta fecha
- * - esRecurrente: filtrar por tareas recurrentes
- * - q: búsqueda full-text en título y descripción
- * - _sort: campo por el cual ordenar
- * - _order: dirección del ordenamiento (asc, desc)
+ * GET /api/tareas - Lista tareas con filtros MongoDB optimizados
  */
 export async function GET(request: Request) {
   try {
-    // Leer la base de datos
-    const database = readDatabase();
+    await connectDB();
 
-    // Extraer las tareas
-    const tareas = database.tareas || [];
-
-    // Obtener parámetros de la URL
     const url = new URL(request.url);
     const cultivoId = url.searchParams.get('cultivoId');
     const tipo = url.searchParams.get('tipo');
     const estado = url.searchParams.get('estado');
-    const prioridad = url.searchParams.get('prioridad');
     const fechaDesde = url.searchParams.get('fechaDesde');
     const fechaHasta = url.searchParams.get('fechaHasta');
-    const esRecurrente = url.searchParams.get('esRecurrente');
-    const searchQuery = url.searchParams.get('q');
-    const sortBy = url.searchParams.get('_sort');
-    const sortOrder = url.searchParams.get('_order');
+    const page = parseInt(url.searchParams.get('_page') || '1');
+    const limit = parseInt(url.searchParams.get('_limit') || '50');
 
-    // Validar que las tareas tengan el formato correcto
-    const validatedTareas = tareas.filter((tarea: TareaCultivo) => {
-      return (
-        tarea.id &&
-        tarea.titulo &&
-        typeof tarea.titulo === 'string'
-      );
-    });
-
-    // Aplicar filtros
-    let filteredTareas = validatedTareas;
-
-    // Filtro por cultivo
-    if (cultivoId) {
-      filteredTareas = filteredTareas.filter((tarea: TareaCultivo) =>
-        tarea.cultivoId === cultivoId
-      );
+    // Construir query de MongoDB
+    let query: any = {};
+    if (cultivoId) query.cultivoId = cultivoId;
+    if (tipo) query.tipo = tipo;
+    if (estado) query.estado = estado;
+    if (fechaDesde || fechaHasta) {
+      query.fechaProgramada = {};
+      if (fechaDesde) query.fechaProgramada.$gte = fechaDesde;
+      if (fechaHasta) query.fechaProgramada.$lte = fechaHasta;
     }
 
-    // Filtro por tipo
-    if (tipo) {
-      filteredTareas = filteredTareas.filter((tarea: TareaCultivo) =>
-        tarea.tipo === tipo
-      );
-    }
+    // Ejecutar consulta con paginación
+    const tareas = await Tarea.find(query)
+      .sort({ fechaProgramada: 1, horaProgramada: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
-    // Filtro por estado
-    if (estado) {
-      filteredTareas = filteredTareas.filter((tarea: TareaCultivo) =>
-        tarea.estado === estado
-      );
-    }
+    const total = await Tarea.countDocuments(query);
 
-    // Filtro por prioridad
-    if (prioridad) {
-      filteredTareas = filteredTareas.filter((tarea: TareaCultivo) =>
-        tarea.prioridad === prioridad
-      );
-    }
-
-    // Filtro por fechas
-    if (fechaDesde) {
-      filteredTareas = filteredTareas.filter((tarea: TareaCultivo) =>
-        tarea.fechaProgramada >= fechaDesde
-      );
-    }
-
-    if (fechaHasta) {
-      filteredTareas = filteredTareas.filter((tarea: TareaCultivo) =>
-        tarea.fechaProgramada <= fechaHasta
-      );
-    }
-
-    // Filtro por recurrentes
-    if (esRecurrente !== null) {
-      const recurrente = esRecurrente === 'true';
-      filteredTareas = filteredTareas.filter((tarea: TareaCultivo) =>
-        tarea.esRecurrente === recurrente
-      );
-    }
-
-    // Aplicar búsqueda si hay query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filteredTareas = filteredTareas.filter((tarea: TareaCultivo) => {
-        return (
-          tarea.titulo.toLowerCase().includes(query) ||
-          (tarea.descripcion && tarea.descripcion.toLowerCase().includes(query))
-        );
-      });
-    }
-
-    // Aplicar ordenamiento
-    if (sortBy && [
-      'titulo', 'fechaProgramada', 'fechaCreacion', 'tipo', 'estado', 'prioridad'
-    ].includes(sortBy)) {
-      filteredTareas.sort((a: TareaCultivo, b: TareaCultivo) => {
-        const aValue = a[sortBy as keyof TareaCultivo] || '';
-        const bValue = b[sortBy as keyof TareaCultivo] || '';
-
-        let comparison = 0;
-        if (aValue < bValue) comparison = -1;
-        if (aValue > bValue) comparison = 1;
-
-        return sortOrder === 'desc' ? -comparison : comparison;
-      });
-    }
-
-    // Devolver respuesta exitosa
     return NextResponse.json({
       success: true,
-      data: filteredTareas,
-      total: filteredTareas.length
+      data: tareas,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
     });
 
   } catch (error) {
     console.error('Error en GET /api/tareas:', error);
-
-    // Devolver error al cliente
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Error interno del servidor',
-        message: 'No se pudieron cargar las tareas'
-      },
+      { success: false, error: 'Error interno del servidor', message: 'No se pudieron cargar las tareas' },
       { status: 500 }
     );
   }
 }
 
 /**
- * POST /api/tareas
- *
- * Crea una nueva tarea y la guarda en db.json
+ * POST /api/tareas - Crea nueva tarea con validaciones automáticas
  */
 export async function POST(request: Request) {
   try {
-    // 🔒 VALIDACIÓN DE PERMISOS
+    await connectDB();
+
+    // Validación de permisos
     const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
     const user = validarPermisos(token);
 
     if (!user) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'No autorizado',
-          message: 'Token de autenticación inválido o faltante'
-        },
+        { success: false, error: 'No autorizado', message: 'Token de autenticación inválido' },
         { status: 401 }
       );
     }
 
     if (!puedeCrearTarea(user)) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Permisos insuficientes',
-          message: 'Solo los administradores pueden crear tareas'
-        },
+        { success: false, error: 'Permisos insuficientes', message: 'Solo administradores pueden crear tareas' },
         { status: 403 }
       );
     }
 
-    // Leer el body de la petición
-    const newTarea: Omit<TareaCultivo, 'id' | 'fechaCreacion' | 'fechaActualizacion' | 'recordatorioEnviado'> = await request.json();
-
-    // Validar campos obligatorios
-    if (!newTarea.titulo || typeof newTarea.titulo !== 'string' || newTarea.titulo.trim() === '') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Datos inválidos',
-          message: 'El título de la tarea es obligatorio'
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!newTarea.cultivoId || typeof newTarea.cultivoId !== 'string') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Datos inválidos',
-          message: 'El ID del cultivo es obligatorio'
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!newTarea.fechaProgramada || typeof newTarea.fechaProgramada !== 'string') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Datos inválidos',
-          message: 'La fecha programada es obligatoria'
-        },
-        { status: 400 }
-      );
-    }
-
-    // Leer la base de datos actual
-    const database = readDatabase();
-
-    // Generar un ID único para la nueva tarea
-    const newId = String(Date.now());
-
-    // Crear la tarea completa con ID y campos automáticos
-    const tareaToAdd: TareaCultivo = {
-      id: newId,
-      ...newTarea,
+    // Leer datos y agregar auditoría
+    const tareaData = await request.json();
+    const tareaConAuditoria = {
+      ...tareaData,
       fechaCreacion: new Date().toISOString().split('T')[0],
       fechaActualizacion: new Date().toISOString().split('T')[0],
-      estado: newTarea.estado || 'pendiente',
-      recordatorioEnviado: false,
+      creadoPor: user.email,
+      recordatorioEnviado: false
     };
 
-    // Agregar la nueva tarea al array
-    if (!database.tareas) {
-      database.tareas = [];
-    }
-    database.tareas = [...database.tareas, tareaToAdd];
+    // Crear y guardar con validaciones automáticas
+    const nuevaTarea = new Tarea(tareaConAuditoria);
+    const tareaGuardada = await nuevaTarea.save();
 
-    // Guardar los cambios en db.json
-    writeDatabase(database);
-
-    // Devolver respuesta exitosa con la tarea creada
     return NextResponse.json({
       success: true,
-      data: tareaToAdd,
+      data: tareaGuardada.toJSON(),
       message: 'Tarea creada exitosamente'
     });
 
   } catch (error) {
     console.error('Error en POST /api/tareas:', error);
 
-    // Verificar si es un error de JSON inválido
-    if (error instanceof SyntaxError) {
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Datos inválidos',
-          message: 'El formato de los datos enviados no es válido'
-        },
+        { success: false, error: 'Datos inválidos', message: 'Errores de validación', details: validationErrors },
         { status: 400 }
       );
     }
 
-    // Devolver error al cliente
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Error interno del servidor',
-        message: 'No se pudo crear la tarea'
-      },
+      { success: false, error: 'Error interno del servidor', message: 'No se pudo crear la tarea' },
       { status: 500 }
     );
   }

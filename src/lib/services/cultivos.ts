@@ -110,8 +110,8 @@ const buildApiUrl = (path: string): string => {
     return `${window.location.origin}${path}`;
   }
   // Fallback para SSR (Server Side Rendering)
-  // En Render, la API está en un servicio separado, así que usamos la URL del servicio API
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.RENDER_API_URL || 'http://localhost:3002';
+  // MongoDB API está integrada en Next.js, no necesitamos URL externa
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
   return `${baseUrl}${path}`;
 };
 

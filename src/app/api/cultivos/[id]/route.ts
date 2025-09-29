@@ -1,18 +1,26 @@
 /**
- * API Route para gestión de cultivos individuales
+ * API Route para gestión de cultivos individuales con MongoDB
  *
- * Esta API maneja operaciones CRUD para cultivos específicos por ID.
+ * Esta API maneja operaciones CRUD para cultivos específicos por ID usando Mongoose.
+ * Proporciona validaciones automáticas del esquema y manejo optimizado de errores.
  *
  * Endpoints:
  * - GET /api/cultivos/[id] - Obtiene un cultivo específico
  * - PATCH /api/cultivos/[id] - Actualiza un cultivo existente
  * - DELETE /api/cultivos/[id] - Elimina un cultivo
+ * 
+ * Características:
+ * - Validación automática de ObjectId de MongoDB
+ * - Validaciones de esquema con Mongoose
+ * - Auditoría de cambios
+ * - Manejo optimizado de errores de base de datos
  */
 
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import type { Cultivo } from '@/types/cultivo';
+import mongoose from 'mongoose';
+import connectDB from '@/lib/mongodb';
+import { Cultivo } from '@/lib/models';
+import type { Cultivo as CultivoType } from '@/types/cultivo';
 
 // Función para validar permisos desde token (simulación)
 function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
@@ -38,100 +46,27 @@ function puedeEditarRecursos(user: { email: string; role: 'admin' | 'user' } | n
 }
 
 /**
- * Interfaz para representar una persona en la base de datos
+ * Helper para validar ObjectId de MongoDB
+ * @param id - ID a validar
+ * @returns true si es un ObjectId válido
  */
-interface Person {
-  name: string;
-  number: string;
-  id: string;
+function isValidObjectId(id: string): boolean {
+  return mongoose.Types.ObjectId.isValid(id);
 }
-
-/**
- * Interfaz para una nota en la base de datos
- */
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  category?: string;
-  tags?: string[];
-  date?: string;
-  author?: string;
-  priority?: string;
-  hasImages?: boolean;
-  cropArea?: string;
-}
-
-/**
- * Interfaz para el esquema completo de la base de datos
- */
-interface DatabaseSchema {
-  persons: Person[];
-  sampleNotes: Note[];
-  cultivos: Cultivo[];
-}
-
-/**
- * Función para leer datos del archivo db.json
- *
- * @returns {DatabaseSchema} - Datos de la base de datos
- * @throws {Error} - Si no se puede leer el archivo
- */
-const readDatabase = (): DatabaseSchema => {
-  try {
-    // Construir la ruta al archivo db.json desde la raíz del proyecto
-    const dbPath = path.join(process.cwd(), 'db.json');
-
-    // Leer el archivo de forma síncrona
-    const data = fs.readFileSync(dbPath, 'utf8');
-
-    // Parsear el JSON
-    const database: DatabaseSchema = JSON.parse(data);
-
-    // Asegurar que existe el array de cultivos
-    if (!database.cultivos) {
-      database.cultivos = [];
-    }
-
-    return database;
-  } catch (error) {
-    console.error('Error leyendo db.json:', error);
-    throw new Error('No se pudo cargar la base de datos');
-  }
-};
-
-/**
- * Función para escribir datos al archivo db.json
- *
- * @param database - Datos de la base de datos a escribir
- * @throws {Error} - Si no se puede escribir el archivo
- */
-const writeDatabase = (database: DatabaseSchema): void => {
-  try {
-    // Construir la ruta al archivo db.json desde la raíz del proyecto
-    const dbPath = path.join(process.cwd(), 'db.json');
-
-    // Convertir a JSON con formato legible
-    const data = JSON.stringify(database, null, 2);
-
-    // Escribir el archivo de forma síncrona
-    fs.writeFileSync(dbPath, data, 'utf8');
-  } catch (error) {
-    console.error('Error escribiendo db.json:', error);
-    throw new Error('No se pudo guardar la base de datos');
-  }
-};
 
 /**
  * GET /api/cultivos/[id]
  *
- * Obtiene un cultivo específico por su ID
+ * Obtiene un cultivo específico por su ID desde MongoDB
  */
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Conectar a MongoDB
+    await connectDB();
+
     const { id } = params;
 
     // Validar que se proporcione un ID
@@ -146,11 +81,20 @@ export async function GET(
       );
     }
 
-    // Leer la base de datos actual
-    const database = readDatabase();
+    // Validar formato de ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'ID inválido',
+          message: 'El ID proporcionado no tiene un formato válido'
+        },
+        { status: 400 }
+      );
+    }
 
-    // Buscar el cultivo por ID
-    const cultivo = database.cultivos.find(c => c.id === id);
+    // Buscar el cultivo por ID en MongoDB
+    const cultivo = await Cultivo.findById(id).lean();
 
     if (!cultivo) {
       return NextResponse.json(
@@ -163,17 +107,48 @@ export async function GET(
       );
     }
 
+    // Convertir _id a id para compatibilidad
+    const cultivoTransformado = {
+      ...cultivo,
+      id: cultivo._id.toString(),
+      _id: undefined
+    };
+
     // Devolver respuesta exitosa con el cultivo encontrado
     return NextResponse.json({
       success: true,
-      data: cultivo,
+      data: cultivoTransformado,
       message: 'Cultivo encontrado exitosamente'
     });
 
   } catch (error) {
     console.error('Error en GET /api/cultivos/[id]:', error);
 
-    // Devolver error al cliente
+    // Manejo específico de errores de MongoDB
+    if (error.name === 'CastError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'ID inválido',
+          message: 'El ID proporcionado no es válido'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Error de conexión a base de datos
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Error de base de datos',
+          message: 'No se pudo conectar a la base de datos'
+        },
+        { status: 503 }
+      );
+    }
+
+    // Devolver error genérico al cliente
     return NextResponse.json(
       {
         success: false,
@@ -188,13 +163,16 @@ export async function GET(
 /**
  * PATCH /api/cultivos/[id]
  *
- * Actualiza un cultivo existente parcialmente
+ * Actualiza un cultivo existente parcialmente en MongoDB
  */
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Conectar a MongoDB
+    await connectDB();
+
     const { id } = params;
 
     // 🔒 VALIDACIÓN DE PERMISOS
@@ -235,34 +213,48 @@ export async function PATCH(
       );
     }
 
-    // Leer el body de la petición (campos a actualizar)
-    const updates: Partial<Cultivo> = await request.json();
-
-    // Validar que no se intente cambiar el ID
-    if ('id' in updates) {
-      delete updates.id;
-    }
-
-    // Validar el nombre si se está actualizando
-    if (updates.nombre !== undefined && 
-        (typeof updates.nombre !== 'string' || updates.nombre.trim() === '')) {
+    // Validar formato de ObjectId
+    if (!isValidObjectId(id)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Datos inválidos',
-          message: 'El nombre del cultivo debe ser una cadena de texto no vacía'
+          error: 'ID inválido',
+          message: 'El ID proporcionado no tiene un formato válido'
         },
         { status: 400 }
       );
     }
 
-    // Leer la base de datos actual
-    const database = readDatabase();
+    // Leer el body de la petición (campos a actualizar)
+    const updates = await request.json();
 
-    // Buscar el cultivo por ID
-    const cultivoIndex = database.cultivos.findIndex(c => c.id === id);
+    // Validar que no se intente cambiar campos no permitidos
+    const camposNoPermitidos = ['_id', 'id'];
+    camposNoPermitidos.forEach(campo => {
+      if (campo in updates) {
+        delete updates[campo];
+      }
+    });
 
-    if (cultivoIndex === -1) {
+    // Agregar auditoría automáticamente
+    const updatesConAuditoria = {
+      ...updates,
+      fechaActualizacion: new Date().toISOString().split('T')[0],
+      editadoPor: user.email, // 🔒 Auditoría: registrar quién editó
+    };
+
+    // Actualizar el cultivo en MongoDB con validaciones automáticas
+    const cultivoActualizado = await Cultivo.findByIdAndUpdate(
+      id,
+      updatesConAuditoria,
+      { 
+        new: true, // Retornar el documento actualizado
+        runValidators: true, // Ejecutar validaciones del esquema
+        lean: true // Mejor performance
+      }
+    );
+
+    if (!cultivoActualizado) {
       return NextResponse.json(
         {
           success: false,
@@ -273,28 +265,48 @@ export async function PATCH(
       );
     }
 
-    // Aplicar las actualizaciones al cultivo existente
-    const updatedCultivo: Cultivo = {
-      ...database.cultivos[cultivoIndex],
-      ...updates,
-      fechaActualizacion: new Date().toISOString().split('T')[0], // Actualizar fecha automáticamente
+    // Convertir _id a id para compatibilidad
+    const cultivoTransformado = {
+      ...cultivoActualizado,
+      id: cultivoActualizado._id.toString(),
+      _id: undefined
     };
-
-    // Actualizar el cultivo en el array
-    database.cultivos[cultivoIndex] = updatedCultivo;
-
-    // Guardar los cambios en db.json
-    writeDatabase(database);
 
     // Devolver respuesta exitosa con el cultivo actualizado
     return NextResponse.json({
       success: true,
-      data: updatedCultivo,
+      data: cultivoTransformado,
       message: 'Cultivo actualizado exitosamente'
     });
 
   } catch (error) {
     console.error('Error en PATCH /api/cultivos/[id]:', error);
+
+    // Manejar errores de validación de Mongoose
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Datos inválidos',
+          message: 'Errores de validación',
+          details: validationErrors
+        },
+        { status: 400 }
+      );
+    }
+
+    // Manejo de errores de tipo de datos
+    if (error.name === 'CastError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Datos inválidos',
+          message: `Error en el campo ${error.path}: ${error.message}`
+        },
+        { status: 400 }
+      );
+    }
 
     // Verificar si es un error de JSON inválido
     if (error instanceof SyntaxError) {
@@ -308,7 +320,19 @@ export async function PATCH(
       );
     }
 
-    // Devolver error al cliente
+    // Error de conexión a base de datos
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Error de base de datos',
+          message: 'No se pudo conectar a la base de datos'
+        },
+        { status: 503 }
+      );
+    }
+
+    // Devolver error genérico al cliente
     return NextResponse.json(
       {
         success: false,
@@ -323,13 +347,16 @@ export async function PATCH(
 /**
  * DELETE /api/cultivos/[id]
  *
- * Elimina un cultivo existente
+ * Elimina un cultivo existente de MongoDB
  */
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Conectar a MongoDB
+    await connectDB();
+
     const { id } = params;
 
     // 🔒 VALIDACIÓN DE PERMISOS
@@ -370,13 +397,26 @@ export async function DELETE(
       );
     }
 
-    // Leer la base de datos actual
-    const database = readDatabase();
+    // Validar formato de ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'ID inválido',
+          message: 'El ID proporcionado no tiene un formato válido'
+        },
+        { status: 400 }
+      );
+    }
 
-    // Buscar el cultivo por ID
-    const cultivoIndex = database.cultivos.findIndex(c => c.id === id);
+    // TODO: Aquí deberías verificar si hay datos relacionados antes de eliminar
+    // Por ejemplo, tareas, comentarios, mensajes de chat, etc.
+    // y decidir si hacer eliminación en cascada o soft delete
 
-    if (cultivoIndex === -1) {
+    // Buscar y eliminar el cultivo en una sola operación
+    const cultivoEliminado = await Cultivo.findByIdAndDelete(id).lean();
+
+    if (!cultivoEliminado) {
       return NextResponse.json(
         {
           success: false,
@@ -387,26 +427,55 @@ export async function DELETE(
       );
     }
 
-    // Guardar el cultivo antes de eliminarlo (por si necesitamos rollback)
-    const cultivoToDelete = database.cultivos[cultivoIndex];
+    // Convertir _id a id para compatibilidad
+    const cultivoTransformado = {
+      ...cultivoEliminado,
+      id: cultivoEliminado._id.toString(),
+      _id: undefined
+    };
 
-    // Eliminar el cultivo del array
-    database.cultivos.splice(cultivoIndex, 1);
-
-    // Guardar los cambios en db.json
-    writeDatabase(database);
+    // Log de auditoría para eliminación
+    console.log(`🗑️ Cultivo eliminado por ${user.email}:`, {
+      id: cultivoEliminado._id,
+      nombre: cultivoEliminado.nombre,
+      timestamp: new Date().toISOString()
+    });
 
     // Devolver respuesta exitosa
     return NextResponse.json({
       success: true,
-      data: cultivoToDelete,
+      data: cultivoTransformado,
       message: 'Cultivo eliminado exitosamente'
     });
 
   } catch (error) {
     console.error('Error en DELETE /api/cultivos/[id]:', error);
 
-    // Devolver error al cliente
+    // Manejo de errores de tipo de datos
+    if (error.name === 'CastError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'ID inválido',
+          message: 'El ID proporcionado no es válido'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Error de conexión a base de datos
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Error de base de datos',
+          message: 'No se pudo conectar a la base de datos'
+        },
+        { status: 503 }
+      );
+    }
+
+    // Devolver error genérico al cliente
     return NextResponse.json(
       {
         success: false,
