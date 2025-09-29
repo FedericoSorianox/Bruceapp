@@ -155,7 +155,7 @@ const MensajeChatSchema = new Schema<MensajeChatDocument>({
   // ===== RELACIONES ENTRE MENSAJES =====
   respuestaA: {
     type: String,
-    index: true // Para encontrar cadenas de conversación
+    // Índice definido explícitamente más abajo para evitar duplicados
   },
 
   // ===== MÉTRICAS DE IA (solo para mensajes assistant) =====
