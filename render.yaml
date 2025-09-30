@@ -1,37 +1,38 @@
-# Configuración de referencia para Render Web Services
-# ⚠️  NO se usa automáticamente - configura manualmente en el dashboard de Render
+# 🚀 CONFIGURACIÓN CORRECTA PARA RENDER
+# ⚠️ IMPORTANTE: Esta configuración debe coincidir exactamente con el dashboard de Render
 #
-# Frontend Service Configuration:
-# - Build Command: npm run build
-# - Start Command: npm run start
-# - Environment Variables: NODE_ENV=production, OPENAI_API_KEY, JWT_SECRET, NEXT_PUBLIC_API_URL
+# PARA APLICAR ESTOS CAMBIOS:
+# 1. Ve al dashboard de Render → Settings
+# 2. Copia exactamente esta configuración
+# 3. Configura las Secret Files mencionadas abajo
+# 4. Redeploy manualmente
 
 services:
   - type: web
     name: bruceapp-frontend
     env: node
-    buildCommand: npm ci && npm run build
+    # ✅ CORRECCIÓN 1: Build command simplificado (sin npm ci)
+    buildCommand: npm run build
     startCommand: npm run start
-    port: 3000
-    autoDeploy: false
-    healthCheckPath: /
-    plan: free
+    # ✅ CORRECCIÓN 2: Puerto dinámico para compatibilidad con Render
+    # Render asigna PORT automáticamente (10000 o similar)
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3000
+      # ✅ CORRECCIÓN 3: Node.js version específica
+      - key: NODE_VERSION
+        value: 18.20.4
       - key: NODE_OPTIONS
         value: --max-old-space-size=4096
-      - key: PATH
-        value: /opt/render/project/src/node_modules/.bin:/usr/local/bin:/usr/bin:/bin
-      # Configure these secrets in Render dashboard:
-      - key: OPENAI_API_KEY
-        fromSecret: openai-api-key
-      - key: JWT_SECRET
-        fromSecret: jwt-secret
-      - key: MONGODB_URI
-        fromSecret: mongodb-uri
-      # Use localhost for API calls since this is a frontend-only deployment
+      # ✅ CORRECCIÓN 4: URL pública correcta
       - key: NEXT_PUBLIC_API_URL
         value: https://bruceapponrender.com
+    
+    # 🔒 SECRET FILES REQUERIDOS (configurar en dashboard):
+    # 1. JWT_SECRET: Generar con: openssl rand -base64 32
+    # 2. MONGODB_URI: Connection string de MongoDB Atlas
+    # 3. OPENAI_API_KEY: API key de OpenAI (sk-...)
+    
+    autoDeploy: true
+    healthCheckPath: /
+    plan: free
