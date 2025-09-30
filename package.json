@@ -6,10 +6,10 @@
   "_scripts_comentario": "Scripts disponibles para desarrollo, construcción y mantenimiento del proyecto",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx next build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "start": "next start",
+    "start": "npx next start",
     "migrate": "node scripts/migrate-to-mongodb.js",
     "seed": "node scripts/seed-mongodb.js",
     "db:reset": "npm run seed",
