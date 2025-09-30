@@ -10,7 +10,7 @@ services:
   - type: web
     name: bruceapp-frontend
     env: node
-    buildCommand: npm install && npm run build
+    buildCommand: rm -rf node_modules && npm install && npm run build
     startCommand: npm run start
     port: 3000
     autoDeploy: false
