@@ -10,7 +10,7 @@ services:
   - type: web
     name: bruceapp-frontend
     env: node
-    buildCommand: npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm run start
     port: 3000
     autoDeploy: false
@@ -21,6 +21,8 @@ services:
         value: production
       - key: PORT
         value: 3000
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=4096
       # Configure these secrets in Render dashboard:
       - key: OPENAI_API_KEY
         fromSecret: openai-api-key
