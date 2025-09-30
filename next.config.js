@@ -13,7 +13,8 @@ const nextConfig = {
   // Esto asegura que los alias @/ funcionen correctamente en todos los entornos
   webpack: (config) => {
     // Configurar alias explícito para @/ -> ./src/
-    config.resolve.alias['@'] = path.resolve(__dirname, './src');
+    // Usamos process.cwd() en lugar de __dirname para compatibilidad con ES modules
+    config.resolve.alias['@'] = path.resolve(process.cwd(), 'src');
 
     return config;
   },
