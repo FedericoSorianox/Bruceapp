@@ -6,7 +6,7 @@
  *
  * @type {import('next').NextConfig}
  */
-const path = require('path');
+import path from 'path';
 
 const nextConfig = {
   // Configuración explícita de alias de paths para resolver problemas de deploy en Render
@@ -19,4 +19,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
