@@ -12,11 +12,24 @@ import OpenAI from 'openai';
 import type { ChatCompletionMessageParam, ChatCompletionContentPart } from 'openai/resources/chat/completions';
 import type { PayloadOpenAI, ApiResponseChat, ContextoCultivo, ImagenPayload } from '@/types/chat';
 
-// Inicializar cliente de OpenAI
+// Inicializar cliente de OpenAI con manejo de errores
 // La API key debe estar configurada en las variables de entorno (.env.local)
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Configura tu API key en .env.local
-});
+let openai: OpenAI | null = null;
+
+try {
+  if (process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  } else if (process.env.NODE_ENV === 'production') {
+    console.warn('⚠️ OPENAI_API_KEY no definida en producción - chat estará deshabilitado');
+  }
+} catch (error) {
+  console.error('❌ Error inicializando OpenAI:', error);
+  if (process.env.NODE_ENV !== 'production') {
+    throw error; // Solo fallar en desarrollo
+  }
+}
 
 // Modelos recomendados por OpenAI a septiembre 2025
 const MODELO_MULTIMODAL = 'gpt-4o-mini';
@@ -104,13 +117,13 @@ function construirMensajeUsuario(mensaje: string, imagenes?: ImagenPayload[]): C
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verificar que la API key está configurada
-    if (!process.env.OPENAI_API_KEY) {
-      console.error('OPENAI_API_KEY no está configurada en las variables de entorno');
+    // Verificar que OpenAI está inicializado correctamente
+    if (!openai) {
+      console.error('OpenAI client no está inicializado');
       return NextResponse.json<ApiResponseChat>({
         success: false,
-        error: 'Configuración de OpenAI no encontrada'
-      }, { status: 500 });
+        error: 'Servicio de IA no disponible'
+      }, { status: 503 });
     }
 
     // Parsear el body de la petición
@@ -169,7 +182,12 @@ export async function POST(request: NextRequest) {
 
     console.log('Enviando petición a OpenAI...');
     console.log('Modelo a usar:', modeloSeleccionado);
-    
+
+    // Verificación adicional de seguridad
+    if (!openai) {
+      throw new Error('OpenAI client no disponible');
+    }
+
     // Llamar a OpenAI
     const completion = await openai.chat.completions.create({
       model: modeloSeleccionado,

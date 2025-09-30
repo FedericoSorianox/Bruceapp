@@ -45,6 +45,12 @@ async function connectDB(): Promise<mongoose.Connection> {
 
   // Verificar que existe la URL de conexión
   if (!process.env.MONGODB_URI) {
+    // En producción, devolver conexión mock para evitar fallos en build
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('⚠️ MONGODB_URI no definida en producción - funciones de DB estarán limitadas');
+      // Retornar una conexión mock que no haga nada
+      return cached?.conn || { readyState: 99 } as mongoose.Connection;
+    }
     throw new Error(
       '❌ MONGODB_URI no está definida en las variables de entorno.\n' +
       'Crea un archivo .env.local con: MONGODB_URI=mongodb://localhost:27017/bruceapp'

@@ -26,6 +26,8 @@ services:
         fromSecret: openai-api-key
       - key: JWT_SECRET
         fromSecret: jwt-secret
-      # Update this with your actual API service URL after deployment
+      - key: MONGODB_URI
+        fromSecret: mongodb-uri
+      # Use localhost for API calls since this is a frontend-only deployment
       - key: NEXT_PUBLIC_API_URL
-        value: https://your-api-service-name.onrender.com
+        value: https://bruceapponrender.com
