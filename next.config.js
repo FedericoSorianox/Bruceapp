@@ -6,12 +6,14 @@
  *
  * @type {import('next').NextConfig}
  */
+const path = require('path');
+
 const nextConfig = {
   // Configuración explícita de alias de paths para resolver problemas de deploy en Render
   // Esto asegura que los alias @/ funcionen correctamente en todos los entornos
   webpack: (config) => {
-    // Agregar alias explícito para @/ -> ./src/
-    config.resolve.alias['@/'] = config.resolve.alias['@/'] || './src/';
+    // Configurar alias explícito para @/ -> ./src/
+    config.resolve.alias['@'] = path.resolve(__dirname, './src');
 
     return config;
   },
