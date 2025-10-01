@@ -4,6 +4,7 @@
 
 // Importaciones necesarias de React
 import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '@/lib/auth/AuthProvider';
 
 // Importación de tipos desde el módulo de servicios de notas
 import type { Note, ListParams } from '../services/notes';
@@ -18,6 +19,7 @@ import { listNotes, createNote as sCreate, updateNote as sUpdate, removeNote as 
  * @returns Objeto con estado y funciones para manipular las notas
  */
 export function useNotes(initial: ListParams = { _sort: 'title', _order: 'asc' }) {
+  const { token } = useAuth();
   // Estado de parámetros de consulta (filtros, ordenamiento, paginación)
   const [params, setParams] = useState<ListParams>(initial);
 
@@ -43,7 +45,7 @@ export function useNotes(initial: ListParams = { _sort: 'title', _order: 'asc' }
         setError(null);
 
         // Llama al servicio para obtener las notas con los parámetros actuales
-        const data = await listNotes(params, controller.signal);
+        const data = await listNotes(params, controller.signal, token || undefined);
 
         // Actualiza el estado con las notas obtenidas
         setNotes(data);
@@ -86,7 +88,7 @@ export function useNotes(initial: ListParams = { _sort: 'title', _order: 'asc' }
 
     try {
       // Intenta guardar en el servidor
-      const saved = await sCreate(payload);
+      const saved = await sCreate(payload, token || undefined);
 
       // Reconciliación: reemplaza la nota optimista con la guardada (puede tener ID diferente)
       setNotes(prev => prev.map(n => (n.id === optimistic.id ? saved : n)));
@@ -100,7 +102,7 @@ export function useNotes(initial: ListParams = { _sort: 'title', _order: 'asc' }
       // Re-lanza el error para que lo maneje el componente que llama
       throw e;
     }
-  }, []);
+  }, [token]);
 
   /**
    * Actualiza una nota con UI optimista
@@ -121,7 +123,7 @@ export function useNotes(initial: ListParams = { _sort: 'title', _order: 'asc' }
 
     try {
       // Intenta actualizar en el servidor
-      return await sUpdate(id, patch);
+      return await sUpdate(id, patch, token || undefined);
     } catch (e) {
       // En caso de error, revierte al estado original usando el backup
       if (backup) setNotes(prev => prev.map(n => (n.id === id ? backup! : n)));
@@ -129,7 +131,7 @@ export function useNotes(initial: ListParams = { _sort: 'title', _order: 'asc' }
       // Re-lanza el error para que lo maneje el componente que llama
       throw e;
     }
-  }, []);
+  }, [token]);
 
   /**
    * Elimina una nota con UI optimista
@@ -147,7 +149,7 @@ export function useNotes(initial: ListParams = { _sort: 'title', _order: 'asc' }
 
     try {
       // Intenta eliminar en el servidor
-      await sRemove(id);
+      await sRemove(id, token || undefined);
       return true;
     } catch (e) {
       // En caso de error, restaura la nota eliminada usando el backup
@@ -156,7 +158,7 @@ export function useNotes(initial: ListParams = { _sort: 'title', _order: 'asc' }
       // Re-lanza el error para que lo maneje el componente que llama
       throw e;
     }
-  }, []);
+  }, [token]);
 
   // Retorna el objeto con todos los estados y funciones disponibles para usar el hook
   return {

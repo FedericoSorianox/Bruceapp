@@ -36,7 +36,11 @@ export type ListParams = {
  * @param signal - Señal de aborto opcional para cancelar la petición
  * @returns Promise con array de notas
  */
-export async function listNotes(params: ListParams = {}, signal?: AbortSignal): Promise<Note[]> {
+export async function listNotes(
+  params: ListParams = {},
+  signal?: AbortSignal,
+  token?: string
+): Promise<Note[]> {
   // Construye la URL base con el endpoint de notas
   const url = `${API_BASE}/${R}`;
 
@@ -49,8 +53,10 @@ export async function listNotes(params: ListParams = {}, signal?: AbortSignal): 
   // Construye la URL final con parámetros de consulta
   const finalUrl = searchParams.toString() ? `${url}?${searchParams.toString()}` : url;
 
-  // Realiza la petición GET con soporte para cancelación
-  const res = await fetch(finalUrl, { signal });
+  // Realiza la petición GET con soporte para cancelación y autenticación
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(finalUrl, { signal, headers });
 
   // Lanza error si la respuesta no es exitosa
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -70,11 +76,14 @@ export async function listNotes(params: ListParams = {}, signal?: AbortSignal): 
  * @param note - Datos de la nota sin el ID (se genera automáticamente)
  * @returns Promise con la nota creada incluyendo el ID generado
  */
-export async function createNote(note: Omit<Note, 'id'>): Promise<Note> {
+export async function createNote(note: Omit<Note, 'id'>, token?: string): Promise<Note> {
   // Realiza petición POST para crear la nota (la API local genera el ID)
   const res = await fetch(`${API_BASE}/${R}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' }, // Especifica que enviamos JSON
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
     body: JSON.stringify(note), // Envía solo los datos sin ID
   });
 
@@ -97,11 +106,14 @@ export async function createNote(note: Omit<Note, 'id'>): Promise<Note> {
  * @param patch - Campos a actualizar (solo los campos modificados)
  * @returns Promise con la nota actualizada
  */
-export async function updateNote(id: string, patch: Partial<Note>): Promise<Note> {
+export async function updateNote(id: string, patch: Partial<Note>, token?: string): Promise<Note> {
   // Realiza petición PATCH para actualizar solo los campos especificados
   const res = await fetch(`${API_BASE}/${R}/${id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' }, // Especifica que enviamos JSON
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
     body: JSON.stringify(patch), // Convierte los cambios a JSON string
   });
 
@@ -123,9 +135,11 @@ export async function updateNote(id: string, patch: Partial<Note>): Promise<Note
  * @param id - ID de la nota a eliminar
  * @returns Promise con true si la eliminación fue exitosa
  */
-export async function removeNote(id: string): Promise<boolean> {
+export async function removeNote(id: string, token?: string): Promise<boolean> {
   // Realiza petición DELETE para eliminar la nota
-  const res = await fetch(`${API_BASE}/${R}/${id}`, { method: 'DELETE' });
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}/${R}/${id}`, { method: 'DELETE', headers });
 
   // Lanza error si la eliminación falla
   if (!res.ok) throw new Error('No se pudo borrar');

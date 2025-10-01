@@ -6,8 +6,10 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Nota } from '@/lib/models';
+import type { NotaDocument } from '@/lib/models';
 import jwt from 'jsonwebtoken';
 import { construirFiltroUsuario } from '@/lib/utils/multiTenancy';
+import type { FilterQuery } from 'mongoose';
 
 /**
  * 🔐 JWT CONFIGURATION
@@ -78,7 +80,7 @@ export async function GET(request: Request) {
     const page = parseInt(url.searchParams.get('_page') || '1');
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
-    let query: any = { activa: true };
+    const query: FilterQuery<NotaDocument> = { activo: true };
 
     if (category) query.category = category;
     if (author) query.author = { $regex: author, $options: 'i' };
@@ -130,12 +132,24 @@ export async function POST(request: Request) {
   try {
     await connectDB();
 
+    // 🔒 VALIDACIÓN DE PERMISOS
+    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
+    const user = validarPermisos(token);
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'No autorizado', message: 'Token de autenticación inválido o faltante' },
+        { status: 401 }
+      );
+    }
+
     const notaData = await request.json();
     const notaConFechas = {
       ...notaData,
       date: notaData.date || new Date().toISOString().split('T')[0],
       fechaCreacion: new Date().toISOString().split('T')[0],
-      fechaActualizacion: new Date().toISOString().split('T')[0]
+      fechaActualizacion: new Date().toISOString().split('T')[0],
+      author: notaData.author || user.email
     };
 
     const nuevaNota = new Nota(notaConFechas);
@@ -156,7 +170,7 @@ export async function POST(request: Request) {
     };
 
     if (isValidationError(error) && error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      const validationErrors = Object.values(error.errors).map((err) => err.message);
       return NextResponse.json(
         { success: false, error: 'Datos inválidos', details: validationErrors },
         { status: 400 }

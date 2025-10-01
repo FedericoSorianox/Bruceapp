@@ -111,7 +111,8 @@ function generarTareasRecurrentes(tarea: TareaCultivo, fechaFin: string): TareaC
  */
 export async function listTareas(
   params: ListaTareasParams = {},
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  token?: string
 ): Promise<TareaCultivo[]> {
   const url = new URL(buildApiUrl(`${API_BASE}/${R}`));
 
@@ -120,7 +121,9 @@ export async function listTareas(
   });
 
   try {
-    const res = await fetch(url, { signal });
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(url, { signal, headers });
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -143,9 +146,11 @@ export async function listTareas(
 /**
  * Obtiene una tarea específica por su ID
  */
-export async function getTarea(id: string, signal?: AbortSignal): Promise<TareaCultivo> {
+export async function getTarea(id: string, signal?: AbortSignal, token?: string): Promise<TareaCultivo> {
   try {
-    const res = await fetch(`${API_BASE}/${R}/${id}`, { signal });
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE}/${R}/${id}`, { signal, headers });
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -195,9 +200,12 @@ export async function createTarea(tarea: TareaCreacion): Promise<TareaCultivo> {
       creadoPor: auth.user.email,
     };
 
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (auth.token) headers['Authorization'] = `Bearer ${auth.token}`;
+
     const res = await fetch(`${API_BASE}/${R}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(tareaConFechas),
     });
 
@@ -243,9 +251,12 @@ export async function updateTarea(id: string, patch: Partial<TareaCultivo>): Pro
       editadoPor: auth.user.email,
     };
 
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (auth.token) headers['Authorization'] = `Bearer ${auth.token}`;
+
     const res = await fetch(`${API_BASE}/${R}/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(patchConFecha),
     });
 
@@ -284,7 +295,9 @@ export async function removeTarea(id: string): Promise<boolean> {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/${R}/${id}`, { method: 'DELETE' });
+    const headers: Record<string, string> = {};
+    if (auth.token) headers['Authorization'] = `Bearer ${auth.token}`;
+    const res = await fetch(`${API_BASE}/${R}/${id}`, { method: 'DELETE', headers });
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -326,14 +339,16 @@ export async function cancelarTarea(id: string): Promise<TareaCultivo> {
  * Obtiene tareas para un cultivo específico
  */
 export async function getTareasPorCultivo(cultivoId: string): Promise<TareaCultivo[]> {
-  return listTareas({ cultivoId });
+  const auth = useAuth();
+  return listTareas({ cultivoId }, undefined, auth.token || undefined);
 }
 
 /**
  * Obtiene tareas para una fecha específica
  */
 export async function getTareasPorFecha(fecha: string): Promise<TareaCultivo[]> {
-  return listTareas({ fechaDesde: fecha, fechaHasta: fecha });
+  const auth = useAuth();
+  return listTareas({ fechaDesde: fecha, fechaHasta: fecha }, undefined, auth.token || undefined);
 }
 
 /**
@@ -341,7 +356,8 @@ export async function getTareasPorFecha(fecha: string): Promise<TareaCultivo[]> 
  */
 export async function getTareasVencidas(): Promise<TareaCultivo[]> {
   const hoy = new Date().toISOString().split('T')[0];
-  const tareas = await listTareas({ estado: 'pendiente' });
+  const auth = useAuth();
+  const tareas = await listTareas({ estado: 'pendiente' }, undefined, auth.token || undefined);
 
   return tareas.filter(tarea => tarea.fechaProgramada < hoy);
 }
