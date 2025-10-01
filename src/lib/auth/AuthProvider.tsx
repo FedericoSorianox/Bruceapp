@@ -2,14 +2,6 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { getToken, setToken, clearToken } from './storage';
-import jwt from 'jsonwebtoken';
-
-/**
- * 🔐 JWT CONFIGURATION
- * JWT secret for token signing and verification
- * In production, this should come from environment variables
- */
-const JWT_SECRET = process.env.NEXT_PUBLIC_JWT_SECRET || 'bruce-app-development-secret-key-2024';
 
 /**
  * 👤 TIPOS TYPESCRIPT - Definición de estructuras de datos
@@ -70,88 +62,100 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * 5. Marca como listo para usar
    */
   useEffect(() => {
-    const t = getToken(); // Intenta obtener token guardado
-    
-    if (t) {
-      try {
-        // 🔍 VALIDACIÓN JWT DEL TOKEN
-        // Verifica y decodifica el token JWT
-        const decoded = jwt.verify(t, JWT_SECRET) as { email: string; role: 'admin' | 'user'; exp: number };
+    const initializeAuth = async () => {
+      const t = getToken(); // Intenta obtener token guardado
 
-        // ✅ VALIDACIÓN ADICIONAL DEL CONTENIDO
-        // Verifica que el token contenga datos válidos
-        if (decoded && decoded.email && decoded.email.includes('@') && decoded.role) {
-          // Verificar que el token no haya expirado
-          const currentTime = Math.floor(Date.now() / 1000);
-          if (decoded.exp < currentTime) {
-            console.warn('🚨 Token expirado, limpiando...');
+      if (t) {
+        try {
+          // 🔍 VALIDACIÓN JWT DEL TOKEN VIA API
+          // Verifica el token usando el endpoint del servidor
+          const response = await fetch('/api/verify-token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token: t }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.valid) {
+            // ✅ TOKEN VÁLIDO
+            setTok(t);
+            setUser(data.user);
+            console.log('✅ Sesión restaurada exitosamente para:', data.user.email, 'con rol:', data.user.role);
+          } else {
+            // 🚨 TOKEN INVÁLIDO
+            console.warn('🚨 Token inválido, limpiando...', data.error);
             clearToken();
-            setReady(true);
-            return;
           }
 
-          setTok(t);
-          setUser({ email: decoded.email, role: decoded.role });
-          console.log('✅ Sesión restaurada exitosamente para:', decoded.email, 'con rol:', decoded.role);
-        } else {
-          console.warn('🚨 Token contiene datos inválidos, limpiando...');
-          clearToken(); // Limpia token con datos inválidos
+        } catch (error) {
+          // 🛡️ MANEJO DE ERRORES DE RED O SERVIDOR
+          console.error('🚨 Error al validar token JWT:', error);
+          clearToken(); // Limpia token si hay error de validación
         }
-
-      } catch (error) {
-        // 🛡️ MANEJO DE TOKENS JWT INVÁLIDOS
-        console.error('🚨 Error al validar token JWT:', error);
-        clearToken(); // Limpia token inválido
       }
-    }
-    
-    // ✅ Marca como listo independientemente del resultado
-    setReady(true);
+
+      // ✅ Marca como listo independientemente del resultado
+      setReady(true);
+    };
+
+    initializeAuth();
   }, []);
 
   /**
    * 🔐 FUNCIÓN DE LOGIN
-   * 
-   * Simula el proceso de autenticación:
-   * 1. Valida formato del email
-   * 2. Genera token fake para demo
+   *
+   * Realiza la autenticación contra el endpoint del servidor:
+   * 1. Envía credenciales al endpoint /api/login
+   * 2. Recibe token JWT válido del servidor
    * 3. Guarda en localStorage y estado
    * 4. Actualiza información del usuario
-   * 
-   * @param email - Email del usuario (debe contener @)
-   * @param password - Password (ignorado en esta demo)
-   * @throws Error si el email es inválido
+   *
+   * @param email - Email del usuario
+   * @param password - Password del usuario
+   * @throws Error si las credenciales son inválidas o hay error de conexión
    */
   async function login(email: string, password: string) {
-    // 🔍 VALIDACIÓN DE EMAIL
-    if (!email.includes('@')) {
-      throw new Error('Email inválido - debe contener @');
+    try {
+      // 🔍 VALIDACIÓN BÁSICA DE EMAIL
+      if (!email.includes('@')) {
+        throw new Error('Email inválido - debe contener @');
+      }
+
+      console.log('🔐 Login attempt for:', email);
+
+      // 🌐 PETICIÓN AL ENDPOINT DE LOGIN
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      // 🛡️ VALIDACIÓN DE RESPUESTA
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Error de autenticación');
+      }
+
+      // ✅ LOGIN EXITOSO
+      const { token, user: userData } = data;
+
+      // 💾 PERSISTENCIA - Guardar en localStorage y estado
+      setToken(token);           // Guarda en localStorage
+      setTok(token);             // Actualiza estado local
+      setUser(userData);         // Actualiza datos del usuario
+
+      console.log('✅ Login exitoso para:', userData.email, 'con rol:', userData.role);
+
+    } catch (error) {
+      console.error('🚨 Error en login:', error);
+      throw error; // Re-lanza el error para que lo maneje el componente
     }
-    
-    // 🎭 NOTA: En esta demo, el password se ignora intencionalmente
-    // En producción, aquí validarías el password contra tu backend
-    console.log('🔐 Login attempt for:', email, '(password length:', password.length, ')');
-
-    // 👑 DETERMINAR ROL BASADO EN EMAIL
-    // Demo: admin@bruce.app tiene rol admin, otros tienen rol user
-    const role: 'admin' | 'user' = email === 'admin@bruce.app' ? 'admin' : 'user';
-
-    // 🔐 GENERACIÓN DE TOKEN JWT REAL
-    const tokenPayload = {
-      email,
-      role,
-      iat: Math.floor(Date.now() / 1000), // Issued at time
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // Expires in 24 hours
-    };
-
-    const jwtToken = jwt.sign(tokenPayload, JWT_SECRET);
-
-    // 💾 PERSISTENCIA - Guardar en localStorage y estado
-    setToken(jwtToken);     // Guarda en localStorage
-    setTok(jwtToken);       // Actualiza estado local
-    setUser({ email, role }); // Actualiza datos del usuario con rol
-
-    console.log('✅ Login exitoso para:', email, 'con rol:', role);
   }
 
   /**
