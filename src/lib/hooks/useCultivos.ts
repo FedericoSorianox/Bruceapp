@@ -11,15 +11,16 @@ import { useCallback, useEffect, useState } from 'react';
 // Importación de tipos desde el módulo de tipos de cultivos
 import type { Cultivo, ListaCultivosParams, CultivoCreacion } from '@/types/cultivo';
 
+// Importación del hook de autenticación
+import { useAuth } from '@/lib/auth/AuthProvider';
+
 // Importación de funciones de servicio, renombradas para evitar conflictos de nombres
-import { 
-  listCultivos, 
-  createCultivo as sCreate, 
-  updateCultivo as sUpdate, 
+import {
+  listCultivos,
+  createCultivo as sCreate,
+  updateCultivo as sUpdate,
   removeCultivo as sRemove,
   getCultivo,
-  finalizarCultivo as sFinalizarCultivo,
-  reactivarCultivo as sReactivarCultivo,
   getEstadisticasCultivos
 } from '../services/cultivos';
 
@@ -30,6 +31,9 @@ import {
  * @returns Objeto con estado y funciones para manipular los cultivos
  */
 export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _order: 'asc' }) {
+  // Hook de autenticación para obtener el token
+  const { token } = useAuth();
+
   // Estado de parámetros de consulta (filtros, ordenamiento, paginación)
   const [params, setParams] = useState<ListaCultivosParams>(initial);
 
@@ -64,7 +68,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
         setError(null);
 
         // Llama al servicio para obtener los cultivos con los parámetros actuales
-        const data = await listCultivos(params, controller.signal);
+        const data = await listCultivos(params, controller.signal, token || undefined);
 
         // Actualiza el estado con los cultivos obtenidos
         setCultivos(data);
@@ -92,7 +96,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
 
     // Función de cleanup: aborta la petición si el componente se desmonta o params cambia
     return () => controller.abort();
-  }, [params]); // Se ejecuta cuando cambian los parámetros de consulta
+  }, [params, token]); // Se ejecuta cuando cambian los parámetros de consulta o el token
 
   // Funciones helper para actualizar los parámetros de filtro de manera segura
 
@@ -152,7 +156,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
 
     try {
       // Intenta guardar en el servidor
-      const saved = await sCreate(payload);
+      const saved = await sCreate(payload, token || undefined);
 
       // Reconciliación: reemplaza el cultivo optimista con el guardado (puede tener ID diferente)
       setCultivos(prev => prev.map(c => (c.id === optimistic.id ? saved : c)));
@@ -174,7 +178,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
       // Re-lanza el error para que lo maneje el componente que llama
       throw e;
     }
-  }, []);
+  }, [token]);
 
   /**
    * Actualiza un cultivo con UI optimista
@@ -198,7 +202,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
 
     try {
       // Intenta actualizar en el servidor
-      const updated = await sUpdate(id, patch);
+      const updated = await sUpdate(id, patch, token || undefined);
 
       // Actualiza con la respuesta del servidor (por si hay campos calculados)
       setCultivos(prev => prev.map(c => (c.id === id ? updated : c)));
@@ -223,7 +227,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
       // Re-lanza el error para que lo maneje el componente que llama
       throw e;
     }
-  }, []);
+  }, [token]);
 
   /**
    * Elimina un cultivo con UI optimista
@@ -243,7 +247,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
 
     try {
       // Intenta eliminar en el servidor
-      await sRemove(id);
+      await sRemove(id, token || undefined);
 
       // Actualiza estadísticas después de eliminar
       try {
@@ -263,7 +267,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
       // Re-lanza el error para que lo maneje el componente que llama
       throw e;
     }
-  }, []);
+  }, [token]);
 
   /**
    * Finaliza un cultivo (marca como inactivo)
@@ -290,12 +294,12 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
    */
   const getById = useCallback(async (id: string) => {
     try {
-      return await getCultivo(id);
+      return await getCultivo(id, undefined, token || undefined);
     } catch (error) {
       console.error(`Error al obtener cultivo ${id}:`, error);
       throw error;
     }
-  }, []);
+  }, [token]);
 
   // Retorna el objeto con todos los estados y funciones disponibles para usar el hook
   return {

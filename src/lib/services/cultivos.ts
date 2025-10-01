@@ -118,11 +118,13 @@ const buildApiUrl = (path: string): string => {
  * Lista todos los cultivos con parámetros opcionales de filtrado, ordenamiento y paginación
  * @param params - Parámetros de consulta (búsqueda, orden, paginación)
  * @param signal - Señal de aborto opcional para cancelar la petición
+ * @param token - Token de autenticación opcional
  * @returns Promise con array de cultivos
  */
 export async function listCultivos(
-  params: ListaCultivosParams = {}, 
-  signal?: AbortSignal
+  params: ListaCultivosParams = {},
+  signal?: AbortSignal,
+  token?: string
 ): Promise<Cultivo[]> {
   // Construye la URL absoluta usando nuestro helper
   const url = new URL(buildApiUrl(`${API_BASE}/${R}`));
@@ -133,8 +135,12 @@ export async function listCultivos(
   });
 
   try {
-    // Realiza la petición GET con soporte para cancelación
-    const res = await fetch(url, { signal });
+    // Realiza la petición GET con soporte para cancelación y autenticación
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(url, { signal, headers });
 
     // Lanza error si la respuesta no es exitosa
     if (!res.ok) {
@@ -162,12 +168,17 @@ export async function listCultivos(
  * Obtiene un cultivo específico por su ID
  * @param id - ID del cultivo a obtener
  * @param signal - Señal de aborto opcional para cancelar la petición
+ * @param token - Token de autenticación opcional
  * @returns Promise con el cultivo encontrado
  */
-export async function getCultivo(id: string, signal?: AbortSignal): Promise<Cultivo> {
+export async function getCultivo(id: string, signal?: AbortSignal, token?: string): Promise<Cultivo> {
   try {
     // Realiza petición GET para obtener el cultivo específico
-    const res = await fetch(`${API_BASE}/${R}/${id}`, { signal });
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(`${API_BASE}/${R}/${id}`, { signal, headers });
 
     // Lanza error si el cultivo no se encuentra
     if (!res.ok) {
@@ -199,10 +210,11 @@ export async function getCultivo(id: string, signal?: AbortSignal): Promise<Cult
 /**
  * Crea un nuevo cultivo en el servidor
  * @param cultivo - Datos del cultivo sin el ID (se genera automáticamente)
+ * @param token - Token de autenticación opcional
  * @returns Promise con el cultivo creado incluyendo el ID generado
  * @throws Error si el usuario no tiene permisos para crear cultivos
  */
-export async function createCultivo(cultivo: CultivoCreacion): Promise<Cultivo> {
+export async function createCultivo(cultivo: CultivoCreacion, token?: string): Promise<Cultivo> {
   try {
     // Agrega campos automáticos antes de enviar
     const cultivoConFechas: CultivoCreacion = {
@@ -213,9 +225,13 @@ export async function createCultivo(cultivo: CultivoCreacion): Promise<Cultivo> 
     };
 
     // Realiza petición POST para crear el cultivo (la API local genera el ID)
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     const res = await fetch(`${API_BASE}/${R}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }, // Especifica que enviamos JSON
+      headers, // Especifica que enviamos JSON y autenticación
       body: JSON.stringify(cultivoConFechas), // Envía solo los datos sin ID
     });
 
@@ -250,10 +266,11 @@ export async function createCultivo(cultivo: CultivoCreacion): Promise<Cultivo> 
  * Actualiza parcialmente un cultivo existente
  * @param id - ID del cultivo a actualizar
  * @param patch - Campos a actualizar (solo los campos modificados)
+ * @param token - Token de autenticación opcional
  * @returns Promise con el cultivo actualizado
  * @throws Error si el usuario no tiene permisos para editar cultivos
  */
-export async function updateCultivo(id: string, patch: Partial<Cultivo>): Promise<Cultivo> {
+export async function updateCultivo(id: string, patch: Partial<Cultivo>, token?: string): Promise<Cultivo> {
   try {
     // Agrega fecha de actualización automáticamente
     const patchConFecha = {
@@ -263,9 +280,13 @@ export async function updateCultivo(id: string, patch: Partial<Cultivo>): Promis
     };
 
     // Realiza petición PATCH para actualizar solo los campos especificados
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     const res = await fetch(`${API_BASE}/${R}/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' }, // Especifica que enviamos JSON
+      headers, // Especifica que enviamos JSON y autenticación
       body: JSON.stringify(patchConFecha), // Convierte los cambios a JSON string
     });
 
@@ -299,13 +320,18 @@ export async function updateCultivo(id: string, patch: Partial<Cultivo>): Promis
 /**
  * Elimina un cultivo del servidor
  * @param id - ID del cultivo a eliminar
+ * @param token - Token de autenticación opcional
  * @returns Promise con true si la eliminación fue exitosa
  * @throws Error si el usuario no tiene permisos para eliminar cultivos
  */
-export async function removeCultivo(id: string): Promise<boolean> {
+export async function removeCultivo(id: string, token?: string): Promise<boolean> {
   try {
     // Realiza petición DELETE para eliminar el cultivo
-    const res = await fetch(`${API_BASE}/${R}/${id}`, { method: 'DELETE' });
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(`${API_BASE}/${R}/${id}`, { method: 'DELETE', headers });
 
     // Lanza error si la eliminación falla
     if (!res.ok) {
