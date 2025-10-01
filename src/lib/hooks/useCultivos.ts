@@ -76,7 +76,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
         // Carga estadísticas si es la primera carga o cambió el filtro de activos
         if (!params.q) {
           try {
-            const stats = await getEstadisticasCultivos();
+            const stats = await getEstadisticasCultivos(token || undefined);
             setEstadisticas(stats);
           } catch (statsError) {
             console.warn('Error al cargar estadísticas:', statsError);
@@ -163,7 +163,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
 
       // Actualiza estadísticas después de crear
       try {
-        const stats = await getEstadisticasCultivos();
+        const stats = await getEstadisticasCultivos(token || undefined);
         setEstadisticas(stats);
       } catch (statsError) {
         console.warn('Error al actualizar estadísticas:', statsError);
@@ -210,7 +210,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
       // Actualiza estadísticas si cambió el estado activo
       if ('activo' in patch) {
         try {
-          const stats = await getEstadisticasCultivos();
+          const stats = await getEstadisticasCultivos(token || undefined);
           setEstadisticas(stats);
         } catch (statsError) {
           console.warn('Error al actualizar estadísticas:', statsError);
@@ -251,7 +251,7 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
 
       // Actualiza estadísticas después de eliminar
       try {
-        const stats = await getEstadisticasCultivos();
+        const stats = await getEstadisticasCultivos(token || undefined);
         setEstadisticas(stats);
       } catch (statsError) {
         console.warn('Error al actualizar estadísticas:', statsError);

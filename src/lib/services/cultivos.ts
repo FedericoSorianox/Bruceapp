@@ -375,7 +375,7 @@ export async function reactivarCultivo(id: string): Promise<Cultivo> {
  * Obtiene estadísticas básicas de todos los cultivos
  * @returns Promise con estadísticas resumidas
  */
-export async function getEstadisticasCultivos(): Promise<{
+export async function getEstadisticasCultivos(token?: string): Promise<{
   total: number;
   activos: number;
   finalizados: number;
@@ -383,7 +383,7 @@ export async function getEstadisticasCultivos(): Promise<{
   totalPlantas: number;
 }> {
   try {
-    const cultivos = await listCultivos();
+    const cultivos = await listCultivos({}, undefined, token);
     
     const estadisticas = cultivos.reduce((acc, cultivo) => {
       acc.total += 1;
