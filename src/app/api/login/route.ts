@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 🔐 VALIDACIÓN DE CREDENCIALES CONTRA BASE DE DATOS
-    const usuario = await Usuario.findByEmail(email.toLowerCase().trim());
+    const usuario = await Usuario.findByEmail(email.toLowerCase().trim()) as any;
 
     if (!usuario) {
       return NextResponse.json(

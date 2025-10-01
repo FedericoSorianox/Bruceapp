@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { getToken, setToken, clearToken } from './storage';
-import { puedeCrearRecursos, puedeEditarRecurso, puedeEliminarRecurso } from '@/lib/utils/multiTenancy';
+import { puedeCrearRecursos, puedeEditarRecursoCliente, puedeEliminarRecursoCliente } from '@/lib/utils/multiTenancy.client';
 
 /**
  * 👤 TIPOS TYPESCRIPT - Definición de estructuras de datos
@@ -23,10 +23,10 @@ type AuthContextType = {
   hasRole: (role: 'admin' | 'user') => boolean; // 🔍 Verificar si usuario tiene rol específico
   // 🔒 Sistema de permisos multi-tenancy
   canCreateCultivo: () => boolean; // ✅ ¿Puede crear cultivos?
-  canDeleteCultivo: (cultivoCreadoPor: string) => Promise<boolean>; // ✅ ¿Puede eliminar cultivos?
+  canDeleteCultivo: (cultivoCreadoPor: string) => boolean; // ✅ ¿Puede eliminar cultivos?
   canCreateTarea: () => boolean; // ✅ ¿Puede crear tareas?
-  canDeleteTarea: (tareaCreadoPor: string) => Promise<boolean>; // ✅ ¿Puede eliminar tareas?
-  canEditRecursos: (recursoCreadoPor: string) => Promise<boolean>; // ✅ ¿Puede editar cultivos y tareas?
+  canDeleteTarea: (tareaCreadoPor: string) => boolean; // ✅ ¿Puede eliminar tareas?
+  canEditRecursos: (recursoCreadoPor: string) => boolean; // ✅ ¿Puede editar cultivos y tareas?
   canCreateUsuario: () => boolean; // ✅ ¿Puede crear usuarios?
   canViewUsuarios: () => boolean; // ✅ ¿Puede ver usuarios?
 };
@@ -207,9 +207,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * ✅ ¿Puede eliminar cultivos?
    * Solo los administradores pueden eliminar cultivos que tienen acceso
    */
-  const canDeleteCultivo = useCallback(async (cultivoCreadoPor: string): Promise<boolean> => {
-    if (!user) return false;
-    return await puedeEliminarRecurso(user, cultivoCreadoPor);
+  const canDeleteCultivo = useCallback((cultivoCreadoPor: string): boolean => {
+    return puedeEliminarRecursoCliente(user, cultivoCreadoPor);
   }, [user]);
 
   /**
@@ -224,18 +223,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * ✅ ¿Puede eliminar tareas?
    * Solo los administradores pueden eliminar tareas que tienen acceso
    */
-  const canDeleteTarea = useCallback(async (tareaCreadoPor: string): Promise<boolean> => {
-    if (!user) return false;
-    return await puedeEliminarRecurso(user, tareaCreadoPor);
+  const canDeleteTarea = useCallback((tareaCreadoPor: string): boolean => {
+    return puedeEliminarRecursoCliente(user, tareaCreadoPor);
   }, [user]);
 
   /**
    * ✅ ¿Puede editar recursos (cultivos y tareas)?
    * Depende del recurso específico y quién lo creó
    */
-  const canEditRecursos = useCallback(async (recursoCreadoPor: string): Promise<boolean> => {
-    if (!user) return false;
-    return await puedeEditarRecurso(user, recursoCreadoPor);
+  const canEditRecursos = useCallback((recursoCreadoPor: string): boolean => {
+    return puedeEditarRecursoCliente(user, recursoCreadoPor);
   }, [user]);
 
   /**

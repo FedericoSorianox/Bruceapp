@@ -348,7 +348,7 @@ export default function GestionTareasCultivo({
               </button>
             )}
 
-            {canEditRecursos() && (
+            {canEditRecursos(tarea.creadoPor || '') && (
               <button
                 onClick={() => setTareaEditando(tarea)}
                 className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
@@ -357,7 +357,7 @@ export default function GestionTareasCultivo({
               </button>
             )}
 
-            {canDeleteTarea() && (
+            {canDeleteTarea(tarea.creadoPor || '') && (
               <button
                 onClick={() => handleEliminarTarea(tarea.id)}
                 className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"

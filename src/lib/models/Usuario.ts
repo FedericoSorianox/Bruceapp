@@ -16,6 +16,17 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcrypt';
 
 /**
+ * Interfaz para estadísticas de usuarios
+ */
+export interface UsuarioStats {
+  total: number;
+  activos: number;
+  admins: number;
+  users: number;
+}
+
+
+/**
  * Interfaz para documentos de Usuario en MongoDB
  */
 export interface UsuarioDocument extends Document {
@@ -28,6 +39,16 @@ export interface UsuarioDocument extends Document {
 
   // Método para comparar passwords
   comparePassword(candidatePassword: string): Promise<boolean>;
+}
+
+/**
+ * Interfaz para el modelo Usuario con métodos estáticos
+ */
+export interface UsuarioModel extends Model<UsuarioDocument> {
+  findActive(): ReturnType<Model<UsuarioDocument>['find']>;
+  findCreatedBy(adminEmail: string): ReturnType<Model<UsuarioDocument>['find']>;
+  findByEmail(email: string): ReturnType<Model<UsuarioDocument>['findOne']>;
+  getStats(): Promise<UsuarioStats>;
 }
 
 /**
@@ -93,7 +114,8 @@ const UsuarioSchema = new Schema<UsuarioDocument>({
   collection: 'usuarios',
   toJSON: {
     virtuals: true,
-    transform: function(doc, ret) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    transform: function(doc, ret: any) {
       ret.id = ret._id.toString();
       delete ret._id;
       delete ret.__v;
@@ -173,7 +195,7 @@ UsuarioSchema.statics.findByEmail = function(email: string) {
 /**
  * Obtener estadísticas de usuarios
  */
-UsuarioSchema.statics.getStats = async function() {
+UsuarioSchema.statics.getStats = async function(): Promise<UsuarioStats> {
   const stats = await this.aggregate([
     {
       $group: {
@@ -209,6 +231,6 @@ UsuarioSchema.path('email').validate(async function(value: string) {
 }, 'Ya existe un usuario con este email');
 
 // Crear y exportar el modelo
-const Usuario: Model<UsuarioDocument> = mongoose.models.Usuario || mongoose.model<UsuarioDocument>('Usuario', UsuarioSchema);
+const Usuario: UsuarioModel = (mongoose.models.Usuario as UsuarioModel) || mongoose.model<UsuarioDocument, UsuarioModel>('Usuario', UsuarioSchema);
 
 export default Usuario;

@@ -234,9 +234,6 @@ export async function updateTarea(id: string, patch: Partial<TareaCultivo>): Pro
   if (!auth.user) {
     throw new Error('Usuario no autenticado');
   }
-  if (!auth.canEditRecursos()) {
-    throw new Error('No tienes permisos para editar tareas.');
-  }
 
   try {
     const patchConFecha = {
@@ -284,9 +281,6 @@ export async function removeTarea(id: string): Promise<boolean> {
   const auth = useAuth();
   if (!auth.user) {
     throw new Error('Usuario no autenticado');
-  }
-  if (!auth.canDeleteTarea()) {
-    throw new Error('No tienes permisos para eliminar tareas. Solo los administradores pueden eliminar tareas.');
   }
 
   try {
