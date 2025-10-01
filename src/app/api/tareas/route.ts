@@ -12,14 +12,17 @@ import type { TareaCultivo } from '@/types/planificacion';
 
 // Funciones de permisos (reutilizadas)
 function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
-  if (!token || !token.startsWith('fake-')) return null;
-  try {
-    const decoded = atob(token.replace('fake-', ''));
-    const role: 'admin' | 'user' = decoded === 'admin@bruce.app' ? 'admin' : 'user';
-    return { email: decoded, role };
-  } catch {
-    return null;
+  if (!token) return null;
+
+  // Para desarrollo: aceptar tokens fake
+  if (token.startsWith('fake-')) {
+    const email = token.replace('fake-', '');
+    const role: 'admin' | 'user' = email === 'admin@bruce.app' ? 'admin' : 'user';
+    return { email, role };
   }
+
+  // TODO: Implementar validación JWT real para producción
+  return null;
 }
 
 function puedeCrearTarea(user: { email: string; role: 'admin' | 'user' } | null): boolean {

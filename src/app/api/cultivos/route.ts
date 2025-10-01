@@ -25,15 +25,17 @@ import type { CultivoDocument } from '@/lib/models/Cultivo';
 
 // Función para validar permisos desde token (simulación)
 function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
-  if (!token || !token.startsWith('fake-')) return null;
+  if (!token) return null;
 
-  try {
-    const decoded = atob(token.replace('fake-', ''));
-    const role: 'admin' | 'user' = decoded === 'admin@bruce.app' ? 'admin' : 'user';
-    return { email: decoded, role };
-  } catch {
-    return null;
+  // Para desarrollo: aceptar tokens fake
+  if (token.startsWith('fake-')) {
+    const email = token.replace('fake-', '');
+    const role: 'admin' | 'user' = email === 'admin@bruce.app' ? 'admin' : 'user';
+    return { email, role };
   }
+
+  // TODO: Implementar validación JWT real para producción
+  return null;
 }
 
 // Función para verificar si el usuario puede crear cultivos
@@ -103,12 +105,15 @@ export async function GET(request: Request) {
     }
     cultivosQuery = cultivosQuery.limit(limit);
 
-    // Ejecutar la consulta
-    const cultivos = await cultivosQuery.lean(); // .lean() para mejor performance
+    // Ejecutar la consulta (sin .lean() para mantener transformaciones toJSON)
+    const cultivosDocs = await cultivosQuery;
+
+    // Aplicar transformación toJSON a cada documento
+    const cultivos = cultivosDocs.map(doc => doc.toJSON());
 
     // Obtener el total de documentos que coinciden con la query (para paginación)
     const total = await Cultivo.countDocuments(
-      searchQuery 
+      searchQuery
         ? { ...query, $text: { $search: searchQuery } }
         : query
     );

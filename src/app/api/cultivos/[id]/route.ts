@@ -23,15 +23,17 @@ import { Cultivo } from '@/lib/models';
 
 // Función para validar permisos desde token (simulación)
 function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
-  if (!token || !token.startsWith('fake-')) return null;
+  if (!token) return null;
 
-  try {
-    const decoded = atob(token.replace('fake-', ''));
-    const role: 'admin' | 'user' = decoded === 'admin@bruce.app' ? 'admin' : 'user';
-    return { email: decoded, role };
-  } catch {
-    return null;
+  // Para desarrollo: aceptar tokens fake
+  if (token.startsWith('fake-')) {
+    const email = token.replace('fake-', '');
+    const role: 'admin' | 'user' = email === 'admin@bruce.app' ? 'admin' : 'user';
+    return { email, role };
   }
+
+  // TODO: Implementar validación JWT real para producción
+  return null;
 }
 
 // Función para verificar si el usuario puede eliminar cultivos
