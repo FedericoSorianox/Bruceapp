@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { getToken, setToken, clearToken } from './storage';
-import { puedeCrearRecursos, puedeEditarRecurso, puedeEliminarRecurso, UsuarioValidado } from '@/lib/utils/multiTenancy';
+import { puedeCrearRecursos, puedeEditarRecurso, puedeEliminarRecurso } from '@/lib/utils/multiTenancy';
 
 /**
  * 👤 TIPOS TYPESCRIPT - Definición de estructuras de datos
