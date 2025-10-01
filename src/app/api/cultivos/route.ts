@@ -23,6 +23,7 @@ import type { Cultivo as CultivoType } from '@/types/cultivo';
 import { FilterQuery } from 'mongoose';
 import type { CultivoDocument } from '@/lib/models/Cultivo';
 import jwt from 'jsonwebtoken';
+import { construirFiltroUsuario, UsuarioValidado } from '@/lib/utils/multiTenancy';
 
 /**
  * 🔐 JWT CONFIGURATION
@@ -79,7 +80,7 @@ function puedeCrearCultivo(user: { email: string; role: 'admin' | 'user' } | nul
 /**
  * GET /api/cultivos
  *
- * Obtiene todos los cultivos desde MongoDB con soporte para búsqueda y ordenamiento optimizado
+ * Obtiene cultivos desde MongoDB con soporte para búsqueda, ordenamiento y multi-tenancy
  * Parámetros de query soportados:
  * - q: búsqueda full-text en nombre, genética, sustrato, notas (usa índices de MongoDB)
  * - _sort: campo por el cual ordenar (nombre, fechaComienzo, metrosCuadrados, etc.)
@@ -87,12 +88,27 @@ function puedeCrearCultivo(user: { email: string; role: 'admin' | 'user' } | nul
  * - activo: filtrar por cultivos activos (true/false)
  * - _page: número de página para paginación
  * - _limit: límite de resultados por página
- * Incluye manejo de errores optimizado y validación automática por esquema
+ * Incluye manejo de errores optimizado, validación automática y filtrado por usuario
  */
 export async function GET(request: Request) {
   try {
     // Conectar a MongoDB
     await connectDB();
+
+    // 🔒 VALIDACIÓN DE PERMISOS
+    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
+    const user = validarPermisos(token);
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No autorizado',
+          message: 'Token de autenticación inválido o faltante'
+        },
+        { status: 401 }
+      );
+    }
 
     // Obtener parámetros de la URL
     const url = new URL(request.url);
@@ -103,7 +119,7 @@ export async function GET(request: Request) {
     const page = parseInt(url.searchParams.get('_page') || '1');
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
-    // Construir query de MongoDB
+    // Construir query de MongoDB con filtros base
     const query: FilterQuery<CultivoDocument> = {};
 
     // Aplicar filtro por estado activo
@@ -111,7 +127,7 @@ export async function GET(request: Request) {
       query.activo = activoFilter === 'true';
     }
 
-    // Preparar la consulta base
+    // Preparar la consulta base con filtro de multi-tenancy ya aplicado
     let cultivosQuery;
 
     if (searchQuery) {

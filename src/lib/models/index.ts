@@ -18,9 +18,10 @@ import Tarea from './Tarea';
 import Nota from './Nota';
 import Comentario from './Comentario';
 import MensajeChat from './MensajeChat';
+import Usuario from './Usuario';
 
 // Exportar modelos individualmente para importación específica
-export { Cultivo, Tarea, Nota, Comentario };
+export { Cultivo, Tarea, Nota, Comentario, Usuario };
 export type { MensajeChat };
 
 // Exportar tipos de documentos para TypeScript
@@ -29,6 +30,7 @@ export type { TareaDocument } from './Tarea';
 export type { NotaDocument } from './Nota';
 export type { ComentarioDocument } from './Comentario';
 export type { MensajeChatDocument } from './MensajeChat';
+export type { UsuarioDocument } from './Usuario';
 
 // Exportar objeto con todos los modelos para facilitar iteración
 export const Models = {
@@ -36,11 +38,12 @@ export const Models = {
   Tarea,
   Nota,
   Comentario,
-  MensajeChat
+  MensajeChat,
+  Usuario
 } as const;
 
 // Lista de nombres de modelos para validación y utilidades
-export const ModelNames = ['Cultivo', 'Tarea', 'Nota', 'Comentario', 'MensajeChat'] as const;
+export const ModelNames = ['Cultivo', 'Tarea', 'Nota', 'Comentario', 'MensajeChat', 'Usuario'] as const;
 export type ModelName = typeof ModelNames[number];
 
 /**
@@ -78,10 +81,11 @@ export function checkModelsStatus() {
  */
 export const CollectionNames = [
   'cultivos',
-  'tareas', 
+  'tareas',
   'notas',
   'comentarios',
-  'mensajes_chat'
+  'mensajes_chat',
+  'usuarios'
 ] as const;
 
 export type CollectionName = typeof CollectionNames[number];

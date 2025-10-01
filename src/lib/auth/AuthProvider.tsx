@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { getToken, setToken, clearToken } from './storage';
+import { puedeCrearRecursos, puedeEditarRecurso, puedeEliminarRecurso, UsuarioValidado } from '@/lib/utils/multiTenancy';
 
 /**
  * 👤 TIPOS TYPESCRIPT - Definición de estructuras de datos
@@ -20,12 +21,14 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>; // 🔐 Función de login
   logout: () => void;       // 🚪 Función de logout
   hasRole: (role: 'admin' | 'user') => boolean; // 🔍 Verificar si usuario tiene rol específico
-  // 🔒 Sistema de permisos específico para operaciones
+  // 🔒 Sistema de permisos multi-tenancy
   canCreateCultivo: () => boolean; // ✅ ¿Puede crear cultivos?
-  canDeleteCultivo: () => boolean; // ✅ ¿Puede eliminar cultivos?
+  canDeleteCultivo: (cultivoCreadoPor: string) => Promise<boolean>; // ✅ ¿Puede eliminar cultivos?
   canCreateTarea: () => boolean; // ✅ ¿Puede crear tareas?
-  canDeleteTarea: () => boolean; // ✅ ¿Puede eliminar tareas?
-  canEditRecursos: () => boolean; // ✅ ¿Puede editar cultivos y tareas?
+  canDeleteTarea: (tareaCreadoPor: string) => Promise<boolean>; // ✅ ¿Puede eliminar tareas?
+  canEditRecursos: (recursoCreadoPor: string) => Promise<boolean>; // ✅ ¿Puede editar cultivos y tareas?
+  canCreateUsuario: () => boolean; // ✅ ¿Puede crear usuarios?
+  canViewUsuarios: () => boolean; // ✅ ¿Puede ver usuarios?
 };
 
 /**
@@ -186,57 +189,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user?.role]);
 
   /**
-   * 🔒 SISTEMA DE PERMISOS ESPECÍFICO PARA OPERACIONES
+   * 🔒 SISTEMA DE PERMISOS MULTI-TENANCY
    *
    * Funciones que determinan si el usuario actual puede realizar acciones específicas
-   * basado en su rol y las restricciones del sistema
+   * basado en su rol, el sistema de multi-tenancy y las restricciones del sistema
    */
 
   /**
    * ✅ ¿Puede crear cultivos?
    * Solo los administradores pueden crear cultivos
-   * Los usuarios normales NO pueden crear cultivos
    */
   const canCreateCultivo = useCallback((): boolean => {
-    return user?.role === 'admin';
-  }, [user?.role]);
+    return puedeCrearRecursos(user);
+  }, [user]);
 
   /**
    * ✅ ¿Puede eliminar cultivos?
-   * Solo los administradores pueden eliminar cultivos
-   * Los usuarios normales NO pueden eliminar cultivos
+   * Solo los administradores pueden eliminar cultivos que tienen acceso
    */
-  const canDeleteCultivo = useCallback((): boolean => {
-    return user?.role === 'admin';
-  }, [user?.role]);
+  const canDeleteCultivo = useCallback(async (cultivoCreadoPor: string): Promise<boolean> => {
+    if (!user) return false;
+    return await puedeEliminarRecurso(user, cultivoCreadoPor);
+  }, [user]);
 
   /**
    * ✅ ¿Puede crear tareas?
    * Solo los administradores pueden crear tareas
-   * Los usuarios normales NO pueden crear tareas
    */
   const canCreateTarea = useCallback((): boolean => {
-    return user?.role === 'admin';
-  }, [user?.role]);
+    return puedeCrearRecursos(user);
+  }, [user]);
 
   /**
    * ✅ ¿Puede eliminar tareas?
-   * Solo los administradores pueden eliminar tareas
-   * Los usuarios normales NO pueden eliminar tareas
+   * Solo los administradores pueden eliminar tareas que tienen acceso
    */
-  const canDeleteTarea = useCallback((): boolean => {
+  const canDeleteTarea = useCallback(async (tareaCreadoPor: string): Promise<boolean> => {
+    if (!user) return false;
+    return await puedeEliminarRecurso(user, tareaCreadoPor);
+  }, [user]);
+
+  /**
+   * ✅ ¿Puede editar recursos (cultivos y tareas)?
+   * Depende del recurso específico y quién lo creó
+   */
+  const canEditRecursos = useCallback(async (recursoCreadoPor: string): Promise<boolean> => {
+    if (!user) return false;
+    return await puedeEditarRecurso(user, recursoCreadoPor);
+  }, [user]);
+
+  /**
+   * ✅ ¿Puede crear usuarios?
+   * Solo administradores pueden crear usuarios
+   */
+  const canCreateUsuario = useCallback((): boolean => {
     return user?.role === 'admin';
   }, [user?.role]);
 
   /**
-   * ✅ ¿Puede editar recursos (cultivos y tareas)?
-   * Todos los usuarios pueden editar recursos, pero se registra quién lo hace
-   * Los administradores tienen control total
-   * Los usuarios normales pueden editar pero con registro de auditoría
+   * ✅ ¿Puede ver usuarios creados por él?
+   * Solo administradores pueden gestionar usuarios
    */
-  const canEditRecursos = useCallback((): boolean => {
-    return user !== null; // Cualquier usuario autenticado puede editar
-  }, [user]);
+  const canViewUsuarios = useCallback((): boolean => {
+    return user?.role === 'admin';
+  }, [user?.role]);
 
   /**
    * 🎁 OPTIMIZACIÓN CON USEMEMO
@@ -256,9 +272,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       canDeleteCultivo,
       canCreateTarea,
       canDeleteTarea,
-      canEditRecursos
+      canEditRecursos,
+      canCreateUsuario,
+      canViewUsuarios
     }),
-    [ready, token, user, hasRole, canCreateCultivo, canDeleteCultivo, canCreateTarea, canDeleteTarea, canEditRecursos]
+    [ready, token, user, hasRole, canCreateCultivo, canDeleteCultivo, canCreateTarea, canDeleteTarea, canEditRecursos, canCreateUsuario, canViewUsuarios]
   );
 
   // 🌐 PROVEEDOR DEL CONTEXTO

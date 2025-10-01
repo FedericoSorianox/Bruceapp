@@ -10,6 +10,7 @@ import connectDB from '@/lib/mongodb';
 import { Tarea } from '@/lib/models';
 import type { TareaCultivo } from '@/types/planificacion';
 import jwt from 'jsonwebtoken';
+import { construirFiltroUsuario, UsuarioValidado } from '@/lib/utils/multiTenancy';
 
 /**
  * 🔐 JWT CONFIGURATION
@@ -63,11 +64,22 @@ function puedeEditarRecursos(user: { email: string; role: 'admin' | 'user' } | n
 }
 
 /**
- * GET /api/tareas - Lista tareas con filtros MongoDB optimizados
+ * GET /api/tareas - Lista tareas con filtros MongoDB optimizados y multi-tenancy
  */
 export async function GET(request: Request) {
   try {
     await connectDB();
+
+    // 🔒 VALIDACIÓN DE PERMISOS
+    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
+    const user = validarPermisos(token);
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'No autorizado', message: 'Token de autenticación inválido' },
+        { status: 401 }
+      );
+    }
 
     const url = new URL(request.url);
     const cultivoId = url.searchParams.get('cultivoId');
@@ -78,7 +90,7 @@ export async function GET(request: Request) {
     const page = parseInt(url.searchParams.get('_page') || '1');
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
-    // Construir query de MongoDB
+    // Construir query de MongoDB con filtros base
     let query: any = {};
     if (cultivoId) query.cultivoId = cultivoId;
     if (tipo) query.tipo = tipo;
@@ -88,6 +100,10 @@ export async function GET(request: Request) {
       if (fechaDesde) query.fechaProgramada.$gte = fechaDesde;
       if (fechaHasta) query.fechaProgramada.$lte = fechaHasta;
     }
+
+    // 🔒 APLICAR FILTRO DE MULTI-TENANCY
+    const filtroUsuario = await construirFiltroUsuario(user);
+    Object.assign(query, filtroUsuario);
 
     // Ejecutar consulta con paginación
     const tareas = await Tarea.find(query)

@@ -6,13 +6,69 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Nota } from '@/lib/models';
+import jwt from 'jsonwebtoken';
+import { construirFiltroUsuario } from '@/lib/utils/multiTenancy';
 
 /**
- * GET /api/notas - Lista notas con filtros y búsqueda full-text
+ * 🔐 JWT CONFIGURATION
+ * JWT secret for token verification (must match frontend)
+ */
+const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
+
+/**
+ * 🔍 Función para validar permisos desde token JWT
+ * Extrae la información del usuario del token JWT válido
+ */
+function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
+  if (!token) return null;
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      email: string;
+      role: 'admin' | 'user';
+      exp: number;
+    };
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (decoded.exp < currentTime) {
+      console.warn('🚨 Token JWT expirado');
+      return null;
+    }
+
+    if (decoded.email && decoded.role) {
+      return { email: decoded.email, role: decoded.role };
+    }
+
+    console.warn('🚨 Token JWT con datos inválidos');
+    return null;
+
+  } catch (error) {
+    console.error('🚨 Error al validar token JWT:', error);
+    return null;
+  }
+}
+
+/**
+ * GET /api/notas - Lista notas con filtros, búsqueda full-text y multi-tenancy
  */
 export async function GET(request: Request) {
   try {
     await connectDB();
+
+    // 🔒 VALIDACIÓN DE PERMISOS
+    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
+    const user = validarPermisos(token);
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No autorizado',
+          message: 'Token de autenticación inválido o faltante'
+        },
+        { status: 401 }
+      );
+    }
 
     const url = new URL(request.url);
     const searchQuery = url.searchParams.get('q');
@@ -27,6 +83,10 @@ export async function GET(request: Request) {
     if (category) query.category = category;
     if (author) query.author = { $regex: author, $options: 'i' };
     if (priority) query.priority = priority;
+
+    // 🔒 APLICAR FILTRO DE MULTI-TENANCY
+    const filtroUsuario = await construirFiltroUsuario(user);
+    Object.assign(query, filtroUsuario);
 
     let notasQuery;
     
