@@ -8,20 +8,49 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import { Tarea } from '@/lib/models';
+import jwt from 'jsonwebtoken';
 
-// Funciones de permisos reutilizadas
+/**
+ * 🔐 JWT CONFIGURATION
+ * JWT secret for token verification (must match frontend)
+ */
+const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
+
+/**
+ * 🔍 Función para validar permisos desde token JWT
+ * Extrae la información del usuario del token JWT válido
+ */
 function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
   if (!token) return null;
 
-  // Para desarrollo: aceptar tokens fake
-  if (token.startsWith('fake-')) {
-    const email = token.replace('fake-', '');
-    const role: 'admin' | 'user' = email === 'admin@bruce.app' ? 'admin' : 'user';
-    return { email, role };
-  }
+  try {
+    // 🔐 Validar y decodificar token JWT
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      email: string;
+      role: 'admin' | 'user';
+      exp: number;
+    };
 
-  // TODO: Implementar validación JWT real para producción
-  return null;
+    // ✅ Verificar que el token no haya expirado
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (decoded.exp < currentTime) {
+      console.warn('🚨 Token JWT expirado');
+      return null;
+    }
+
+    // ✅ Verificar que el token contenga datos válidos
+    if (decoded.email && decoded.role) {
+      return { email: decoded.email, role: decoded.role };
+    }
+
+    console.warn('🚨 Token JWT con datos inválidos');
+    return null;
+
+  } catch (error) {
+    // 🛡️ Manejo de tokens JWT inválidos o corruptos
+    console.error('🚨 Error al validar token JWT:', error);
+    return null;
+  }
 }
 
 function puedeEliminarTarea(user: { email: string; role: 'admin' | 'user' } | null): boolean {
@@ -139,8 +168,13 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       return typeof err === 'object' && err !== null && 'name' in err && 'errors' in err;
     };
 
+    // Interface para errores de validación de Mongoose
+    interface MongooseValidationError {
+      message: string;
+    }
+
     if (isValidationError(error) && error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      const validationErrors = Object.values(error.errors).map((err: MongooseValidationError) => err.message);
       return NextResponse.json(
         { success: false, error: 'Datos inválidos', message: 'Errores de validación', details: validationErrors },
         { status: 400 }

@@ -2,6 +2,14 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { getToken, setToken, clearToken } from './storage';
+import jwt from 'jsonwebtoken';
+
+/**
+ * 🔐 JWT CONFIGURATION
+ * JWT secret for token signing and verification
+ * In production, this should come from environment variables
+ */
+const JWT_SECRET = process.env.NEXT_PUBLIC_JWT_SECRET || 'bruce-app-development-secret-key-2024';
 
 /**
  * 👤 TIPOS TYPESCRIPT - Definición de estructuras de datos
@@ -66,36 +74,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (t) {
       try {
-        // 🔍 VALIDACIÓN MEJORADA DEL TOKEN
-        // Verifica que el token tenga el formato esperado
-        if (!t.startsWith('fake-')) {
-          console.warn('🚨 Token con formato inválido detectado, limpiando...');
-          clearToken();
-          setReady(true);
-          return;
-        }
+        // 🔍 VALIDACIÓN JWT DEL TOKEN
+        // Verifica y decodifica el token JWT
+        const decoded = jwt.verify(t, JWT_SECRET) as { email: string; role: 'admin' | 'user'; exp: number };
 
-        // 🔓 Decodifica el contenido del token
-        const decoded = atob(t.replace('fake-', ''));
-        
         // ✅ VALIDACIÓN ADICIONAL DEL CONTENIDO
-        // Verifica que el contenido decodificado sea un email válido
-        if (decoded && decoded.includes('@') && decoded.length > 3) {
-          // Determinar rol basado en el email (demo: admin@bruce.app es admin)
-          const role: 'admin' | 'user' = decoded === 'admin@bruce.app' ? 'admin' : 'user';
+        // Verifica que el token contenga datos válidos
+        if (decoded && decoded.email && decoded.email.includes('@') && decoded.role) {
+          // Verificar que el token no haya expirado
+          const currentTime = Math.floor(Date.now() / 1000);
+          if (decoded.exp < currentTime) {
+            console.warn('🚨 Token expirado, limpiando...');
+            clearToken();
+            setReady(true);
+            return;
+          }
 
           setTok(t);
-          setUser({ email: decoded, role });
-          console.log('✅ Sesión restaurada exitosamente para:', decoded, 'con rol:', role);
+          setUser({ email: decoded.email, role: decoded.role });
+          console.log('✅ Sesión restaurada exitosamente para:', decoded.email, 'con rol:', decoded.role);
         } else {
           console.warn('🚨 Token contiene datos inválidos, limpiando...');
           clearToken(); // Limpia token con datos inválidos
         }
-        
+
       } catch (error) {
-        // 🛡️ MANEJO DE TOKENS CORRUPTOS
-        console.error('🚨 Error al decodificar token, posiblemente corrupto:', error);
-        clearToken(); // Limpia token corrupto
+        // 🛡️ MANEJO DE TOKENS JWT INVÁLIDOS
+        console.error('🚨 Error al validar token JWT:', error);
+        clearToken(); // Limpia token inválido
       }
     }
     
@@ -126,16 +132,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // En producción, aquí validarías el password contra tu backend
     console.log('🔐 Login attempt for:', email, '(password length:', password.length, ')');
 
-    // 🎭 GENERACIÓN DE TOKEN FAKE (solo para demo)
-    const fake = `fake-${btoa(email)}`;
-
     // 👑 DETERMINAR ROL BASADO EN EMAIL
     // Demo: admin@bruce.app tiene rol admin, otros tienen rol user
     const role: 'admin' | 'user' = email === 'admin@bruce.app' ? 'admin' : 'user';
 
+    // 🔐 GENERACIÓN DE TOKEN JWT REAL
+    const tokenPayload = {
+      email,
+      role,
+      iat: Math.floor(Date.now() / 1000), // Issued at time
+      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // Expires in 24 hours
+    };
+
+    const jwtToken = jwt.sign(tokenPayload, JWT_SECRET);
+
     // 💾 PERSISTENCIA - Guardar en localStorage y estado
-    setToken(fake);     // Guarda en localStorage
-    setTok(fake);       // Actualiza estado local
+    setToken(jwtToken);     // Guarda en localStorage
+    setTok(jwtToken);       // Actualiza estado local
     setUser({ email, role }); // Actualiza datos del usuario con rol
 
     console.log('✅ Login exitoso para:', email, 'con rol:', role);
