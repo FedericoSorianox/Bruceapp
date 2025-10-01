@@ -15,7 +15,6 @@ import type {
   TareaCultivo,
   ListaTareasParams,
   TareaCreacion,
-  TareaActualizacion,
   EstadisticasPlanificacion,
   TipoTarea,
   EstadoTarea,
@@ -29,9 +28,6 @@ import {
   updateTarea as sUpdateTarea,
   removeTarea as sRemoveTarea,
   getTarea,
-  completarTarea as sCompletarTarea,
-  iniciarTarea as sIniciarTarea,
-  cancelarTarea as sCancelarTarea,
   getTareasPorCultivo,
   getEstadisticasPlanificacion as sGetEstadisticasPlanificacion,
   getTareasVencidas,
@@ -213,7 +209,7 @@ export function usePlanificacion(
 
     try {
       // Intenta guardar en el servidor
-      const saved = await sCreateTarea(payload);
+      const saved = await sCreateTarea(payload, token || undefined);
 
       // Reconciliación: reemplaza la tarea optimista con la guardada
       setTareas(prev => prev.map(t => (t.id === optimistic.id ? saved : t)));
@@ -235,7 +231,7 @@ export function usePlanificacion(
       // Re-lanza el error para que lo maneje el componente que llama
       throw e;
     }
-  }, []);
+  }, [token]);
 
   /**
    * Actualiza una tarea con UI optimista
@@ -259,7 +255,7 @@ export function usePlanificacion(
 
     try {
       // Intenta actualizar en el servidor
-      const updated = await sUpdateTarea(id, patch);
+      const updated = await sUpdateTarea(id, patch, token || undefined);
 
       // Actualiza con la respuesta del servidor (por si hay campos calculados)
       setTareas(prev => prev.map(t => (t.id === id ? updated : t)));
@@ -284,7 +280,7 @@ export function usePlanificacion(
       // Re-lanza el error para que lo maneje el componente que llama
       throw e;
     }
-  }, []);
+  }, [token]);
 
   /**
    * Elimina una tarea con UI optimista
@@ -304,7 +300,7 @@ export function usePlanificacion(
 
     try {
       // Intenta eliminar en el servidor
-      await sRemoveTarea(id);
+      await sRemoveTarea(id, token || undefined);
 
       // Actualiza estadísticas después de eliminar
       try {
@@ -324,7 +320,7 @@ export function usePlanificacion(
       // Re-lanza el error para que lo maneje el componente que llama
       throw e;
     }
-  }, []);
+  }, [token]);
 
   /**
    * Marca una tarea como completada

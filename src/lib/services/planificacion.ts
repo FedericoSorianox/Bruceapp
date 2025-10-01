@@ -23,7 +23,7 @@ import type {
   EstadoTarea,
   PrioridadTarea
 } from '@/types/planificacion';
-import { useAuth } from '@/lib/auth/AuthProvider';
+// Nota: No usar hooks de React en servicios. Los datos de auth deben ser pasados por parámetro.
 
 // Configuración base de la API
 const API_BASE = '/api';
@@ -178,35 +178,16 @@ export async function getTarea(id: string, signal?: AbortSignal, token?: string)
  * Crea una nueva tarea en el servidor
  * @throws Error si el usuario no tiene permisos para crear tareas
  */
-export async function createTarea(tarea: TareaCreacion): Promise<TareaCultivo> {
-  // 🔒 VALIDACIÓN DE PERMISOS
-  // Solo los administradores pueden crear tareas
-  const auth = useAuth();
-  if (!auth.user) {
-    throw new Error('Usuario no autenticado');
-  }
-  if (!auth.canCreateTarea()) {
-    throw new Error('No tienes permisos para crear tareas. Solo los administradores pueden crear tareas.');
-  }
-
+export async function createTarea(tarea: TareaCreacion, token?: string): Promise<TareaCultivo> {
   try {
-    const tareaConFechas: TareaCreacion = {
-      ...tarea,
-      fechaCreacion: new Date().toISOString().split('T')[0],
-      fechaActualizacion: new Date().toISOString().split('T')[0],
-      estado: tarea.estado || 'pendiente',
-      recordatorioEnviado: false,
-      // 🔒 Auditoría: registrar quién creó la tarea
-      creadoPor: auth.user.email,
-    };
-
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (auth.token) headers['Authorization'] = `Bearer ${auth.token}`;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
+    // El servidor agrega auditoría (creadoPor, fechas) y valida permisos
     const res = await fetch(`${API_BASE}/${R}`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(tareaConFechas),
+      body: JSON.stringify(tarea),
     });
 
     if (!res.ok) {
@@ -235,29 +216,16 @@ export async function createTarea(tarea: TareaCreacion): Promise<TareaCultivo> {
  * Actualiza parcialmente una tarea existente
  * @throws Error si el usuario no tiene permisos para editar tareas
  */
-export async function updateTarea(id: string, patch: Partial<TareaCultivo>): Promise<TareaCultivo> {
-  // 🔒 VALIDACIÓN DE PERMISOS
-  // Todos los usuarios pueden editar tareas (con auditoría)
-  const auth = useAuth();
-  if (!auth.user) {
-    throw new Error('Usuario no autenticado');
-  }
-
+export async function updateTarea(id: string, patch: Partial<TareaCultivo>, token?: string): Promise<TareaCultivo> {
   try {
-    const patchConFecha = {
-      ...patch,
-      fechaActualizacion: new Date().toISOString().split('T')[0],
-      // 🔒 Auditoría: registrar quién editó la tarea
-      editadoPor: auth.user.email,
-    };
-
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (auth.token) headers['Authorization'] = `Bearer ${auth.token}`;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
+    // El servidor agrega auditoría (editadoPor, fechaActualizacion) y valida permisos
     const res = await fetch(`${API_BASE}/${R}/${id}`, {
       method: 'PATCH',
       headers,
-      body: JSON.stringify(patchConFecha),
+      body: JSON.stringify(patch),
     });
 
     if (!res.ok) {
@@ -286,17 +254,10 @@ export async function updateTarea(id: string, patch: Partial<TareaCultivo>): Pro
  * Elimina una tarea del servidor
  * @throws Error si el usuario no tiene permisos para eliminar tareas
  */
-export async function removeTarea(id: string): Promise<boolean> {
-  // 🔒 VALIDACIÓN DE PERMISOS
-  // Solo los administradores pueden eliminar tareas
-  const auth = useAuth();
-  if (!auth.user) {
-    throw new Error('Usuario no autenticado');
-  }
-
+export async function removeTarea(id: string, token?: string): Promise<boolean> {
   try {
     const headers: Record<string, string> = {};
-    if (auth.token) headers['Authorization'] = `Bearer ${auth.token}`;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(`${API_BASE}/${R}/${id}`, { method: 'DELETE', headers });
 
     if (!res.ok) {
@@ -338,26 +299,23 @@ export async function cancelarTarea(id: string): Promise<TareaCultivo> {
 /**
  * Obtiene tareas para un cultivo específico
  */
-export async function getTareasPorCultivo(cultivoId: string): Promise<TareaCultivo[]> {
-  const auth = useAuth();
-  return listTareas({ cultivoId }, undefined, auth.token || undefined);
+export async function getTareasPorCultivo(cultivoId: string, token?: string): Promise<TareaCultivo[]> {
+  return listTareas({ cultivoId }, undefined, token);
 }
 
 /**
  * Obtiene tareas para una fecha específica
  */
-export async function getTareasPorFecha(fecha: string): Promise<TareaCultivo[]> {
-  const auth = useAuth();
-  return listTareas({ fechaDesde: fecha, fechaHasta: fecha }, undefined, auth.token || undefined);
+export async function getTareasPorFecha(fecha: string, token?: string): Promise<TareaCultivo[]> {
+  return listTareas({ fechaDesde: fecha, fechaHasta: fecha }, undefined, token);
 }
 
 /**
  * Obtiene tareas vencidas (fecha programada anterior a hoy y no completadas)
  */
-export async function getTareasVencidas(): Promise<TareaCultivo[]> {
+export async function getTareasVencidas(token?: string): Promise<TareaCultivo[]> {
   const hoy = new Date().toISOString().split('T')[0];
-  const auth = useAuth();
-  const tareas = await listTareas({ estado: 'pendiente' }, undefined, auth.token || undefined);
+  const tareas = await listTareas({ estado: 'pendiente' }, undefined, token);
 
   return tareas.filter(tarea => tarea.fechaProgramada < hoy);
 }
