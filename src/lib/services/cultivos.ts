@@ -15,7 +15,7 @@
  * @param cultivo - Datos del cultivo
  * @returns Objeto con métricas calculadas de fases
  */
-export function calcularMetricasFases(cultivo: any) {
+export function calcularMetricasFases(cultivo: Cultivo) {
   const hoy = new Date();
   const metricas = {
     diasVegetacionActual: 0,
@@ -64,7 +64,7 @@ export function calcularMetricasFases(cultivo: any) {
  * @param fechaInicioFloracion - Fecha de inicio de floración (por defecto hoy)
  * @returns Promise con el cultivo actualizado
  */
-export async function iniciarFloracion(cultivoId: string, fechaInicioFloracion?: string): Promise<any> {
+export async function iniciarFloracion(cultivoId: string, fechaInicioFloracion?: string): Promise<Cultivo> {
   const fecha = fechaInicioFloracion || new Date().toISOString().split('T')[0];
 
   const res = await fetch(`${API_BASE}/${R}/${cultivoId}`, {
@@ -90,7 +90,6 @@ import type {
   ListaCultivosParams,
   ApiResponseCultivos
 } from '@/types/cultivo';
-import { useAuth } from '@/lib/auth/AuthProvider';
 
 // Configuración base de la API
 // API_BASE: URL base de las rutas API de Next.js (locales)
@@ -204,24 +203,13 @@ export async function getCultivo(id: string, signal?: AbortSignal): Promise<Cult
  * @throws Error si el usuario no tiene permisos para crear cultivos
  */
 export async function createCultivo(cultivo: CultivoCreacion): Promise<Cultivo> {
-  // 🔒 VALIDACIÓN DE PERMISOS
-  // Solo los administradores pueden crear cultivos
-  const auth = useAuth();
-  if (!auth.user) {
-    throw new Error('Usuario no autenticado');
-  }
-  if (!auth.canCreateCultivo()) {
-    throw new Error('No tienes permisos para crear cultivos. Solo los administradores pueden crear cultivos.');
-  }
-
   try {
     // Agrega campos automáticos antes de enviar
     const cultivoConFechas: CultivoCreacion = {
       ...cultivo,
       fechaCreacion: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
       activo: cultivo.activo ?? true, // Por defecto activo si no se especifica
-      // 🔒 Auditoría: registrar quién creó el cultivo
-      creadoPor: auth.user.email,
+      // 🔒 Auditoría: la validación y registro de usuario se hace en el componente
     };
 
     // Realiza petición POST para crear el cultivo (la API local genera el ID)
@@ -266,23 +254,12 @@ export async function createCultivo(cultivo: CultivoCreacion): Promise<Cultivo> 
  * @throws Error si el usuario no tiene permisos para editar cultivos
  */
 export async function updateCultivo(id: string, patch: Partial<Cultivo>): Promise<Cultivo> {
-  // 🔒 VALIDACIÓN DE PERMISOS
-  // Todos los usuarios pueden editar cultivos (con auditoría)
-  const auth = useAuth();
-  if (!auth.user) {
-    throw new Error('Usuario no autenticado');
-  }
-  if (!auth.canEditRecursos()) {
-    throw new Error('No tienes permisos para editar cultivos.');
-  }
-
   try {
-    // Agrega fecha de actualización y auditoría automáticamente
+    // Agrega fecha de actualización automáticamente
     const patchConFecha = {
       ...patch,
       fechaActualizacion: new Date().toISOString().split('T')[0],
-      // 🔒 Auditoría: registrar quién editó el cultivo
-      editadoPor: auth.user.email,
+      // 🔒 Auditoría: la validación se hace en el componente
     };
 
     // Realiza petición PATCH para actualizar solo los campos especificados
@@ -326,16 +303,6 @@ export async function updateCultivo(id: string, patch: Partial<Cultivo>): Promis
  * @throws Error si el usuario no tiene permisos para eliminar cultivos
  */
 export async function removeCultivo(id: string): Promise<boolean> {
-  // 🔒 VALIDACIÓN DE PERMISOS
-  // Solo los administradores pueden eliminar cultivos
-  const auth = useAuth();
-  if (!auth.user) {
-    throw new Error('Usuario no autenticado');
-  }
-  if (!auth.canDeleteCultivo()) {
-    throw new Error('No tienes permisos para eliminar cultivos. Solo los administradores pueden eliminar cultivos.');
-  }
-
   try {
     // Realiza petición DELETE para eliminar el cultivo
     const res = await fetch(`${API_BASE}/${R}/${id}`, { method: 'DELETE' });
