@@ -453,9 +453,9 @@ export function generarVistaCalendarioMensual(
 /**
  * Obtiene estadísticas de planificación
  */
-export async function getEstadisticasPlanificacion(cultivoId?: string): Promise<EstadisticasPlanificacion> {
+export async function getEstadisticasPlanificacion(cultivoId?: string, token?: string): Promise<EstadisticasPlanificacion> {
   try {
-    let tareas = await listTareas(cultivoId ? { cultivoId } : {});
+    let tareas = await listTareas(cultivoId ? { cultivoId } : {}, undefined, token);
 
     const hoy = new Date();
     const unaSemanaDesdeHoy = new Date(hoy.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -525,10 +525,10 @@ export async function duplicarTarea(tareaId: string, nuevaFecha: string): Promis
 /**
  * Obtiene tareas que necesitan recordatorio
  */
-export async function getTareasParaRecordatorio(): Promise<TareaCultivo[]> {
+export async function getTareasParaRecordatorio(token?: string): Promise<TareaCultivo[]> {
   // Nota: No podemos filtrar por recordatorioActivado en la consulta directa
   // ya que no es parte de ListaTareasParams, así que obtenemos todas las tareas
-  const tareas = await listTareas();
+  const tareas = await listTareas({}, undefined, token);
 
   return tareas.filter(tarea => {
     if (!tarea.recordatorioActivado || tarea.recordatorioEnviado) {

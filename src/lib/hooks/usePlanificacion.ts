@@ -8,6 +8,7 @@
 
 // Importaciones necesarias de React
 import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '@/lib/auth/AuthProvider';
 
 // Importación de tipos desde el módulo de tipos de planificación
 import type {
@@ -65,6 +66,9 @@ export function usePlanificacion(
   // Estado para tareas que necesitan recordatorio
   const [tareasParaRecordatorio, setTareasParaRecordatorio] = useState<TareaCultivo[]>([]);
 
+  // Autenticación para obtener el token
+  const { token } = useAuth();
+
   // Efecto que se ejecuta cuando cambian los parámetros para recargar las tareas
   useEffect(() => {
     // Crea un AbortController para poder cancelar peticiones pendientes
@@ -78,7 +82,7 @@ export function usePlanificacion(
         setError(null);
 
         // Llama al servicio para obtener las tareas con los parámetros actuales
-        const data = await sListTareas(params, controller.signal);
+        const data = await sListTareas(params, controller.signal, token || undefined);
 
         // Actualiza el estado con las tareas obtenidas
         setTareas(data);
@@ -86,7 +90,7 @@ export function usePlanificacion(
         // Carga estadísticas si no hay filtros específicos
         if (!params.cultivoId && !params.q) {
           try {
-            const stats = await sGetEstadisticasPlanificacion(params.cultivoId);
+            const stats = await sGetEstadisticasPlanificacion(params.cultivoId, token || undefined);
             setEstadisticas(stats);
           } catch (statsError) {
             console.warn('Error al cargar estadísticas de planificación:', statsError);
@@ -95,7 +99,7 @@ export function usePlanificacion(
 
         // Carga tareas para recordatorio
         try {
-          const tareasRecordatorio = await getTareasParaRecordatorio();
+          const tareasRecordatorio = await getTareasParaRecordatorio(token || undefined);
           setTareasParaRecordatorio(tareasRecordatorio);
         } catch (recordatorioError) {
           console.warn('Error al cargar tareas para recordatorio:', recordatorioError);
@@ -114,7 +118,7 @@ export function usePlanificacion(
 
     // Función de cleanup: aborta la petición si el componente se desmonta o params cambia
     return () => controller.abort();
-  }, [params]); // Se ejecuta cuando cambian los parámetros de consulta
+  }, [params, token]); // Se ejecuta cuando cambian los parámetros de consulta
 
   // Funciones helper para actualizar los parámetros de filtro de manera segura
 
@@ -216,7 +220,7 @@ export function usePlanificacion(
 
       // Actualiza estadísticas después de crear
       try {
-        const stats = await sGetEstadisticasPlanificacion(payload.cultivoId);
+        const stats = await sGetEstadisticasPlanificacion(payload.cultivoId, token || undefined);
         setEstadisticas(stats);
       } catch (statsError) {
         console.warn('Error al actualizar estadísticas:', statsError);
@@ -263,7 +267,7 @@ export function usePlanificacion(
       // Actualiza estadísticas si cambió el estado
       if ('estado' in patch) {
         try {
-          const stats = await sGetEstadisticasPlanificacion();
+          const stats = await sGetEstadisticasPlanificacion(undefined, token || undefined);
           setEstadisticas(stats);
         } catch (statsError) {
           console.warn('Error al actualizar estadísticas:', statsError);
@@ -304,7 +308,7 @@ export function usePlanificacion(
 
       // Actualiza estadísticas después de eliminar
       try {
-        const stats = await sGetEstadisticasPlanificacion();
+        const stats = await sGetEstadisticasPlanificacion(undefined, token || undefined);
         setEstadisticas(stats);
       } catch (statsError) {
         console.warn('Error al actualizar estadísticas:', statsError);
@@ -427,13 +431,13 @@ export function usePlanificacion(
       setLoading(true);
       setError(null);
 
-      const data = await sListTareas(params);
+      const data = await sListTareas(params, undefined, token || undefined);
 
       setTareas(data);
 
       // Recargar estadísticas
       try {
-        const stats = await sGetEstadisticasPlanificacion(params.cultivoId);
+        const stats = await sGetEstadisticasPlanificacion(params.cultivoId, token || undefined);
         setEstadisticas(stats);
       } catch (statsError) {
         console.warn('Error al recargar estadísticas:', statsError);
@@ -441,7 +445,7 @@ export function usePlanificacion(
 
       // Recargar tareas para recordatorio
       try {
-        const tareasRecordatorio = await getTareasParaRecordatorio();
+        const tareasRecordatorio = await getTareasParaRecordatorio(token || undefined);
         setTareasParaRecordatorio(tareasRecordatorio);
       } catch (recordatorioError) {
         console.warn('Error al recargar tareas para recordatorio:', recordatorioError);
@@ -452,7 +456,7 @@ export function usePlanificacion(
     } finally {
       setLoading(false);
     }
-  }, [params]);
+  }, [params, token]);
 
   // Retorna el objeto con todos los estados y funciones disponibles para usar el hook
   return {
