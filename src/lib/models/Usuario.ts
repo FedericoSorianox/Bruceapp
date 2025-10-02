@@ -37,6 +37,17 @@ export interface UsuarioDocument extends Document {
   fechaCreacion: string;
   activo: boolean;
 
+  // ===== CAMPOS DE SUSCRIPCIÓN MERCADOPAGO =====
+  subscriptionStatus: 'trial' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+  mercadopagoCustomerId?: string; // ID del cliente en MercadoPago
+  mercadopagoPreferenceId?: string; // ID de preferencia de pago
+  subscriptionStartDate?: string; // Fecha de inicio de suscripción
+  subscriptionEndDate?: string; // Fecha de fin de suscripción
+  trialEndDate?: string; // Fecha de fin del período de prueba
+  lastPaymentDate?: string; // Última fecha de pago exitoso
+  paymentMethod?: string; // Método de pago (tarjeta, efectivo, etc.)
+  exemptFromPayments: boolean; // Usuario exento del sistema de pagos
+
   // Método para comparar passwords
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
@@ -108,6 +119,60 @@ const UsuarioSchema = new Schema<UsuarioDocument>({
     type: Boolean,
     default: true,
     index: true // Índice para filtrar usuarios activos
+  },
+
+  // ===== CAMPOS DE SUSCRIPCIÓN MERCADOPAGO =====
+  subscriptionStatus: {
+    type: String,
+    enum: {
+      values: ['trial', 'active', 'past_due', 'canceled', 'unpaid'],
+      message: 'Estado de suscripción inválido'
+    },
+    default: 'trial',
+    index: true
+  },
+
+  mercadopagoCustomerId: {
+    type: String,
+    sparse: true, // Permite valores null/undefined con índice único
+    index: true
+  },
+
+  mercadopagoPreferenceId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+
+  subscriptionStartDate: {
+    type: String, // Formato ISO date string
+  },
+
+  subscriptionEndDate: {
+    type: String, // Formato ISO date string
+  },
+
+  trialEndDate: {
+    type: String, // Formato ISO date string
+    default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 días de prueba
+  },
+
+  lastPaymentDate: {
+    type: String, // Formato ISO date string
+  },
+
+  paymentMethod: {
+    type: String,
+    enum: {
+      values: ['credit_card', 'debit_card', 'ticket', 'bank_transfer', 'account_money'],
+      message: 'Método de pago inválido'
+    }
+  },
+
+  exemptFromPayments: {
+    type: Boolean,
+    default: false,
+    index: true // Para filtrar usuarios exentos
   }
 }, {
   // Opciones del schema
@@ -129,6 +194,8 @@ const UsuarioSchema = new Schema<UsuarioDocument>({
 // ===== ÍNDICES COMPUESTOS =====
 UsuarioSchema.index({ activo: 1, role: 1 }); // Para consultas de usuarios activos por rol
 UsuarioSchema.index({ creadoPor: 1, activo: 1 }); // Para encontrar usuarios creados por un admin
+UsuarioSchema.index({ subscriptionStatus: 1, activo: 1 }); // Para filtrar por estado de suscripción
+UsuarioSchema.index({ exemptFromPayments: 1, activo: 1 }); // Para filtrar usuarios exentos
 
 // ===== MIDDLEWARE =====
 
@@ -215,6 +282,30 @@ UsuarioSchema.statics.getStats = async function(): Promise<UsuarioStats> {
     users: 0
   };
 };
+
+// ===== VIRTUALS =====
+
+/**
+ * Virtual para verificar si el usuario tiene acceso activo (suscripción válida)
+ */
+UsuarioSchema.virtual('hasActiveSubscription').get(function() {
+  // Los usuarios exentos siempre tienen acceso
+  if (this.exemptFromPayments) return true;
+
+  if (this.subscriptionStatus === 'active') return true;
+  if (this.subscriptionStatus === 'trial' && this.trialEndDate && new Date(this.trialEndDate) > new Date()) return true;
+  return false;
+});
+
+/**
+ * Virtual para verificar si el período de prueba ha expirado
+ */
+UsuarioSchema.virtual('trialExpired').get(function() {
+  // Los usuarios exentos nunca tienen período de prueba expirado
+  if (this.exemptFromPayments) return false;
+
+  return this.subscriptionStatus === 'trial' && this.trialEndDate && new Date(this.trialEndDate) <= new Date();
+});
 
 // ===== VALIDACIÓN PERSONALIZADA =====
 

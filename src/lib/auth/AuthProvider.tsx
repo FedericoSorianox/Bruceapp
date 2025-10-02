@@ -13,6 +13,11 @@ import { puedeCrearRecursos, puedeEditarRecursoCliente, puedeEliminarRecursoClie
 type User = {
   email: string;
   role: 'admin' | 'user';
+  subscriptionStatus?: 'trial' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+  hasActiveSubscription?: boolean;
+  trialExpired?: boolean;
+  trialEndDate?: string;
+  exemptFromPayments?: boolean;
 };
 type AuthContextType = {
   ready: boolean;           // ✅ ¿Ya completamos la hidratación inicial?
@@ -30,6 +35,10 @@ type AuthContextType = {
   canEditRecursos: (recursoCreadoPor: string) => boolean; // ✅ ¿Puede editar cultivos y tareas?
   canCreateUsuario: () => boolean; // ✅ ¿Puede crear usuarios?
   canViewUsuarios: () => boolean; // ✅ ¿Puede ver usuarios?
+  // 💳 Sistema de suscripciones
+  checkSubscription: () => Promise<boolean>; // ✅ Verificar estado de suscripción
+  hasActiveSubscription: () => boolean; // ✅ ¿Tiene suscripción activa?
+  isExemptFromPayments: () => boolean; // ✅ ¿Está exento de pagos?
 };
 
 /**
@@ -190,12 +199,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data.error || 'No se pudo crear la cuenta');
       }
 
-      const { token, user: userData } = data;
+      const { token, user: userData, requiresPayment, paymentUrl, trialEndsAt } = data;
+
+      // Actualizar userData con info de suscripción
+      const userWithSubscription = {
+        ...userData,
+        subscriptionStatus: 'trial',
+        trialEndDate: trialEndsAt,
+        hasActiveSubscription: true, // Durante período de prueba
+        exemptFromPayments: false
+      };
+
       setToken(token);
       setTok(token);
-      setUser(userData);
+      setUser(userWithSubscription);
 
-      console.log('✅ Registro y login exitosos para:', userData.email);
+      console.log('✅ Registro exitoso para:', userData.email);
+
+      // 🔄 REDIRECCIONAMIENTO POST-REGISTRO
+      // Si requiere pago, redirigir automáticamente al pago de MercadoPago
+      if (requiresPayment && paymentUrl) {
+        console.log('💳 Redirigiendo a MercadoPago...');
+        window.location.href = paymentUrl;
+        return; // No continuar con navegación normal
+      }
 
     } catch (error) {
       console.error('🚨 Error en register:', error);
@@ -294,6 +321,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user?.role]);
 
   /**
+   * 💳 Verificar estado de suscripción del usuario
+   * Consulta el API para obtener el estado actual de la suscripción
+   */
+  const checkSubscription = useCallback(async (): Promise<boolean> => {
+    if (!token) return false;
+
+    try {
+      const response = await fetch('/api/subscription/manage', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const subscription = data.subscription;
+
+        // Actualizar estado del usuario con info de suscripción
+        setUser(prev => prev ? {
+          ...prev,
+          subscriptionStatus: subscription.status,
+          hasActiveSubscription: subscription.hasActiveSubscription,
+          trialExpired: subscription.trialExpired,
+          trialEndDate: subscription.trialEndDate,
+          exemptFromPayments: subscription.exemptFromPayments
+        } : null);
+
+        return subscription.hasActiveSubscription;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error verificando suscripción:', error);
+      return false;
+    }
+  }, [token]);
+
+  /**
+   * ✅ ¿Tiene suscripción activa?
+   * Verifica si el usuario tiene acceso completo (suscripción o exento)
+   */
+  const hasActiveSubscription = useCallback((): boolean => {
+    if (user?.exemptFromPayments) return true;
+    return user?.hasActiveSubscription || false;
+  }, [user]);
+
+  /**
+   * ✅ ¿Está exento del sistema de pagos?
+   * Algunos usuarios pueden tener acceso completo sin pagar
+   */
+  const isExemptFromPayments = useCallback((): boolean => {
+    return user?.exemptFromPayments || false;
+  }, [user]);
+
+  /**
    * 🎁 OPTIMIZACIÓN CON USEMEMO
    *
    * Memoiza el valor del contexto para evitar re-renders innecesarios.
@@ -314,9 +396,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       canDeleteTarea,
       canEditRecursos,
       canCreateUsuario,
-      canViewUsuarios
+      canViewUsuarios,
+      checkSubscription,
+      hasActiveSubscription,
+      isExemptFromPayments
     }),
-    [ready, token, user, hasRole, canCreateCultivo, canDeleteCultivo, canCreateTarea, canDeleteTarea, canEditRecursos, canCreateUsuario, canViewUsuarios]
+    [ready, token, user, hasRole, canCreateCultivo, canDeleteCultivo, canCreateTarea, canDeleteTarea, canEditRecursos, canCreateUsuario, canViewUsuarios, checkSubscription, hasActiveSubscription, isExemptFromPayments]
   );
 
   // 🌐 PROVEEDOR DEL CONTEXTO

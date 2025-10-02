@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -27,9 +27,22 @@ function LoginForm() {
   const [pwd2, setPwd2] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // 🎯 Destino post-auth
   const next = sp.get('next') || '/notas';
+
+  // Verificar mensajes de URL
+  useEffect(() => {
+    const status = sp.get('status');
+    if (status === 'success') {
+      setSuccessMessage('¡Pago completado! Tu suscripción ha sido activada.');
+    } else if (status === 'failure') {
+      setErr('El pago fue cancelado. Puedes intentarlo nuevamente.');
+    } else if (status === 'pending') {
+      setErr('El pago está siendo procesado. Te notificaremos cuando se complete.');
+    }
+  }, [sp]);
 
   // 🧮 Helpers de validación
   const isEmailValid = email.includes('@');
@@ -39,6 +52,7 @@ function LoginForm() {
   // 🧭 Toggle modo
   const handleToggleMode = () => {
     setErr(null);
+    setSuccessMessage(null);
     setMode((m) => (m === 'login' ? 'register' : 'login'));
   };
 
@@ -48,6 +62,7 @@ function LoginForm() {
     try {
       setLoading(true);
       setErr(null);
+      setSuccessMessage(null);
 
       if (!isEmailValid) {
         throw new Error('Email inválido');
@@ -77,6 +92,12 @@ function LoginForm() {
   return (
     <main className="mx-auto max-w-sm p-6 space-y-4">
       <h1 className="text-2xl font-bold">{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
+
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 text-sm">{successMessage}</p>
+        </div>
+      )}
 
       {err && <p className="text-red-600 text-sm" role="alert">{err}</p>}
 
@@ -110,19 +131,33 @@ function LoginForm() {
         </div>
 
         {mode === 'register' && (
-          <div className="grid gap-2">
-            <label htmlFor="pwd2" className="text-sm font-medium">Confirmar Password</label>
-            <input
-              id="pwd2"
-              type="password"
-              className="rounded border p-2"
-              value={pwd2}
-              onChange={e => setPwd2(e.target.value)}
-              placeholder="Repite tu contraseña"
-              required
-              aria-invalid={!isPwdMatch}
-            />
-          </div>
+          <>
+            <div className="grid gap-2">
+              <label htmlFor="pwd2" className="text-sm font-medium">Confirmar Password</label>
+              <input
+                id="pwd2"
+                type="password"
+                className="rounded border p-2"
+                value={pwd2}
+                onChange={e => setPwd2(e.target.value)}
+                placeholder="Repite tu contraseña"
+                required
+                aria-invalid={!isPwdMatch}
+              />
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center space-x-2 text-sm text-blue-800">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <p className="font-medium">Período de prueba gratuito</p>
+                  <p className="text-xs">7 días para probar todas las funciones</p>
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
         <button

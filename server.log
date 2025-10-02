@@ -12,3 +12,655 @@
 > [PWA] PWA support is disabled
 > [PWA] PWA support is disabled
  ✓ Ready in 1508ms
+   Reload env: .env.local
+   Reload env: .env.local
+ ○ Compiling / ...
+ ✓ Compiled / in 1745ms (572 modules)
+ ✓ Compiled in 156ms (268 modules)
+ GET / 200 in 2002ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 764ms (318 modules)
+ GET /favicon.ico 200 in 803ms
+ ✓ Compiled /login in 106ms (578 modules)
+ GET /login 200 in 159ms
+ ✓ Compiled /api/verify-token in 141ms (426 modules)
+🚨 Error verificando token: JsonWebTokenError: jwt malformed
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:70:17)
+    at POST (webpack-internal:///(rsc)/./src/app/api/verify-token/route.ts:55:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13)
+🚨 Error verificando token: JsonWebTokenError: jwt malformed
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:70:17)
+    at POST (webpack-internal:///(rsc)/./src/app/api/verify-token/route.ts:55:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/verify-token 401 in 184ms
+ POST /api/verify-token 401 in 184ms
+ ✓ Compiled in 381ms (554 modules)
+ ✓ Compiled in 97ms (270 modules)
+ ✓ Compiled in 184ms (270 modules)
+ ✓ Compiled in 86ms (270 modules)
+ ✓ Compiled in 109ms (270 modules)
+ ✓ Compiled in 129ms (270 modules)
+ ✓ Compiled in 326ms (554 modules)
+ ✓ Compiled /_not-found in 166ms (557 modules)
+ ⨯ Error: Cannot find module './948.js'
+Require stack:
+- /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js
+- /Users/fede/Bruce/bruceapp/.next/server/app/_not-found/page.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at __webpack_require__.f.require (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:198:28)
+    at /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:162:22)
+    at /Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6487
+    at Object.<anonymous> (/Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6540)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at requirePage (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js:109:84)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:714:36)
+    at async DevServer.findPageComponents (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js',
+    '/Users/fede/Bruce/bruceapp/.next/server/app/_not-found/page.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ GET /_next/static/css/app/layout.css 404 in 216ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 501ms (769 modules)
+ ⨯ Error: Cannot find module './948.js'
+Require stack:
+- /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js
+- /Users/fede/Bruce/bruceapp/.next/server/pages/_document.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at __webpack_require__.f.require (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:198:28)
+    at /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:162:22)
+    at /Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6487
+    at Object.<anonymous> (/Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6540)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at requirePage (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js:109:84)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:714:36)
+    at async DevServer.findPageComponents (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js',
+    '/Users/fede/Bruce/bruceapp/.next/server/pages/_document.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ ⨯ Error: Cannot find module './948.js'
+Require stack:
+- /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js
+- /Users/fede/Bruce/bruceapp/.next/server/pages/_document.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at __webpack_require__.f.require (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:198:28)
+    at /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:162:22)
+    at /Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6487
+    at Object.<anonymous> (/Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6540)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at requirePage (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js:109:84)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:714:36)
+    at async DevServer.findPageComponents (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js',
+    '/Users/fede/Bruce/bruceapp/.next/server/pages/_document.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ ⨯ Error: Cannot find module './948.js'
+Require stack:
+- /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js
+- /Users/fede/Bruce/bruceapp/.next/server/pages/_document.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at __webpack_require__.f.require (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:198:28)
+    at /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:162:22)
+    at /Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6487
+    at Object.<anonymous> (/Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6540)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at requirePage (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js:109:84)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:714:36)
+    at async DevServer.findPageComponents (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js',
+    '/Users/fede/Bruce/bruceapp/.next/server/pages/_document.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ GET /login 500 in 4ms
+ ✓ Compiled in 575ms (780 modules)
+ ⨯ Error: Cannot find module './948.js'
+Require stack:
+- /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js
+- /Users/fede/Bruce/bruceapp/.next/server/app/login/page.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at __webpack_require__.f.require (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:198:28)
+    at /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:111:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:110:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:162:22)
+    at /Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6487
+    at Object.<anonymous> (/Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6540)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at requirePage (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js:109:84)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:714:36)
+    at async DevServer.findPageComponents (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js',
+    '/Users/fede/Bruce/bruceapp/.next/server/app/login/page.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ GET /login 500 in 42ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled /favicon.ico in 197ms (356 modules)
+ GET /favicon.ico 200 in 253ms
+ ✓ Compiled in 92ms (456 modules)
+ ⨯ Error: Cannot find module './948.js'
+Require stack:
+- /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js
+- /Users/fede/Bruce/bruceapp/.next/server/app/favicon.ico/route.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at __webpack_require__.f.require (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:203:28)
+    at /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:116:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:115:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:167:22)
+    at /Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6487
+    at Object.<anonymous> (/Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6540)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at requirePage (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js:109:84)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:714:36)
+    at async DevServer.findPageComponents (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js',
+    '/Users/fede/Bruce/bruceapp/.next/server/app/favicon.ico/route.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ GET /login 500 in 12ms
+ GET /favicon.ico 200 in 17ms
+ ✓ Compiled in 82ms (456 modules)
+ ⨯ Error: Cannot find module './948.js'
+Require stack:
+- /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js
+- /Users/fede/Bruce/bruceapp/.next/server/app/favicon.ico/route.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at __webpack_require__.f.require (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:203:28)
+    at /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:116:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:115:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:167:22)
+    at /Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6487
+    at Object.<anonymous> (/Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6540)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at requirePage (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js:109:84)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:714:36)
+    at async DevServer.findPageComponents (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js',
+    '/Users/fede/Bruce/bruceapp/.next/server/app/favicon.ico/route.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ GET /login 500 in 10ms
+ GET /favicon.ico 200 in 34ms
+ ✓ Compiled in 74ms (456 modules)
+ ⨯ Error: Cannot find module './948.js'
+Require stack:
+- /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js
+- /Users/fede/Bruce/bruceapp/.next/server/app/favicon.ico/route.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js
+- /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at __webpack_require__.f.require (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:203:28)
+    at /Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:116:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:115:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js:167:22)
+    at /Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6487
+    at Object.<anonymous> (/Users/fede/Bruce/bruceapp/.next/server/app/login/page.js:1:6540)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:135:16)
+    at requirePage (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js:109:84)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:84
+    at async loadComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:714:36)
+    at async DevServer.findPageComponents (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/fede/Bruce/bruceapp/.next/server/webpack-runtime.js',
+    '/Users/fede/Bruce/bruceapp/.next/server/app/favicon.ico/route.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/require.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/load-components.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/build/utils.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js',
+    '/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/login'
+}
+ GET /login 500 in 9ms
+ GET /favicon.ico 200 in 124ms

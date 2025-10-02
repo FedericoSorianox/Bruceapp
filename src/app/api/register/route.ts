@@ -2,20 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB, { connectToUserDB, getDatabaseName } from '@/lib/mongodb';
 import Usuario from '@/lib/models/Usuario';
 import jwt from 'jsonwebtoken';
+import { createSubscriptionPreference } from '@/lib/services/mercadopago';
 
 /**
- * 🔐 REGISTRO PÚBLICO - Crea un admin con su propia base de datos
+ * 🔐 REGISTRO PÚBLICO - Crea un admin con período de prueba y preferencia de pago
  *
  * Ruta: POST /api/register
  * Body: { email: string, password: string }
- * Respuesta: { success, token, user, database: dbName }
+ * Respuesta: { success, token, user, database: dbName, requiresPayment, paymentUrl, trialEndsAt }
  *
  * Este endpoint:
  * 1. Crea el usuario en la DB global (para login/verificación)
  * 2. Verifica que no exista un usuario con el mismo email
- * 3. Guarda el usuario en la tabla .usuarios de la DB global
- * 4. Prepara la base de datos específica del admin
- * 5. Devuelve JWT para autenticación inmediata
+ * 3. Crea preferencia de pago en MercadoPago
+ * 4. Guarda el usuario con período de prueba de 7 días
+ * 5. Prepara la base de datos específica del admin
+ * 6. Devuelve JWT para autenticación inmediata
  */
 const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
 
@@ -62,17 +64,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Crear el usuario en la base de datos global (.usuarios)
+    // 4. Crear preferencia de pago en MercadoPago
+    let preference;
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      const successUrl = `${baseUrl}/login?status=success`;
+      const failureUrl = `${baseUrl}/login?status=failure`;
+      const pendingUrl = `${baseUrl}/login?status=pending`;
+
+      preference = await createSubscriptionPreference(
+        email.toLowerCase().trim(),
+        successUrl,
+        failureUrl,
+        pendingUrl
+      );
+
+      console.log(`✅ Preferencia de MercadoPago creada: ${preference.id}`);
+    } catch (mpError) {
+      console.warn('⚠️ No se pudo crear preferencia en MercadoPago, registro continúa:', mpError);
+    }
+
+    // 5. Crear el usuario en la base de datos global (.usuarios)
     const nuevoUsuario = new UsuarioGlobal({
       email: email.toLowerCase().trim(),
       password,
       role: 'admin',
-      activo: true
+      activo: true,
+      subscriptionStatus: 'trial', // Inicia con período de prueba
+      mercadopagoPreferenceId: preference?.id,
+      trialEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 días
+      exemptFromPayments: false // Por defecto no exento, cambiar manualmente si es necesario
     });
 
     const guardado = await nuevoUsuario.save();
 
-    // 4. Preparar la base de datos específica del admin
+    // 6. Preparar la base de datos específica del admin
     const dbName = getDatabaseName(guardado.email);
     try {
       // Intentar conectar a la DB del usuario (esto la crea si no existe)
@@ -98,7 +124,12 @@ export async function POST(request: NextRequest) {
       token: jwtToken,
       user: { email: guardado.email, role: guardado.role },
       database: dbName,
-      message: `Admin registrado exitosamente. Base de datos: ${dbName}`
+      requiresPayment: !!preference?.init_point, // Indica si necesita completar el pago
+      paymentUrl: preference?.init_point, // URL para completar el pago
+      trialEndsAt: guardado.trialEndDate,
+      message: preference?.init_point
+        ? `Cuenta creada exitosamente. Tienes 7 días de prueba gratuita.`
+        : `Admin registrado exitosamente. Base de datos: ${dbName}`
     });
 
   } catch (error) {
