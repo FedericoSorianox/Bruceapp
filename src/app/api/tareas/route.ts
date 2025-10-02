@@ -6,9 +6,10 @@
  */
 
 import { NextResponse } from 'next/server';
-import connectDB, { withUserDB } from '@/lib/mongodb';
-import { Tarea } from '@/lib/models';
+import connectDB, { withUserDB, connectToUserDB, getTareaModel } from '@/lib/mongodb';
 import type { TareaCultivo } from '@/types/planificacion';
+import type { TareaDocument } from '@/lib/models';
+import type { Model } from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { construirFiltroUsuario, UsuarioValidado } from '@/lib/utils/multiTenancy';
 
@@ -66,8 +67,11 @@ function puedeEditarRecursos(user: { email: string; role: 'admin' | 'user' } | n
 /**
  * GET /api/tareas - Lista tareas desde la base de datos específica del usuario
  */
-export const GET = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: any) => {
+export const GET = withUserDB(async (request: Request, userEmail: string) => {
   try {
+    // Obtener la conexión específica del usuario
+    const connection = await connectToUserDB(userEmail);
+
     const url = new URL(request.url);
     const cultivoId = url.searchParams.get('cultivoId');
     const tipo = url.searchParams.get('tipo');
@@ -88,14 +92,17 @@ export const GET = withUserDB(async (request: Request, userEmail: string, mongoo
       if (fechaHasta) query.fechaProgramada.$lte = fechaHasta;
     }
 
+    // Obtener el modelo específico para esta conexión
+    const TareaModel = getTareaModel(connection) as Model<TareaDocument>;
+
     // Ejecutar consulta con paginación (ya estamos en la DB del usuario)
-    const tareas = await Tarea.find(query)
+    const tareas = await TareaModel.find(query)
       .sort({ fechaProgramada: 1, horaProgramada: 1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
-    const total = await Tarea.countDocuments(query);
+    const total = await TareaModel.countDocuments(query);
 
     return NextResponse.json({
       success: true,
@@ -117,8 +124,11 @@ export const GET = withUserDB(async (request: Request, userEmail: string, mongoo
 /**
  * POST /api/tareas - Crea nueva tarea en la base de datos del usuario
  */
-export const POST = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: any) => {
+export const POST = withUserDB(async (request: Request, userEmail: string) => {
   try {
+    // Obtener la conexión específica del usuario
+    const connection = await connectToUserDB(userEmail);
+
     // Leer datos y agregar auditoría
     const tareaData = await request.json();
     const tareaConAuditoria = {
@@ -129,8 +139,11 @@ export const POST = withUserDB(async (request: Request, userEmail: string, mongo
       recordatorioEnviado: false
     };
 
+    // Obtener el modelo específico para esta conexión
+    const TareaModel = getTareaModel(connection) as Model<TareaDocument>;
+
     // Crear y guardar con validaciones automáticas
-    const nuevaTarea = new Tarea(tareaConAuditoria);
+    const nuevaTarea = new TareaModel(tareaConAuditoria);
     const tareaGuardada = await nuevaTarea.save();
 
     return NextResponse.json({

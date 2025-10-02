@@ -4,19 +4,20 @@
  */
 
 import { NextResponse } from 'next/server';
-import { withUserDB } from '@/lib/mongodb';
-import { Nota } from '@/lib/models';
+import { withUserDB, connectToUserDB, getNotaModel } from '@/lib/mongodb';
 import type { NotaDocument } from '@/lib/models';
-import type { FilterQuery } from 'mongoose';
-import mongoose from 'mongoose';
+import type { FilterQuery, Model } from 'mongoose';
 
 
 /**
  * GET /api/notas - Lista notas desde la base de datos específica del usuario
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const GET = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
+export const GET = withUserDB(async (request: Request, userEmail: string) => {
   try {
+    // Obtener la conexión específica del usuario
+    const connection = await connectToUserDB(userEmail);
+
     const url = new URL(request.url);
     const searchQuery = url.searchParams.get('q');
     const category = url.searchParams.get('category');
@@ -31,15 +32,18 @@ export const GET = withUserDB(async (request: Request, userEmail: string, mongoo
     if (author) query.author = { $regex: author, $options: 'i' };
     if (priority) query.priority = priority;
 
+    // Obtener el modelo específico para esta conexión
+    const NotaModel = getNotaModel(connection) as Model<NotaDocument>;
+
     let notasQuery;
 
     if (searchQuery) {
-      notasQuery = Nota.find(
+      notasQuery = NotaModel.find(
         { ...query, $text: { $search: searchQuery } },
         { score: { $meta: 'textScore' } }
       ).sort({ score: { $meta: 'textScore' }, date: -1 });
     } else {
-      notasQuery = Nota.find(query).sort({ date: -1 });
+      notasQuery = NotaModel.find(query).sort({ date: -1 });
     }
 
     const notas = await notasQuery
@@ -47,7 +51,7 @@ export const GET = withUserDB(async (request: Request, userEmail: string, mongoo
       .limit(limit)
       .lean();
 
-    const total = await Nota.countDocuments(searchQuery ? { ...query, $text: { $search: searchQuery } } : query);
+    const total = await NotaModel.countDocuments(searchQuery ? { ...query, $text: { $search: searchQuery } } : query);
 
     return NextResponse.json({
       success: true,
@@ -70,8 +74,11 @@ export const GET = withUserDB(async (request: Request, userEmail: string, mongoo
  * POST /api/notas - Crea nueva nota en la base de datos del usuario
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const POST = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
+export const POST = withUserDB(async (request: Request, userEmail: string) => {
   try {
+    // Obtener la conexión específica del usuario
+    const connection = await connectToUserDB(userEmail);
+
     const notaData = await request.json();
     const notaConFechas = {
       ...notaData,
@@ -81,7 +88,10 @@ export const POST = withUserDB(async (request: Request, userEmail: string, mongo
       author: notaData.author || userEmail
     };
 
-    const nuevaNota = new Nota(notaConFechas);
+    // Obtener el modelo específico para esta conexión
+    const NotaModel = getNotaModel(connection) as Model<NotaDocument>;
+
+    const nuevaNota = new NotaModel(notaConFechas);
     const notaGuardada = await nuevaNota.save();
 
     return NextResponse.json({

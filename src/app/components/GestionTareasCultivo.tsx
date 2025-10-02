@@ -181,6 +181,12 @@ export default function GestionTareasCultivo({
    * Maneja la creación de una nueva tarea
    */
   const handleCrearTarea = async (datos: TareaCreacion) => {
+    // Validar que se haya proporcionado un cultivoId válido
+    if (!datos.cultivoId || datos.cultivoId.trim() === '') {
+      alert('Error: Debe seleccionar un cultivo antes de crear una tarea.');
+      return;
+    }
+
     try {
       await create(datos);
       setMostrarFormulario(false);
@@ -785,7 +791,7 @@ export default function GestionTareasCultivo({
             </div>
           </div>
 
-          {canCreateTarea() && (
+          {canCreateTarea() && cultivoId && (
             <button
               onClick={() => setMostrarFormulario(true)}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200"
@@ -796,9 +802,13 @@ export default function GestionTareasCultivo({
               Nueva Tarea
             </button>
           )}
-          {!canCreateTarea() && (
+          {(!canCreateTarea() || !cultivoId) && (
             <div className="px-4 py-2 text-sm text-gray-500 bg-gray-100 rounded-lg">
-              <span className="font-medium">Solo administradores</span> pueden crear tareas
+              {!canCreateTarea() ? (
+                <span><span className="font-medium">Solo administradores</span> pueden crear tareas</span>
+              ) : (
+                <span>Seleccione un cultivo específico para crear tareas</span>
+              )}
             </div>
           )}
         </div>
