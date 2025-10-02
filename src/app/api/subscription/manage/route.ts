@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import connectDB from '@/lib/mongodb';
-import Usuario from '@/lib/models/Usuario';
+import Usuario, { UsuarioDocument } from '@/lib/models/Usuario';
 import { checkPaymentStatus } from '@/lib/services/mercadopago';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleCancelSubscription(usuario: any) {
+async function handleCancelSubscription(usuario: UsuarioDocument) {
   try {
     // Actualizar estado del usuario a cancelado
     await Usuario.findByIdAndUpdate(usuario._id, {
@@ -153,7 +153,7 @@ async function handleCancelSubscription(usuario: any) {
   }
 }
 
-async function handleCheckPayment(paymentId: string, usuario: any) {
+async function handleCheckPayment(paymentId: string, usuario: UsuarioDocument) {
   if (!paymentId) {
     return NextResponse.json(
       { success: false, error: 'ID de pago requerido' },

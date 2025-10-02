@@ -664,3 +664,14 @@ Require stack:
 }
  GET /login 500 in 9ms
  GET /favicon.ico 200 in 124ms
+ ✓ Compiled in 260ms (456 modules)
+ ✓ Compiled in 187ms (456 modules)
+ ✓ Compiled in 87ms (456 modules)
+ ✓ Compiled in 75ms (456 modules)
+ ✓ Compiled in 127ms (456 modules)
+ ✓ Compiled in 641ms (780 modules)
+ ✓ Compiled in 152ms (780 modules)
+ ✓ Compiled in 134ms (780 modules)
+ ✓ Compiled in 151ms (780 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Restoring pack from /Users/fede/Bruce/bruceapp/.next/cache/webpack/client-development.pack.gz failed: TypeError: Cannot read properties of undefined (reading 'hasStartTime')
+ ✓ Compiled in 165ms (780 modules)

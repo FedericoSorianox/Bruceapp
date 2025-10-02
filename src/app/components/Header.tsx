@@ -6,6 +6,26 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 /**
+ * Genera un nombre simplificado y legible a partir del email
+ * @param email - Email del usuario
+ * @returns Nombre simplificado para mostrar en la UI
+ */
+function getSimplifiedName(email: string): string {
+  // Extraer la parte antes del @
+  const localPart = email.split('@')[0];
+
+  // Dividir por puntos y tomar máximo 2 partes
+  const parts = localPart.split('.').slice(0, 2);
+
+  // Capitalizar cada parte y unir con espacio
+  const simplifiedName = parts
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+
+  return simplifiedName;
+}
+
+/**
  * Header Component - Navegación principal de la aplicación
  *
  * Características:
@@ -134,7 +154,7 @@ const Header = () => {
                       <div className="flex items-center space-x-2 text-sm text-gray-700">
                         <div className="flex items-center space-x-1">
                           <span className="text-gray-600">👤</span>
-                          <span className="font-medium">{user.email.split('@')[0]}</span>
+                          <span className="font-medium">{getSimplifiedName(user.email)}</span>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                             user.role === 'admin'
                               ? 'bg-green-100 text-green-800'
@@ -260,7 +280,7 @@ const Header = () => {
                     <div className="px-3 py-2">
                       <div className="flex items-center space-x-2 text-sm text-gray-700">
                         <span className="text-gray-600">👤</span>
-                        <span className="font-medium">{user.email.split('@')[0]}</span>
+                        <span className="font-medium">{getSimplifiedName(user.email)}</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           user.role === 'admin'
                             ? 'bg-green-100 text-green-800'
