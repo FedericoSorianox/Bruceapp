@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
-import { Comentario } from '@/lib/models';
+import Comentario from '@/lib/models/Comentario';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {

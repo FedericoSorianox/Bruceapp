@@ -14,7 +14,11 @@
 
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { Cultivo, Tarea, Nota, Comentario, Usuario } from '@/lib/models';
+import Cultivo from '@/lib/models/Cultivo';
+import Tarea from '@/lib/models/Tarea';
+import Nota from '@/lib/models/Nota';
+import Comentario from '@/lib/models/Comentario';
+import Usuario from '@/lib/models/Usuario';
 
 // Tipos para manejar múltiples conexiones globales
 declare global {

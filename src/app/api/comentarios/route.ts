@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { withUserDB } from '@/lib/mongodb';
-import { Comentario } from '@/lib/models';
+import Comentario from '@/lib/models/Comentario';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const GET = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {

@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
-import { Nota } from '@/lib/models';
+import Nota from '@/lib/models/Nota';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {

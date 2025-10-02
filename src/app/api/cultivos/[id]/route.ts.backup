@@ -19,7 +19,7 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { withUserDB, getCultivoModel, connectToUserDB } from '@/lib/mongodb';
-import { Cultivo } from '@/lib/models';
+import Cultivo from '@/lib/models/Cultivo';
 import jwt from 'jsonwebtoken';
 
 /**

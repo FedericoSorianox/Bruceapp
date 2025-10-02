@@ -9,7 +9,7 @@
  * - User: Ve sus datos + datos del admin que lo creó
  */
 
-import { Usuario } from '@/lib/models';
+import Usuario from '@/lib/models/Usuario';
 
 /**
  * Tipo para representar un usuario validado
