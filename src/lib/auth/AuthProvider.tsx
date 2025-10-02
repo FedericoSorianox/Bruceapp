@@ -19,6 +19,7 @@ type AuthContextType = {
   token: string | null;     // 🔑 Token de autenticación actual
   user: User | null;        // 👤 Datos del usuario autenticado
   login: (email: string, password: string) => Promise<void>; // 🔐 Función de login
+  register: (email: string, password: string) => Promise<void>; // 🆕 Registro público de admin
   logout: () => void;       // 🚪 Función de logout
   hasRole: (role: 'admin' | 'user') => boolean; // 🔍 Verificar si usuario tiene rol específico
   // 🔒 Sistema de permisos multi-tenancy
@@ -162,6 +163,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   /**
+   * 🆕 FUNCIÓN DE REGISTRO (CREAR ADMIN/TENANT)
+   *
+   * Crea un nuevo admin con su propio tenant y autentica de inmediato.
+   */
+  async function register(email: string, password: string) {
+    try {
+      if (!email.includes('@')) {
+        throw new Error('Email inválido - debe contener @');
+      }
+      if (password.length < 6) {
+        throw new Error('La contraseña debe tener al menos 6 caracteres');
+      }
+
+      console.log('🆕 Register attempt for:', email);
+
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'No se pudo crear la cuenta');
+      }
+
+      const { token, user: userData } = data;
+      setToken(token);
+      setTok(token);
+      setUser(userData);
+
+      console.log('✅ Registro y login exitosos para:', userData.email);
+
+    } catch (error) {
+      console.error('🚨 Error en register:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 🚪 FUNCIÓN DE LOGOUT
    * 
    * Limpia toda la información de autenticación:
@@ -263,6 +305,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       token,
       user,
       login,
+      register,
       logout,
       hasRole,
       canCreateCultivo,

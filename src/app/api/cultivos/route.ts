@@ -17,61 +17,10 @@
  */
 
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import { Cultivo } from '@/lib/models';
+import { withUserDB, getCultivoModel, connectToUserDB } from '@/lib/mongodb';
 import type { Cultivo as CultivoType } from '@/types/cultivo';
 import { FilterQuery } from 'mongoose';
 import type { CultivoDocument } from '@/lib/models/Cultivo';
-import jwt from 'jsonwebtoken';
-import { construirFiltroUsuario, UsuarioValidado } from '@/lib/utils/multiTenancy';
-
-/**
- * 🔐 JWT CONFIGURATION
- * JWT secret for token verification (must match frontend)
- */
-const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
-
-/**
- * 🔍 Función para validar permisos desde token JWT
- * Extrae la información del usuario del token JWT válido
- */
-function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
-  if (!token) return null;
-
-  try {
-    // 🔐 Validar y decodificar token JWT
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      email: string;
-      role: 'admin' | 'user';
-      exp: number;
-    };
-
-    // ✅ Verificar que el token no haya expirado
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (decoded.exp < currentTime) {
-      console.warn('🚨 Token JWT expirado');
-      return null;
-    }
-
-    // ✅ Verificar que el token contenga datos válidos
-    if (decoded.email && decoded.role) {
-      return { email: decoded.email, role: decoded.role };
-    }
-
-    console.warn('🚨 Token JWT con datos inválidos');
-    return null;
-
-  } catch (error) {
-    // 🛡️ Manejo de tokens JWT inválidos o corruptos
-    console.error('🚨 Error al validar token JWT:', error);
-    return null;
-  }
-}
-
-// Función para verificar si el usuario puede crear cultivos
-function puedeCrearCultivo(user: { email: string; role: 'admin' | 'user' } | null): boolean {
-  return user?.role === 'admin';
-}
 
 
 // Las interfaces y funciones de db.json han sido reemplazadas por MongoDB
@@ -80,35 +29,19 @@ function puedeCrearCultivo(user: { email: string; role: 'admin' | 'user' } | nul
 /**
  * GET /api/cultivos
  *
- * Obtiene cultivos desde MongoDB con soporte para búsqueda, ordenamiento y multi-tenancy
+ * Obtiene cultivos desde la base de datos específica del usuario con soporte para búsqueda y ordenamiento
  * Parámetros de query soportados:
- * - q: búsqueda full-text en nombre, genética, sustrato, notas (usa índices de MongoDB)
+ * - q: búsqueda full-text en nombre, genética, sustrato, notas
  * - _sort: campo por el cual ordenar (nombre, fechaComienzo, metrosCuadrados, etc.)
  * - _order: dirección del ordenamiento (asc, desc)
  * - activo: filtrar por cultivos activos (true/false)
  * - _page: número de página para paginación
  * - _limit: límite de resultados por página
- * Incluye manejo de errores optimizado, validación automática y filtrado por usuario
  */
-export async function GET(request: Request) {
+export const GET = withUserDB(async (request: Request, userEmail: string) => {
   try {
-    // Conectar a MongoDB
-    await connectDB();
-
-    // 🔒 VALIDACIÓN DE PERMISOS
-    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
-    const user = validarPermisos(token);
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No autorizado',
-          message: 'Token de autenticación inválido o faltante'
-        },
-        { status: 401 }
-      );
-    }
+    // Obtener la conexión específica del usuario
+    const connection = await connectToUserDB(userEmail);
 
     // Obtener parámetros de la URL
     const url = new URL(request.url);
@@ -127,12 +60,14 @@ export async function GET(request: Request) {
       query.activo = activoFilter === 'true';
     }
 
-    // Preparar la consulta base con filtro de multi-tenancy ya aplicado
+    // Obtener el modelo específico para esta conexión
+    const CultivoModel = getCultivoModel(connection) as any;
+
+    // Todos los cultivos del usuario (ya estamos en su DB específica)
     let cultivosQuery;
 
     if (searchQuery) {
-      // Usar búsqueda full-text de MongoDB (más eficiente)
-      cultivosQuery = Cultivo.find(
+      cultivosQuery = CultivoModel.find(
         {
           ...query,
           $text: { $search: searchQuery }
@@ -140,30 +75,26 @@ export async function GET(request: Request) {
         { score: { $meta: 'textScore' } }
       ).sort({ score: { $meta: 'textScore' }, [sortBy]: sortOrder === 'desc' ? -1 : 1 });
     } else {
-      // Consulta normal con ordenamiento
-      cultivosQuery = Cultivo.find(query).sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 });
+      cultivosQuery = CultivoModel.find(query).sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 });
     }
 
-    // Aplicar paginación si se especifica
+    // Paginación
     if (page > 1) {
       cultivosQuery = cultivosQuery.skip((page - 1) * limit);
     }
     cultivosQuery = cultivosQuery.limit(limit);
 
-    // Ejecutar la consulta (sin .lean() para mantener transformaciones toJSON)
+    // Ejecutar y transformar
     const cultivosDocs = await cultivosQuery;
+    const cultivos = cultivosDocs.map((doc: any) => doc.toJSON());
 
-    // Aplicar transformación toJSON a cada documento
-    const cultivos = cultivosDocs.map(doc => doc.toJSON());
-
-    // Obtener el total de documentos que coinciden con la query (para paginación)
-    const total = await Cultivo.countDocuments(
+    // Total para paginación
+    const total = await CultivoModel.countDocuments(
       searchQuery
         ? { ...query, $text: { $search: searchQuery } }
         : query
     );
 
-    // Devolver respuesta exitosa con formato compatible
     return NextResponse.json({
       success: true,
       data: cultivos,
@@ -176,7 +107,6 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error en GET /api/cultivos:', error);
 
-    // Devolver error específico según el tipo
     if (error instanceof Error) {
       return NextResponse.json(
         {
@@ -197,44 +127,17 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * POST /api/cultivos
  *
- * Crea un nuevo cultivo y lo guarda en MongoDB con validaciones automáticas del esquema
+ * Crea un nuevo cultivo en la base de datos específica del usuario
  */
-export async function POST(request: Request) {
+export const POST = withUserDB(async (request: Request, userEmail: string) => {
   try {
-    // Conectar a MongoDB
-    await connectDB();
-
-    // 🔒 VALIDACIÓN DE PERMISOS
-    // Verificar token de autenticación
-    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
-    const user = validarPermisos(token);
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No autorizado',
-          message: 'Token de autenticación inválido o faltante'
-        },
-        { status: 401 }
-      );
-    }
-
-    if (!puedeCrearCultivo(user)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Permisos insuficientes',
-          message: 'Solo los administradores pueden crear cultivos'
-        },
-        { status: 403 }
-      );
-    }
+    // Obtener la conexión específica del usuario
+    const connection = await connectToUserDB(userEmail);
 
     // Leer el body de la petición
     const newCultivoData = await request.json();
@@ -244,11 +147,14 @@ export async function POST(request: Request) {
       ...newCultivoData,
       fechaCreacion: newCultivoData.fechaCreacion || new Date().toISOString().split('T')[0],
       activo: newCultivoData.activo ?? true,
-      creadoPor: user.email, // 🔒 Auditoría: registrar quién creó el cultivo
+      creadoPor: userEmail, // Todos los cultivos en esta DB pertenecen al usuario
     };
 
-    // Crear nuevo cultivo usando el modelo de Mongoose (validaciones automáticas)
-    const nuevoCultivo = new Cultivo(cultivoDataConAuditoria);
+    // Obtener el modelo específico para esta conexión
+    const CultivoModel = getCultivoModel(connection) as any;
+
+    // Crear nuevo cultivo usando el modelo específico (validaciones automáticas)
+    const nuevoCultivo = new CultivoModel(cultivoDataConAuditoria);
 
     // Guardar en MongoDB (las validaciones del esquema se ejecutan automáticamente)
     const cultivoGuardado = await nuevoCultivo.save();
@@ -338,4 +244,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});

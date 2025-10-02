@@ -8,96 +8,24 @@
  * - GET /api/cultivos/[id] - Obtiene un cultivo específico
  * - PATCH /api/cultivos/[id] - Actualiza un cultivo existente
  * - DELETE /api/cultivos/[id] - Elimina un cultivo
- * 
- * Características:
- * - Validación automática de ObjectId de MongoDB
- * - Validaciones de esquema con Mongoose
- * - Auditoría de cambios
- * - Manejo optimizado de errores de base de datos
  */
 
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
-import connectDB from '@/lib/mongodb';
-import { Cultivo } from '@/lib/models';
-import jwt from 'jsonwebtoken';
-
-/**
- * 🔐 JWT CONFIGURATION
- * JWT secret for token verification (must match frontend)
- */
-const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
-
-/**
- * 🔍 Función para validar permisos desde token JWT
- * Extrae la información del usuario del token JWT válido
- */
-function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
-  if (!token) return null;
-
-  try {
-    // 🔐 Validar y decodificar token JWT
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      email: string;
-      role: 'admin' | 'user';
-      exp: number;
-    };
-
-    // ✅ Verificar que el token no haya expirado
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (decoded.exp < currentTime) {
-      console.warn('🚨 Token JWT expirado');
-      return null;
-    }
-
-    // ✅ Verificar que el token contenga datos válidos
-    if (decoded.email && decoded.role) {
-      return { email: decoded.email, role: decoded.role };
-    }
-
-    console.warn('🚨 Token JWT con datos inválidos');
-    return null;
-
-  } catch (error) {
-    // 🛡️ Manejo de tokens JWT inválidos o corruptos
-    console.error('🚨 Error al validar token JWT:', error);
-    return null;
-  }
-}
-
-// Función para verificar si el usuario puede eliminar cultivos
-function puedeEliminarCultivo(user: { email: string; role: 'admin' | 'user' } | null): boolean {
-  return user?.role === 'admin';
-}
-
-// Función para verificar si el usuario puede editar recursos
-function puedeEditarRecursos(user: { email: string; role: 'admin' | 'user' } | null): boolean {
-  return user !== null;
-}
-
-/**
- * Helper para validar ObjectId de MongoDB
- * @param id - ID a validar
- * @returns true si es un ObjectId válido
- */
-function isValidObjectId(id: string): boolean {
-  return mongoose.Types.ObjectId.isValid(id);
-}
+import { withUserDB, getCultivoModel, connectToUserDB } from '@/lib/mongodb';
 
 /**
  * GET /api/cultivos/[id]
  *
- * Obtiene un cultivo específico por su ID desde MongoDB
+ * Obtiene un cultivo específico por su ID desde la base de datos del usuario
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export const GET = withUserDB(async (request, userEmail) => {
   try {
-    // Conectar a MongoDB
-    await connectDB();
+    // Obtener la conexión específica del usuario
+    const connection = await connectToUserDB(userEmail);
 
-    const { id } = params;
+    // Extraer ID desde la URL
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop();
 
     // Validar que se proporcione un ID
     if (!id) {
@@ -111,20 +39,11 @@ export async function GET(
       );
     }
 
-    // Validar formato de ObjectId
-    if (!isValidObjectId(id)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'ID inválido',
-          message: 'El ID proporcionado no tiene un formato válido'
-        },
-        { status: 400 }
-      );
-    }
+    // Obtener el modelo específico para esta conexión
+    const CultivoModel = getCultivoModel(connection) as any;
 
-    // Buscar el cultivo por ID en MongoDB
-    const cultivo = await Cultivo.findById(id).lean();
+    // Buscar el cultivo por ID en la DB del usuario
+    const cultivo = await CultivoModel.findById(id).lean();
 
     if (!cultivo) {
       return NextResponse.json(
@@ -137,58 +56,17 @@ export async function GET(
       );
     }
 
-    // Convertir _id a id para compatibilidad
-    const cultivoTransformado = {
-      ...cultivo,
-      id: cultivo._id.toString(),
-      _id: undefined
-    };
-
-    // Devolver respuesta exitosa con el cultivo encontrado
+    // Devolver el cultivo encontrado
     return NextResponse.json({
       success: true,
-      data: cultivoTransformado,
-      message: 'Cultivo encontrado exitosamente'
+      data: {
+        ...cultivo,
+        id: cultivo._id.toString()
+      }
     });
 
   } catch (error) {
     console.error('Error en GET /api/cultivos/[id]:', error);
-
-    // Type guard para verificar si es un error de MongoDB
-    const isMongoError = (err: unknown): err is { name: string } => {
-      return typeof err === 'object' && err !== null && 'name' in err;
-    };
-
-    // Type guard para verificar si es un error de Cast de MongoDB
-    const isCastError = (err: unknown): err is { name: string; path: string; message: string } => {
-      return typeof err === 'object' && err !== null && 'name' in err && 'path' in err && 'message' in err;
-    };
-
-    // Manejo específico de errores de MongoDB
-    if (isCastError(error) && error.name === 'CastError') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'ID inválido',
-          message: 'El ID proporcionado no es válido'
-        },
-        { status: 400 }
-      );
-    }
-
-    // Error de conexión a base de datos
-    if (isMongoError(error) && (error.name === 'MongoError' || error.name === 'MongooseError')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Error de base de datos',
-          message: 'No se pudo conectar a la base de datos'
-        },
-        { status: 503 }
-      );
-    }
-
-    // Devolver error genérico al cliente
     return NextResponse.json(
       {
         success: false,
@@ -198,48 +76,21 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * PATCH /api/cultivos/[id]
  *
- * Actualiza un cultivo existente parcialmente en MongoDB
+ * Actualiza un cultivo existente parcialmente en la base de datos del usuario
  */
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export const PATCH = withUserDB(async (request, userEmail) => {
   try {
-    // Conectar a MongoDB
-    await connectDB();
+    // Obtener la conexión específica del usuario
+    const connection = await connectToUserDB(userEmail);
 
-    const { id } = params;
-
-    // 🔒 VALIDACIÓN DE PERMISOS
-    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
-    const user = validarPermisos(token);
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No autorizado',
-          message: 'Token de autenticación inválido o faltante'
-        },
-        { status: 401 }
-      );
-    }
-
-    if (!puedeEditarRecursos(user)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Permisos insuficientes',
-          message: 'No tienes permisos para editar cultivos'
-        },
-        { status: 403 }
-      );
-    }
+    // Extraer ID desde la URL
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop();
 
     // Validar que se proporcione un ID
     if (!id) {
@@ -253,46 +104,28 @@ export async function PATCH(
       );
     }
 
-    // Validar formato de ObjectId
-    if (!isValidObjectId(id)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'ID inválido',
-          message: 'El ID proporcionado no tiene un formato válido'
-        },
-        { status: 400 }
-      );
-    }
-
-    // Leer el body de la petición (campos a actualizar)
+    // Leer datos del request
     const updates = await request.json();
 
-    // Validar que no se intente cambiar campos no permitidos
-    const camposNoPermitidos = ['_id', 'id'];
-    camposNoPermitidos.forEach(campo => {
-      if (campo in updates) {
-        delete updates[campo];
-      }
-    });
+    // Obtener el modelo específico para esta conexión
+    const CultivoModel = getCultivoModel(connection) as any;
 
     // Agregar auditoría automáticamente
     const updatesConAuditoria = {
       ...updates,
       fechaActualizacion: new Date().toISOString().split('T')[0],
-      editadoPor: user.email, // 🔒 Auditoría: registrar quién editó
+      editadoPor: userEmail
     };
 
-    // Actualizar el cultivo en MongoDB con validaciones automáticas
-    const cultivoActualizado = await Cultivo.findByIdAndUpdate(
+    // Actualizar el cultivo en MongoDB
+    const cultivoActualizado = await CultivoModel.findByIdAndUpdate(
       id,
       updatesConAuditoria,
-      { 
-        new: true, // Retornar el documento actualizado
-        runValidators: true, // Ejecutar validaciones del esquema
-        lean: true // Mejor performance
+      {
+        new: true,
+        runValidators: true
       }
-    );
+    ).lean();
 
     if (!cultivoActualizado) {
       return NextResponse.json(
@@ -305,89 +138,18 @@ export async function PATCH(
       );
     }
 
-    // Convertir _id a id para compatibilidad
-    const cultivoTransformado = {
-      ...cultivoActualizado,
-      id: cultivoActualizado._id.toString(),
-      _id: undefined
-    };
-
-    // Devolver respuesta exitosa con el cultivo actualizado
+    // Devolver el cultivo actualizado
     return NextResponse.json({
       success: true,
-      data: cultivoTransformado,
+      data: {
+        ...cultivoActualizado,
+        id: cultivoActualizado._id.toString()
+      },
       message: 'Cultivo actualizado exitosamente'
     });
 
   } catch (error) {
     console.error('Error en PATCH /api/cultivos/[id]:', error);
-
-    // Type guard para verificar si es un error de validación de Mongoose
-    const isValidationError = (err: unknown): err is { name: string; errors: Record<string, { message: string }> } => {
-      return typeof err === 'object' && err !== null && 'name' in err && 'errors' in err;
-    };
-
-    // Type guard para verificar si es un error de MongoDB
-    const isMongoError = (err: unknown): err is { name: string } => {
-      return typeof err === 'object' && err !== null && 'name' in err;
-    };
-
-    // Type guard para verificar si es un error de Cast de MongoDB
-    const isCastError = (err: unknown): err is { name: string; path: string; message: string } => {
-      return typeof err === 'object' && err !== null && 'name' in err && 'path' in err && 'message' in err;
-    };
-
-    // Manejar errores de validación de Mongoose
-    if (isValidationError(error) && error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err) => err.message);
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Datos inválidos',
-          message: 'Errores de validación',
-          details: validationErrors
-        },
-        { status: 400 }
-      );
-    }
-
-    // Manejo de errores de tipo de datos
-    if (isCastError(error) && error.name === 'CastError') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Datos inválidos',
-          message: `Error en el campo ${error.path}: ${error.message}`
-        },
-        { status: 400 }
-      );
-    }
-
-    // Verificar si es un error de JSON inválido
-    if (error instanceof SyntaxError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Datos inválidos',
-          message: 'El formato de los datos enviados no es válido'
-        },
-        { status: 400 }
-      );
-    }
-
-    // Error de conexión a base de datos
-    if (isMongoError(error) && (error.name === 'MongoError' || error.name === 'MongooseError')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Error de base de datos',
-          message: 'No se pudo conectar a la base de datos'
-        },
-        { status: 503 }
-      );
-    }
-
-    // Devolver error genérico al cliente
     return NextResponse.json(
       {
         success: false,
@@ -397,48 +159,21 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * DELETE /api/cultivos/[id]
  *
- * Elimina un cultivo existente de MongoDB
+ * Elimina un cultivo existente de la base de datos del usuario
  */
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export const DELETE = withUserDB(async (request, userEmail) => {
   try {
-    // Conectar a MongoDB
-    await connectDB();
+    // Obtener la conexión específica del usuario
+    const connection = await connectToUserDB(userEmail);
 
-    const { id } = params;
-
-    // 🔒 VALIDACIÓN DE PERMISOS
-    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
-    const user = validarPermisos(token);
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No autorizado',
-          message: 'Token de autenticación inválido o faltante'
-        },
-        { status: 401 }
-      );
-    }
-
-    if (!puedeEliminarCultivo(user)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Permisos insuficientes',
-          message: 'Solo los administradores pueden eliminar cultivos'
-        },
-        { status: 403 }
-      );
-    }
+    // Extraer ID desde la URL
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop();
 
     // Validar que se proporcione un ID
     if (!id) {
@@ -452,24 +187,11 @@ export async function DELETE(
       );
     }
 
-    // Validar formato de ObjectId
-    if (!isValidObjectId(id)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'ID inválido',
-          message: 'El ID proporcionado no tiene un formato válido'
-        },
-        { status: 400 }
-      );
-    }
+    // Obtener el modelo específico para esta conexión
+    const CultivoModel = getCultivoModel(connection) as any;
 
-    // TODO: Aquí deberías verificar si hay datos relacionados antes de eliminar
-    // Por ejemplo, tareas, comentarios, mensajes de chat, etc.
-    // y decidir si hacer eliminación en cascada o soft delete
-
-    // Buscar y eliminar el cultivo en una sola operación
-    const cultivoEliminado = await Cultivo.findByIdAndDelete(id).lean();
+    // Buscar y eliminar el cultivo
+    const cultivoEliminado = await CultivoModel.findByIdAndDelete(id).lean();
 
     if (!cultivoEliminado) {
       return NextResponse.json(
@@ -482,65 +204,25 @@ export async function DELETE(
       );
     }
 
-    // Convertir _id a id para compatibilidad
-    const cultivoTransformado = {
-      ...cultivoEliminado,
-      id: cultivoEliminado._id.toString(),
-      _id: undefined
-    };
-
-    // Log de auditoría para eliminación
-    console.log(`🗑️ Cultivo eliminado por ${user.email}:`, {
+    // Log de auditoría
+    console.log(`🗑️ Cultivo eliminado por ${userEmail}:`, {
       id: cultivoEliminado._id,
       nombre: cultivoEliminado.nombre,
       timestamp: new Date().toISOString()
     });
 
-    // Devolver respuesta exitosa
+    // Devolver confirmación de eliminación
     return NextResponse.json({
       success: true,
-      data: cultivoTransformado,
-      message: 'Cultivo eliminado exitosamente'
+      message: 'Cultivo eliminado exitosamente',
+      data: {
+        id: cultivoEliminado._id.toString(),
+        nombre: cultivoEliminado.nombre
+      }
     });
 
   } catch (error) {
     console.error('Error en DELETE /api/cultivos/[id]:', error);
-
-    // Type guard para verificar si es un error de Cast de MongoDB
-    const isCastError = (err: unknown): err is { name: string; path: string; message: string } => {
-      return typeof err === 'object' && err !== null && 'name' in err && 'path' in err && 'message' in err;
-    };
-
-    // Type guard para verificar si es un error de MongoDB
-    const isMongoError = (err: unknown): err is { name: string } => {
-      return typeof err === 'object' && err !== null && 'name' in err;
-    };
-
-    // Manejo de errores de tipo de datos
-    if (isCastError(error) && error.name === 'CastError') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'ID inválido',
-          message: 'El ID proporcionado no es válido'
-        },
-        { status: 400 }
-      );
-    }
-
-    // Error de conexión a base de datos
-    if (isMongoError(error) && (error.name === 'MongoError' || error.name === 'MongooseError')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Error de base de datos',
-          message: 'No se pudo conectar a la base de datos'
-        },
-        { status: 503 }
-      );
-    }
-
-    // Devolver error genérico al cliente
     return NextResponse.json(
       {
         success: false,
@@ -550,4 +232,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+});

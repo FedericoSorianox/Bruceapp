@@ -3,13 +3,13 @@
  */
 
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
+import mongoose from 'mongoose';
+import { withUserDB } from '@/lib/mongodb';
 import { Comentario } from '@/lib/models';
 
-export async function GET(request: Request) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const GET = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
   try {
-    await connectDB();
-
     const url = new URL(request.url);
     const cultivoId = url.searchParams.get('cultivoId');
     const tipo = url.searchParams.get('tipo');
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const page = parseInt(url.searchParams.get('_page') || '1');
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
-    let query: any = { activo: true };
+    const query: Record<string, unknown> = { activo: true };
     if (cultivoId) query.cultivoId = cultivoId;
     if (tipo) query.tipo = tipo;
     if (prioridad) query.prioridad = prioridad;
@@ -47,12 +47,11 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
-export async function POST(request: Request) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const POST = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
   try {
-    await connectDB();
-
     const comentarioData = await request.json();
     const comentarioConFechas = {
       ...comentarioData,
@@ -82,7 +81,7 @@ export async function POST(request: Request) {
     };
 
     if (isValidationError(error) && error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      const validationErrors = Object.values(error.errors).map((err) => err.message);
       return NextResponse.json(
         { success: false, error: 'Datos inválidos', details: validationErrors },
         { status: 400 }
@@ -94,4 +93,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});

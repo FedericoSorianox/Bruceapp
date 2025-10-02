@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
+import connectDB, { withUserDB } from '@/lib/mongodb';
 import { Tarea } from '@/lib/models';
 import type { TareaCultivo } from '@/types/planificacion';
 import jwt from 'jsonwebtoken';
@@ -64,23 +64,10 @@ function puedeEditarRecursos(user: { email: string; role: 'admin' | 'user' } | n
 }
 
 /**
- * GET /api/tareas - Lista tareas con filtros MongoDB optimizados y multi-tenancy
+ * GET /api/tareas - Lista tareas desde la base de datos específica del usuario
  */
-export async function GET(request: Request) {
+export const GET = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: any) => {
   try {
-    await connectDB();
-
-    // 🔒 VALIDACIÓN DE PERMISOS
-    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
-    const user = validarPermisos(token);
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado', message: 'Token de autenticación inválido' },
-        { status: 401 }
-      );
-    }
-
     const url = new URL(request.url);
     const cultivoId = url.searchParams.get('cultivoId');
     const tipo = url.searchParams.get('tipo');
@@ -101,11 +88,7 @@ export async function GET(request: Request) {
       if (fechaHasta) query.fechaProgramada.$lte = fechaHasta;
     }
 
-    // 🔒 APLICAR FILTRO DE MULTI-TENANCY
-    const filtroUsuario = await construirFiltroUsuario(user);
-    Object.assign(query, filtroUsuario);
-
-    // Ejecutar consulta con paginación
+    // Ejecutar consulta con paginación (ya estamos en la DB del usuario)
     const tareas = await Tarea.find(query)
       .sort({ fechaProgramada: 1, horaProgramada: 1 })
       .skip((page - 1) * limit)
@@ -129,40 +112,20 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
- * POST /api/tareas - Crea nueva tarea con validaciones automáticas
+ * POST /api/tareas - Crea nueva tarea en la base de datos del usuario
  */
-export async function POST(request: Request) {
+export const POST = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: any) => {
   try {
-    await connectDB();
-
-    // Validación de permisos
-    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
-    const user = validarPermisos(token);
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado', message: 'Token de autenticación inválido' },
-        { status: 401 }
-      );
-    }
-
-    if (!puedeCrearTarea(user)) {
-      return NextResponse.json(
-        { success: false, error: 'Permisos insuficientes', message: 'Solo administradores pueden crear tareas' },
-        { status: 403 }
-      );
-    }
-
     // Leer datos y agregar auditoría
     const tareaData = await request.json();
     const tareaConAuditoria = {
       ...tareaData,
       fechaCreacion: new Date().toISOString().split('T')[0],
       fechaActualizacion: new Date().toISOString().split('T')[0],
-      creadoPor: user.email,
+      creadoPor: userEmail,
       recordatorioEnviado: false
     };
 
@@ -197,4 +160,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});

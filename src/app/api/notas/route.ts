@@ -4,74 +4,19 @@
  */
 
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
+import { withUserDB } from '@/lib/mongodb';
 import { Nota } from '@/lib/models';
 import type { NotaDocument } from '@/lib/models';
-import jwt from 'jsonwebtoken';
-import { construirFiltroUsuario } from '@/lib/utils/multiTenancy';
 import type { FilterQuery } from 'mongoose';
+import mongoose from 'mongoose';
+
 
 /**
- * 🔐 JWT CONFIGURATION
- * JWT secret for token verification (must match frontend)
+ * GET /api/notas - Lista notas desde la base de datos específica del usuario
  */
-const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
-
-/**
- * 🔍 Función para validar permisos desde token JWT
- * Extrae la información del usuario del token JWT válido
- */
-function validarPermisos(token: string | null): { email: string; role: 'admin' | 'user' } | null {
-  if (!token) return null;
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const GET = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      email: string;
-      role: 'admin' | 'user';
-      exp: number;
-    };
-
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (decoded.exp < currentTime) {
-      console.warn('🚨 Token JWT expirado');
-      return null;
-    }
-
-    if (decoded.email && decoded.role) {
-      return { email: decoded.email, role: decoded.role };
-    }
-
-    console.warn('🚨 Token JWT con datos inválidos');
-    return null;
-
-  } catch (error) {
-    console.error('🚨 Error al validar token JWT:', error);
-    return null;
-  }
-}
-
-/**
- * GET /api/notas - Lista notas con filtros, búsqueda full-text y multi-tenancy
- */
-export async function GET(request: Request) {
-  try {
-    await connectDB();
-
-    // 🔒 VALIDACIÓN DE PERMISOS
-    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
-    const user = validarPermisos(token);
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No autorizado',
-          message: 'Token de autenticación inválido o faltante'
-        },
-        { status: 401 }
-      );
-    }
-
     const url = new URL(request.url);
     const searchQuery = url.searchParams.get('q');
     const category = url.searchParams.get('category');
@@ -86,12 +31,8 @@ export async function GET(request: Request) {
     if (author) query.author = { $regex: author, $options: 'i' };
     if (priority) query.priority = priority;
 
-    // 🔒 APLICAR FILTRO DE MULTI-TENANCY
-    const filtroUsuario = await construirFiltroUsuario(user);
-    Object.assign(query, filtroUsuario);
-
     let notasQuery;
-    
+
     if (searchQuery) {
       notasQuery = Nota.find(
         { ...query, $text: { $search: searchQuery } },
@@ -123,33 +64,21 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
- * POST /api/notas - Crea nueva nota
+ * POST /api/notas - Crea nueva nota en la base de datos del usuario
  */
-export async function POST(request: Request) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const POST = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
   try {
-    await connectDB();
-
-    // 🔒 VALIDACIÓN DE PERMISOS
-    const token = request.headers.get('authorization')?.replace('Bearer ', '') || null;
-    const user = validarPermisos(token);
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'No autorizado', message: 'Token de autenticación inválido o faltante' },
-        { status: 401 }
-      );
-    }
-
     const notaData = await request.json();
     const notaConFechas = {
       ...notaData,
       date: notaData.date || new Date().toISOString().split('T')[0],
       fechaCreacion: new Date().toISOString().split('T')[0],
       fechaActualizacion: new Date().toISOString().split('T')[0],
-      author: notaData.author || user.email
+      author: notaData.author || userEmail
     };
 
     const nuevaNota = new Nota(notaConFechas);
@@ -182,4 +111,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
+});

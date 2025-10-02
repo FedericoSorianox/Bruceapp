@@ -25,7 +25,6 @@ const ImagenCultivoSchema = new Schema<ImagenCultivo>({
   id: {
     type: String,
     required: true,
-    unique: true,
     default: () => new mongoose.Types.ObjectId().toString()
   },
   url: {
