@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#22c55e"/>
+
+  <!-- Leaf design -->
+  <path d="M256 80c-22 0-40 18-40 40v80c0 22 18 40 40 40s40-18 40-40v-80c0-22-18-40-40-40z" fill="#ffffff"/>
+  <path d="M256 200c-11 0-20 9-20 20v120c0 11 9 20 20 20s20-9 20-20V220c0-11-9-20-20-20z" fill="#ffffff"/>
+  <path d="M200 220c-11 0-20 9-20 20v60c0 11 9 20 20 20s20-9 20-20v-60c0-11-9-20-20-20z" fill="#ffffff"/>
+  <path d="M312 220c-11 0-20 9-20 20v60c0 11 9 20 20 20s20-9 20-20v-60c0-11-9-20-20-20z" fill="#ffffff"/>
+  <path d="M180 280c-11 0-20 9-20 20v40c0 11 9 20 20 20s20-9 20-20v-40c0-11-9-20-20-20z" fill="#ffffff"/>
+  <path d="M332 280c-11 0-20 9-20 20v40c0 11 9 20 20 20s20-9 20-20v-40c0-11-9-20-20-20z" fill="#ffffff"/>
+
+  <!-- Ground -->
+  <rect x="120" y="400" width="272" height="40" rx="20" fill="#16a34a"/>
+</svg>

@@ -1,5 +1,5 @@
 import React from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from '@/lib/auth/AuthProvider';
@@ -32,8 +32,8 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 /**
- * 🌐 METADATA DE LA APLICACIÓN PARA SEO
- * 
+ * 🌐 METADATA DE LA APLICACIÓN PARA SEO Y PWA
+ *
  * Configuración completa para optimización en motores de búsqueda:
  * - Títulos dinámicos con template personalizado
  * - Descripción rica en keywords relevantes
@@ -41,6 +41,7 @@ const jetBrainsMono = JetBrains_Mono({
  * - Twitter Cards para mejor visualización en Twitter
  * - Robots.txt optimizado para indexación
  * - Autores y creadores para credibilidad
+ * - Configuración PWA: manifest, theme-color, viewport
  */
 export const metadata: Metadata = {
   title: {
@@ -84,6 +85,33 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  // Configuración PWA
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Bruce App",
+  },
+  icons: {
+    icon: "/icon-192x192.png",
+    apple: "/icon-192x192.png",
+  },
+};
+
+/**
+ * 📱 CONFIGURACIÓN DE VIEWPORT PARA PWA
+ *
+ * Configuración específica para Progressive Web App:
+ * - Viewport responsivo para dispositivos móviles
+ * - Theme color para barra de navegación del navegador
+ * - Configuración optimizada para instalación como app
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#22c55e",
 };
 
 /**

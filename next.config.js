@@ -4,9 +4,17 @@
  * Archivo de configuración principal de Next.js que permite personalizar
  * el comportamiento del framework.
  *
+ * Incluye configuración PWA para Progressive Web App
+ *
  * @type {import('next').NextConfig}
  */
 const path = require('path');
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development'
+});
 
 const nextConfig = {
   // Configuración explícita de alias de paths para resolver problemas de deploy en Render
@@ -20,4 +28,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withPWA(nextConfig);
