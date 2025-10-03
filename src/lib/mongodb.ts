@@ -45,13 +45,26 @@ if (!cached) {
  * @returns Nombre de la base de datos
  */
 export function getDatabaseName(adminEmail: string): string {
-  // Normalizar email: convertir a minúsculas y reemplazar caracteres especiales
-  const normalized = adminEmail.toLowerCase()
+  // Extraer solo la parte antes del @ y normalizar
+  const localPart = adminEmail.split('@')[0];
+
+  // Normalizar: convertir a minúsculas y reemplazar caracteres especiales
+  const normalized = localPart.toLowerCase()
     .replace(/[^a-z0-9]/g, '_')  // Reemplazar caracteres no alfanuméricos con _
     .replace(/_{2,}/g, '_')      // Evitar múltiples _ consecutivos
     .replace(/^_|_$/g, '');      // Remover _ al inicio y final
 
-  return `bruce_admin_${normalized}`;
+  // MongoDB limita nombres de BD a 38 bytes, agregar prefijo conservador
+  const dbName = `bruce_${normalized}`;
+
+  // Si aún es muy largo, truncar pero mantener unicidad
+  if (dbName.length > 38) {
+    // Tomar primeros 30 caracteres + timestamp de 7 dígitos para unicidad
+    const timestamp = Date.now().toString().slice(-7);
+    return `bruce_${normalized.substring(0, 23)}_${timestamp}`;
+  }
+
+  return dbName;
 }
 
 /**
