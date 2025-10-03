@@ -180,10 +180,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITÓ
       if (redirectTo && redirectTo.startsWith('/')) {
         console.log('🔄 Redirigiendo automáticamente a:', redirectTo);
-        // 🛡️ SOLUCIÓN: Verificar que la autenticación esté completa antes de redirigir
+        // 🛡️ SOLUCIÓN: Usar userData recién recibido, no el estado anterior
         const performRedirect = () => {
-          // Doble verificación: token en localStorage y estado actualizado
-          if (getToken() && user) {
+          // Verificación con el token recién guardado y userData recién recibido
+          if (getToken() && userData) {
             console.log('✅ Auth completo, ejecutando redirección a:', redirectTo);
             window.location.replace(redirectTo);
           } else {
@@ -198,11 +198,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return; // No continuar con el procesamiento normal
       }
 
+      // 🏠 FALLBACK: Si no hay redirectTo específico, redirigir a página principal
+      console.log('🏠 No hay redirectTo, redirigiendo a /cultivo por defecto');
+      setTimeout(() => {
+        window.location.replace('/cultivo');
+      }, 100);
+
     } catch (error) {
       console.error('🚨 Error en login:', error);
       throw error; // Re-lanza el error para que lo maneje el componente
     }
-  }, [user]); // Dependencias del useCallback
+  }, []); // Dependencias del useCallback
 
   /**
    * 🆕 FUNCIÓN DE REGISTRO (CREAR ADMIN/TENANT)
@@ -269,10 +275,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITÓ (PRIORIDAD SOBRE PAGO)
       if (redirectTo && redirectTo.startsWith('/')) {
         console.log('🔄 Redirigiendo automáticamente a:', redirectTo);
-        // 🛡️ SOLUCIÓN: Verificar que la autenticación esté completa antes de redirigir
+        // 🛡️ SOLUCIÓN: Usar userData recién recibido, no el estado anterior
         const performRedirect = () => {
-          // Doble verificación: token en localStorage y estado actualizado
-          if (getToken() && user) {
+          // Verificación con el token recién guardado y userData recién recibido
+          if (getToken() && userData) {
             console.log('✅ Auth completo, ejecutando redirección a:', redirectTo);
             window.location.replace(redirectTo);
           } else {
@@ -295,11 +301,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return; // No continuar con navegación normal
       }
 
+      // 🏠 FALLBACK: Si no hay redirectTo ni pago, redirigir a página principal
+      console.log('🏠 Registro completo, redirigiendo a /cultivo por defecto');
+      setTimeout(() => {
+        window.location.replace('/cultivo');
+      }, 100);
+
     } catch (error) {
       console.error('🚨 Error en register:', error);
       throw error;
     }
-  }, [user]); // Dependencias del useCallback
+  }, []); // Dependencias del useCallback
 
   /**
    * 🚪 FUNCIÓN DE LOGOUT
