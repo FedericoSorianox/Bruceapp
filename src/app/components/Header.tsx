@@ -118,30 +118,35 @@ const Header = () => {
               >
                 Inicio
               </Link>
-              <Link
-                href="/cultivo"
-                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-green-50 hover:text-green-600 ${
-                  isActiveLink("/cultivo")
-                    ? "bg-green-50 text-green-600"
-                    : "text-gray-700"
-                }`}
-                aria-label="Sección de cultivos"
-                aria-current={isActiveLink("/cultivo") ? "page" : undefined}
-              >
-                Cultivo
-              </Link>
-              <Link
-                href="/notas"
-                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-green-50 hover:text-green-600 ${
-                  isActiveLink("/notas")
-                    ? "bg-green-50 text-green-600"
-                    : "text-gray-700"
-                }`}
-                aria-label="Sección de notas"
-                aria-current={isActiveLink("/notas") ? "page" : undefined}
-              >
-                Notas
-              </Link>
+              {/* Solo mostrar Cultivo y Notas si el usuario está autenticado */}
+              {user && (
+                <>
+                  <Link
+                    href="/cultivo"
+                    className={`rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-green-50 hover:text-green-600 ${
+                      isActiveLink("/cultivo")
+                        ? "bg-green-50 text-green-600"
+                        : "text-gray-700"
+                    }`}
+                    aria-label="Sección de cultivos"
+                    aria-current={isActiveLink("/cultivo") ? "page" : undefined}
+                  >
+                    Cultivo
+                  </Link>
+                  <Link
+                    href="/notas"
+                    className={`rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-green-50 hover:text-green-600 ${
+                      isActiveLink("/notas")
+                        ? "bg-green-50 text-green-600"
+                        : "text-gray-700"
+                    }`}
+                    aria-label="Sección de notas"
+                    aria-current={isActiveLink("/notas") ? "page" : undefined}
+                  >
+                    Notas
+                  </Link>
+                </>
+              )}
             </nav>
 
             {/* Área de autenticación - Desktop */}
@@ -244,32 +249,37 @@ const Header = () => {
             >
               Inicio
             </Link>
-            <Link
-              href="/cultivo"
-              onClick={handleCloseMenu}
-              className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 hover:bg-green-50 hover:text-green-600 ${
-                isActiveLink("/cultivo")
-                  ? "bg-green-50 text-green-600"
-                  : "text-gray-700"
-              }`}
-              aria-label="Ir a sección de cultivos"
-              aria-current={isActiveLink("/cultivo") ? "page" : undefined}
-            >
-              Cultivo
-            </Link>
-            <Link
-              href="/notas"
-              onClick={handleCloseMenu}
-              className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 hover:bg-green-50 hover:text-green-600 ${
-                isActiveLink("/notas")
-                  ? "bg-green-50 text-green-600"
-                  : "text-gray-700"
-              }`}
-              aria-label="Ir a sección de notas"
-              aria-current={isActiveLink("/notas") ? "page" : undefined}
-            >
-              Notas
-            </Link>
+            {/* Solo mostrar Cultivo y Notas si el usuario está autenticado */}
+            {user && (
+              <>
+                <Link
+                  href="/cultivo"
+                  onClick={handleCloseMenu}
+                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 hover:bg-green-50 hover:text-green-600 ${
+                    isActiveLink("/cultivo")
+                      ? "bg-green-50 text-green-600"
+                      : "text-gray-700"
+                  }`}
+                  aria-label="Ir a sección de cultivos"
+                  aria-current={isActiveLink("/cultivo") ? "page" : undefined}
+                >
+                  Cultivo
+                </Link>
+                <Link
+                  href="/notas"
+                  onClick={handleCloseMenu}
+                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 hover:bg-green-50 hover:text-green-600 ${
+                    isActiveLink("/notas")
+                      ? "bg-green-50 text-green-600"
+                      : "text-gray-700"
+                  }`}
+                  aria-label="Ir a sección de notas"
+                  aria-current={isActiveLink("/notas") ? "page" : undefined}
+                >
+                  Notas
+                </Link>
+              </>
+            )}
 
             {/* Área de autenticación - Móvil */}
             {ready && (
