@@ -50,35 +50,48 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     // Obtener el modelo específico para esta conexión
     const NotaModel = getNotaModel(connection) as Model<NotaDocument>;
 
-    // Construir el objeto de ordenamiento dinámicamente
+    // Campos válidos para ordenamiento (solo campos indexados y seguros)
+    const validSortFields = ['title', 'date', 'category', 'priority', 'author', 'fechaCreacion', 'fechaActualizacion'];
+    const safeSort = validSortFields.includes(sort) ? sort : 'date';
+
+    // Construir el objeto de ordenamiento dinámicamente con campo validado
     const sortOrder: Record<string, 1 | -1> = {};
-    sortOrder[sort] = order === 'desc' ? -1 : 1;
+    sortOrder[safeSort] = order === 'desc' ? -1 : 1;
 
     let notasQuery;
 
-    if (searchQuery) {
-      notasQuery = NotaModel.find(
-        { ...query, $text: { $search: searchQuery } },
-        { score: { $meta: 'textScore' } }
-      ).sort({ score: { $meta: 'textScore' }, ...sortOrder });
-    } else {
-      notasQuery = NotaModel.find(query).sort(sortOrder);
+    try {
+      if (searchQuery) {
+        notasQuery = NotaModel.find(
+          { ...query, $text: { $search: searchQuery } },
+          { score: { $meta: 'textScore' } }
+        ).sort({ score: { $meta: 'textScore' }, ...sortOrder });
+      } else {
+        notasQuery = NotaModel.find(query).sort(sortOrder);
+      }
+
+      const notas = await notasQuery
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
+
+      const total = await NotaModel.countDocuments(searchQuery ? { ...query, $text: { $search: searchQuery } } : query);
+
+      return NextResponse.json({
+        success: true,
+        data: notas,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit)
+      });
+
+    } catch (queryError) {
+      console.error('Error en consulta de notas:', queryError);
+      return NextResponse.json(
+        { success: false, error: 'Error en consulta de base de datos', message: 'No se pudieron consultar las notas' },
+        { status: 500 }
+      );
     }
-
-    const notas = await notasQuery
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
-
-    const total = await NotaModel.countDocuments(searchQuery ? { ...query, $text: { $search: searchQuery } } : query);
-
-    return NextResponse.json({
-      success: true,
-      data: notas,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit)
-    });
 
   } catch (error) {
     console.error('Error en GET /api/notas:', error);
