@@ -9,6 +9,7 @@ import { puedeCrearRecursos, puedeEditarRecursoCliente, puedeEliminarRecursoClie
  *
  * User: Información básica del usuario autenticado con rol
  * AuthContextType: Interface completa del contexto de autenticación
+ * AuthRequestBody: Estructura para requests de login/register
  */
 type User = {
   email: string;
@@ -18,6 +19,11 @@ type User = {
   trialExpired?: boolean;
   trialEndDate?: string;
   exemptFromPayments?: boolean;
+};
+type AuthRequestBody = {
+  email: string;
+  password: string;
+  redirectUrl?: string;
 };
 type AuthContextType = {
   ready: boolean;           // ✅ ¿Ya completamos la hidratación inicial?
@@ -141,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔐 Login attempt for:', email);
 
       // 🌐 PETICIÓN AL ENDPOINT DE LOGIN
-      const requestBody: any = { email, password };
+      const requestBody: AuthRequestBody = { email, password };
       if (redirectUrl) {
         requestBody.redirectUrl = redirectUrl;
       }
@@ -154,13 +160,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(requestBody),
       });
 
-      // 🛡️ VERIFICAR SI ES UNA REDIRECCIÓN
-      if (response.redirected) {
-        // 🚀 El servidor hizo una redirección automática
-        window.location.href = response.url;
-        return; // No continuar con el procesamiento normal
-      }
-
       const data = await response.json();
 
       // 🛡️ VALIDACIÓN DE RESPUESTA
@@ -169,7 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // ✅ LOGIN EXITOSO
-      const { token, user: userData } = data;
+      const { token, user: userData, redirectTo } = data;
 
       // 💾 PERSISTENCIA - Guardar en localStorage, cookies y estado
       setTokenWithCookies(token); // Guarda en localStorage y cookies
@@ -177,6 +176,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userData);         // Actualiza datos del usuario
 
       console.log('✅ Login exitoso para:', userData.email, 'con rol:', userData.role);
+
+      // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITÓ
+      if (redirectTo && redirectTo.startsWith('/')) {
+        console.log('🔄 Redirigiendo automáticamente a:', redirectTo);
+        window.location.replace(redirectTo);
+        return; // No continuar con el procesamiento normal
+      }
 
     } catch (error) {
       console.error('🚨 Error en login:', error);
@@ -205,7 +211,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🆕 Register attempt for:', email);
 
       // 🌐 PETICIÓN AL ENDPOINT DE REGISTER
-      const requestBody: any = { email, password };
+      const requestBody: AuthRequestBody = { email, password };
       if (redirectUrl) {
         requestBody.redirectUrl = redirectUrl;
       }
@@ -229,7 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data.error || 'No se pudo crear la cuenta');
       }
 
-      const { token, user: userData, requiresPayment, paymentUrl, trialEndsAt } = data;
+      const { token, user: userData, requiresPayment, paymentUrl, trialEndsAt, redirectTo } = data;
 
       // Actualizar userData con info de suscripción
       const userWithSubscription = {
@@ -245,6 +251,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userWithSubscription);
 
       console.log('✅ Registro exitoso para:', userData.email);
+
+      // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITÓ (PRIORIDAD SOBRE PAGO)
+      if (redirectTo && redirectTo.startsWith('/')) {
+        console.log('🔄 Redirigiendo automáticamente a:', redirectTo);
+        window.location.replace(redirectTo);
+        return; // No continuar con el procesamiento normal
+      }
 
       // 🔄 REDIRECCIONAMIENTO POST-REGISTRO
       // Si requiere pago, redirigir automáticamente al pago de MercadoPago

@@ -97,12 +97,22 @@ export async function POST(request: NextRequest) {
 
     const jwtToken = jwt.sign(tokenPayload, JWT_SECRET);
 
-    // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITA
+    // 🚀 REDIRECCIÓN SOLICITADA - DEVOLVER INFO PARA REDIRECCIÓN
     if (redirectUrl && redirectUrl.startsWith('/')) {
-      const redirectResponse = NextResponse.redirect(new URL(redirectUrl, request.url));
-      // 🍪 SETEAR COOKIE HTTP-ONLY ANTES DE REDIRIGIR
-      redirectResponse.cookies.set('auth-token', jwtToken, COOKIE_OPTIONS);
-      return redirectResponse;
+      const response = NextResponse.json({
+        success: true,
+        token: jwtToken,
+        user: {
+          email: usuario.email,
+          role: usuario.role
+        },
+        redirectTo: redirectUrl // 👈 URL de redirección solicitada
+      });
+
+      // 🍪 SETEAR COOKIE HTTP-ONLY PARA MIDDLEWARE
+      response.cookies.set('auth-token', jwtToken, COOKIE_OPTIONS);
+
+      return response;
     }
 
     // ✅ RESPUESTA NORMAL CON COOKIE HTTP-ONLY

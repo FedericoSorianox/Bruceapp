@@ -82,9 +82,9 @@ function LoginForm() {
         await register(email.trim(), pwd, redirectUrl);
       }
 
-      // 🚨 Si llegamos aquí, significa que el servidor no redirigió
-      // Esto no debería suceder con la nueva implementación
-      window.location.replace(next);
+      // ✅ Si llegamos aquí, significa que no hubo redirección automática
+      // Esto puede pasar si no se requiere pago en registro o hay error
+      console.log('🔄 Login completado sin redirección automática');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Error de autenticación';
       setErr(msg);
