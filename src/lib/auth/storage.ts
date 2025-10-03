@@ -1,25 +1,34 @@
 /**
  * 💾 STORAGE UTILITIES - Manejo Seguro de Tokens de Autenticación
- * 
+ *
  * Módulo que proporciona funciones seguras para manejar el almacenamiento
- * del token de autenticación en localStorage, con protección completa
+ * del token de autenticación en localStorage y cookies, con protección completa
  * para Server-Side Rendering (SSR) de Next.js.
- * 
+ *
  * Características:
  * - ✅ Compatible con SSR/SSG - verifica si estamos en cliente o servidor
- * - 🔑 Manejo centralizado de la clave de storage 
+ * - 🔑 Manejo centralizado de las claves de storage y cookies
  * - 🛡️ Protección contra errores de hidratación
+ * - 🍪 Soporte para cookies HTTP-only para middleware
  * - 🎯 API simple y consistente
  * - 📦 Exportación limpia de constantes
  */
 
 /**
- * 🔑 CLAVE CONSTANTE PARA LOCALSTORAGE
- * 
- * Clave única utilizada para almacenar el token de autenticación.
- * Centralizada para evitar inconsistencias y facilitar cambios futuros.
+ * 🔑 CLAVES CONSTANTES PARA ALMACENAMIENTO
+ *
+ * Claves únicas utilizadas para almacenar el token de autenticación.
+ * Centralizadas para evitar inconsistencias y facilitar cambios futuros.
  */
 const KEY = 'auth_token';
+const COOKIE_NAME = 'auth-token';
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+  maxAge: 60 * 60 * 24 * 7, // 7 días
+};
 
 /**
  * 📖 OBTENER TOKEN DE AUTENTICACIÓN
@@ -102,9 +111,75 @@ export function clearToken() {
 }
 
 /**
+ * 🍪 OBTENER TOKEN DESDE COOKIES (para middleware)
+ *
+ * Función que recupera el token de autenticación desde las cookies HTTP-only.
+ * Utilizada principalmente por el middleware de Next.js para validación server-side.
+ *
+ * @param {Request} request - Objeto Request de Next.js (solo en middleware)
+ * @returns {string | null} Token si existe en las cookies, null en caso contrario
+ */
+export function getTokenFromCookies(request: Request): string | null {
+  const cookies = request.headers.get('cookie');
+  if (!cookies) return null;
+
+  // Parsear cookies manualmente
+  const cookiePairs = cookies.split(';').map(c => c.trim());
+  for (const pair of cookiePairs) {
+    const [name, value] = pair.split('=');
+    if (name === COOKIE_NAME && value) {
+      return decodeURIComponent(value);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 💾 GUARDAR TOKEN EN LOCALSTORAGE Y COOKIES
+ *
+ * Función que almacena el token de autenticación tanto en localStorage
+ * como en cookies HTTP-only para compatibilidad con middleware.
+ *
+ * @param {string} token - Token de autenticación a almacenar
+ * @param {Response} response - Objeto Response para setear cookies (opcional)
+ */
+export function setTokenWithCookies(token: string, response?: Response) {
+  // Guardar en localStorage (cliente)
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(KEY, token);
+  }
+
+  // Guardar en cookies (para middleware)
+  if (response) {
+    response.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
+  }
+}
+
+/**
+ * 🗑️ LIMPIAR TOKEN DE LOCALSTORAGE Y COOKIES
+ *
+ * Función que elimina el token de autenticación tanto del localStorage
+ * como de las cookies HTTP-only.
+ *
+ * @param {Response} response - Objeto Response para eliminar cookies (opcional)
+ */
+export function clearTokenWithCookies(response?: Response) {
+  // Limpiar localStorage (cliente)
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(KEY);
+  }
+
+  // Limpiar cookies (para middleware)
+  if (response) {
+    response.cookies.set(COOKIE_NAME, '', { ...COOKIE_OPTIONS, maxAge: 0 });
+  }
+}
+
+/**
  * 📤 EXPORTACIÓN DE CONSTANTES
- * 
- * Exporta la clave de storage para uso en otros módulos
+ *
+ * Exporta las claves de storage y cookies para uso en otros módulos
  * que necesiten acceder directamente o hacer debugging.
  */
-export { KEY as AUTH_STORAGE_KEY };
+export { KEY as AUTH_STORAGE_KEY, COOKIE_NAME as AUTH_COOKIE_NAME };

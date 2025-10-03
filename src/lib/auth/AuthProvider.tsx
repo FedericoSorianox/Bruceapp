@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
-import { getToken, setToken, clearToken } from './storage';
+import { getToken, setTokenWithCookies, clearTokenWithCookies } from './storage';
 import { puedeCrearRecursos, puedeEditarRecursoCliente, puedeEliminarRecursoCliente } from '@/lib/utils/multiTenancy.client';
 
 /**
@@ -66,9 +66,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * 🚀 INICIALIZACIÓN Y HIDRATACIÓN
-   * 
+   *
    * useEffect que se ejecuta al montar el componente:
-   * 1. Intenta recuperar token desde localStorage
+   * 1. Intenta recuperar token desde localStorage y cookies
    * 2. Valida la integridad del token
    * 3. Decodifica los datos del usuario
    * 4. Limpia tokens inválidos/corruptos
@@ -100,13 +100,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             // 🚨 TOKEN INVÁLIDO
             console.warn('🚨 Token inválido, limpiando...', data.error);
-            clearToken();
+            clearTokenWithCookies();
           }
 
         } catch (error) {
           // 🛡️ MANEJO DE ERRORES DE RED O SERVIDOR
           console.error('🚨 Error al validar token JWT:', error);
-          clearToken(); // Limpia token si hay error de validación
+          clearTokenWithCookies(); // Limpia token si hay error de validación
         }
       }
 
@@ -158,8 +158,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // ✅ LOGIN EXITOSO
       const { token, user: userData } = data;
 
-      // 💾 PERSISTENCIA - Guardar en localStorage y estado
-      setToken(token);           // Guarda en localStorage
+      // 💾 PERSISTENCIA - Guardar en localStorage, cookies y estado
+      setTokenWithCookies(token); // Guarda en localStorage y cookies
       setTok(token);             // Actualiza estado local
       setUser(userData);         // Actualiza datos del usuario
 
@@ -210,7 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         exemptFromPayments: false
       };
 
-      setToken(token);
+      setTokenWithCookies(token);
       setTok(token);
       setUser(userWithSubscription);
 
@@ -239,7 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * 3. Resetea datos del usuario
    */
   function logout() {
-    clearToken();    // 🗑️ Elimina de localStorage
+    clearTokenWithCookies(); // 🗑️ Elimina de localStorage y cookies
     setTok(null);    // 🔄 Resetea estado del token
     setUser(null);   // 🔄 Resetea datos del usuario
     
