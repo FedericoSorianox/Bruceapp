@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // 1. Conectar a la base de datos global para gestión de usuarios
     globalConnection = await connectDB();
 
-    const { email, password } = await request.json();
+    const { email, password, redirectUrl } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -130,7 +130,15 @@ export async function POST(request: NextRequest) {
 
     const jwtToken = jwt.sign(tokenPayload, JWT_SECRET);
 
-    // ✅ RESPUESTA EXITOSA CON COOKIE HTTP-ONLY
+    // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITA
+    if (redirectUrl && redirectUrl.startsWith('/')) {
+      const redirectResponse = NextResponse.redirect(new URL(redirectUrl, request.url));
+      // 🍪 SETEAR COOKIE HTTP-ONLY ANTES DE REDIRIGIR
+      redirectResponse.cookies.set('auth-token', jwtToken, COOKIE_OPTIONS);
+      return redirectResponse;
+    }
+
+    // ✅ RESPUESTA NORMAL CON COOKIE HTTP-ONLY
     const response = NextResponse.json({
       success: true,
       token: jwtToken,

@@ -23,8 +23,8 @@ type AuthContextType = {
   ready: boolean;           // ✅ ¿Ya completamos la hidratación inicial?
   token: string | null;     // 🔑 Token de autenticación actual
   user: User | null;        // 👤 Datos del usuario autenticado
-  login: (email: string, password: string) => Promise<void>; // 🔐 Función de login
-  register: (email: string, password: string) => Promise<void>; // 🆕 Registro público de admin
+  login: (email: string, password: string, redirectUrl?: string) => Promise<void>; // 🔐 Función de login
+  register: (email: string, password: string, redirectUrl?: string) => Promise<void>; // 🆕 Registro público de admin
   logout: () => void;       // 🚪 Función de logout
   hasRole: (role: 'admin' | 'user') => boolean; // 🔍 Verificar si usuario tiene rol específico
   // 🔒 Sistema de permisos multi-tenancy
@@ -128,9 +128,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    *
    * @param email - Email del usuario
    * @param password - Password del usuario
+   * @param redirectUrl - URL opcional para redirección automática desde el servidor
    * @throws Error si las credenciales son inválidas o hay error de conexión
    */
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string, redirectUrl?: string) {
     try {
       // 🔍 VALIDACIÓN BÁSICA DE EMAIL
       if (!email.includes('@')) {
@@ -140,13 +141,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔐 Login attempt for:', email);
 
       // 🌐 PETICIÓN AL ENDPOINT DE LOGIN
+      const requestBody: any = { email, password };
+      if (redirectUrl) {
+        requestBody.redirectUrl = redirectUrl;
+      }
+
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(requestBody),
       });
+
+      // 🛡️ VERIFICAR SI ES UNA REDIRECCIÓN
+      if (response.redirected) {
+        // 🚀 El servidor hizo una redirección automática
+        window.location.href = response.url;
+        return; // No continuar con el procesamiento normal
+      }
 
       const data = await response.json();
 
@@ -175,8 +188,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * 🆕 FUNCIÓN DE REGISTRO (CREAR ADMIN/TENANT)
    *
    * Crea un nuevo admin con su propio tenant y autentica de inmediato.
+   *
+   * @param email - Email del usuario
+   * @param password - Password del usuario
+   * @param redirectUrl - URL opcional para redirección automática desde el servidor
    */
-  async function register(email: string, password: string) {
+  async function register(email: string, password: string, redirectUrl?: string) {
     try {
       if (!email.includes('@')) {
         throw new Error('Email inválido - debe contener @');
@@ -187,11 +204,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('🆕 Register attempt for:', email);
 
+      // 🌐 PETICIÓN AL ENDPOINT DE REGISTER
+      const requestBody: any = { email, password };
+      if (redirectUrl) {
+        requestBody.redirectUrl = redirectUrl;
+      }
+
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(requestBody)
       });
+
+      // 🛡️ VERIFICAR SI ES UNA REDIRECCIÓN
+      if (response.redirected) {
+        // 🚀 El servidor hizo una redirección automática
+        window.location.href = response.url;
+        return; // No continuar con el procesamiento normal
+      }
 
       const data = await response.json();
 

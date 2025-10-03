@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // 📥 OBTENER DATOS DEL REQUEST
-    const { email, password } = await request.json();
+    const { email, password, redirectUrl } = await request.json();
 
     // 🔍 VALIDACIONES BÁSICAS
     if (!email || !password) {
@@ -97,7 +97,15 @@ export async function POST(request: NextRequest) {
 
     const jwtToken = jwt.sign(tokenPayload, JWT_SECRET);
 
-    // ✅ RESPUESTA EXITOSA CON COOKIE HTTP-ONLY
+    // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITA
+    if (redirectUrl && redirectUrl.startsWith('/')) {
+      const redirectResponse = NextResponse.redirect(new URL(redirectUrl, request.url));
+      // 🍪 SETEAR COOKIE HTTP-ONLY ANTES DE REDIRIGIR
+      redirectResponse.cookies.set('auth-token', jwtToken, COOKIE_OPTIONS);
+      return redirectResponse;
+    }
+
+    // ✅ RESPUESTA NORMAL CON COOKIE HTTP-ONLY
     const response = NextResponse.json({
       success: true,
       token: jwtToken,

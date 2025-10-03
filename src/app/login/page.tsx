@@ -2,7 +2,7 @@
 
 import { useState, Suspense, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/AuthProvider';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 /**
  * 🔐 PÁGINA DE LOGIN/REGISTRO - Autenticación de Usuarios
@@ -17,7 +17,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 function LoginForm() {
   // 🎣 HOOKS
   const { login, register } = useAuth();
-  const router = useRouter();
   const sp = useSearchParams();
 
   // 📊 ESTADOS
@@ -29,8 +28,8 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // 🎯 Destino post-auth
-  const next = sp.get('next') || '/notas';
+  // 🎯 Destino post-auth - Decodificar URL
+  const next = sp.get('next') ? decodeURIComponent(sp.get('next')!) : '/notas';
 
   // Verificar mensajes de URL
   useEffect(() => {
@@ -74,15 +73,18 @@ function LoginForm() {
         throw new Error('Las contraseñas no coinciden');
       }
 
+      // 🔄 PASAR PARÁMETRO DE REDIRECCIÓN AL SERVIDOR
+      const redirectUrl = next;
+
       if (mode === 'login') {
-        await login(email.trim(), pwd);
+        await login(email.trim(), pwd, redirectUrl);
       } else {
-        await register(email.trim(), pwd);
+        await register(email.trim(), pwd, redirectUrl);
       }
 
-      // 🔄 REDIRECCIÓN COMPLETA PARA ASEGURAR QUE LAS COOKIES SE ENVIEN
-      // Usamos window.location.href en lugar de router.replace para enviar cookies
-      window.location.href = next;
+      // 🚨 Si llegamos aquí, significa que el servidor no redirigió
+      // Esto no debería suceder con la nueva implementación
+      window.location.replace(next);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Error de autenticación';
       setErr(msg);
