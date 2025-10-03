@@ -1,6 +1,7 @@
 import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from '@/lib/auth/AuthProvider';
 
@@ -88,13 +89,16 @@ export const metadata: Metadata = {
   // Configuración PWA
   manifest: "/manifest.json",
   appleWebApp: {
-    capable: true,
+    capable: false, // Desactivado para usar el meta tag moderno
     statusBarStyle: "default",
     title: "Bruce App",
   },
   icons: {
     icon: "/icon-192x192.png",
     apple: "/icon-192x192.png",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
   },
 };
 
@@ -144,10 +148,35 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="h-full">
-      <body 
+      <body
         className={`${interSans.variable} ${jetBrainsMono.variable} flex h-full flex-col antialiased`}
         suppressHydrationWarning={true}
       >
+        {/* Script para registro seguro del service worker */}
+        <Script
+          id="register-sw"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  try {
+                    navigator.serviceWorker.register('/sw.js')
+                      .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                      })
+                      .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                      });
+                  } catch (error) {
+                    console.log('SW registration error: ', error);
+                  }
+                });
+              }
+            `,
+          }}
+        />
+
         {/* 🌐 PROVEEDOR DE AUTENTICACIÓN GLOBAL */}
         {/* Envuelve toda la aplicación para acceso al contexto de auth */}
         <AuthProvider>
