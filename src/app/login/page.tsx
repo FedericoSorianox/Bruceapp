@@ -16,7 +16,7 @@ import { useSearchParams } from 'next/navigation';
  */
 function LoginForm() {
   // 🎣 HOOKS
-  const { login, register, token, user } = useAuth();
+  const { login, register } = useAuth();
   const sp = useSearchParams();
 
   // 📊 ESTADOS
@@ -31,13 +31,18 @@ function LoginForm() {
   // 🎯 Destino post-auth - Decodificar URL
   const next = sp.get('next') ? decodeURIComponent(sp.get('next')!) : '/cultivo';
 
-  // 🔄 REDIRIGIR SI YA ESTÁ AUTENTICADO
-  useEffect(() => {
-    if (token && user) {
-      console.log('✅ Usuario ya está autenticado, redirigiendo a:', next);
-      window.location.replace(next);
-    }
-  }, [token, user, next]);
+  // 🔄 REDIRIGIR SI YA ESTÁ AUTENTICADO (DESHABILITADO TEMPORALMENTE)
+  // useEffect(() => {
+  //   if (token && user) {
+  //     console.log('✅ Usuario ya está autenticado, redirigiendo a:', next);
+  //     // 🛡️ PREVENIR MÚLTIPLES EJECUCIONES CON FLAG
+  //     const hasRedirected = sessionStorage.getItem('hasRedirected');
+  //     if (!hasRedirected) {
+  //       sessionStorage.setItem('hasRedirected', 'true');
+  //       window.location.replace(next);
+  //     }
+  //   }
+  // }, [token, user]); // 🚨 REMOVIDO 'next' para evitar loop
 
   // Verificar mensajes de URL
   useEffect(() => {
@@ -91,14 +96,8 @@ function LoginForm() {
       }
 
       // ✅ Si llegamos aquí, significa que no hubo redirección automática
-      // Esto puede pasar si no se requiere pago en registro o hay error
-      console.log('🔄 Login completado sin redirección automática');
-      
-      // 🏠 FALLBACK: Redirigir manualmente después de login exitoso
-      setTimeout(() => {
-        console.log('🏠 Fallback: Redirigiendo manualmente a:', next);
-        window.location.replace(next);
-      }, 500); // Dar más tiempo para que se establezcan las cookies
+      // El AuthProvider maneja las redirecciones, así que esto es normal
+      console.log('🔄 Login completado, AuthProvider manejará la redirección');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Error de autenticación';
       setErr(msg);

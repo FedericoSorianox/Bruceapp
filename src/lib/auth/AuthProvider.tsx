@@ -177,32 +177,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('✅ Login exitoso para:', userData.email, 'con rol:', userData.role);
 
-      // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITÓ
-      if (redirectTo && redirectTo.startsWith('/')) {
-        console.log('🔄 Redirigiendo automáticamente a:', redirectTo);
-        // 🛡️ SOLUCIÓN: Usar userData recién recibido, no el estado anterior
-        const performRedirect = () => {
-          // Verificación con el token recién guardado y userData recién recibido
-          if (getToken() && userData) {
-            console.log('✅ Auth completo, ejecutando redirección a:', redirectTo);
-            window.location.replace(redirectTo);
-          } else {
-            console.log('⚠️ Auth no completado, esperando...');
-            // Si no está listo, esperar un poco más
-            setTimeout(performRedirect, 50);
-          }
-        };
-        
-        // Empezar el proceso de verificación con un pequeño delay
-        setTimeout(performRedirect, 100);
-        return; // No continuar con el procesamiento normal
-      }
-
-      // 🏠 FALLBACK: Si no hay redirectTo específico, redirigir a página principal
-      console.log('🏠 No hay redirectTo, redirigiendo a /cultivo por defecto');
+      // 🚀 REDIRECCIÓN SIMPLE Y DIRECTA
+      const targetUrl = redirectTo || '/cultivo';
+      console.log('🔄 Redirigiendo a:', targetUrl);
+      
+      // 🛡️ PREVENIR MÚLTIPLES REDIRECCIONES
       setTimeout(() => {
-        window.location.replace('/cultivo');
-      }, 100);
+        window.location.replace(targetUrl);
+      }, 150); // Tiempo mínimo para establecer cookies
 
     } catch (error) {
       console.error('🚨 Error en login:', error);
@@ -272,27 +254,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('✅ Registro exitoso para:', userData.email);
 
-      // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITÓ (PRIORIDAD SOBRE PAGO)
-      if (redirectTo && redirectTo.startsWith('/')) {
-        console.log('🔄 Redirigiendo automáticamente a:', redirectTo);
-        // 🛡️ SOLUCIÓN: Usar userData recién recibido, no el estado anterior
-        const performRedirect = () => {
-          // Verificación con el token recién guardado y userData recién recibido
-          if (getToken() && userData) {
-            console.log('✅ Auth completo, ejecutando redirección a:', redirectTo);
-            window.location.replace(redirectTo);
-          } else {
-            console.log('⚠️ Auth no completado, esperando...');
-            // Si no está listo, esperar un poco más
-            setTimeout(performRedirect, 50);
-          }
-        };
-        
-        // Empezar el proceso de verificación con un pequeño delay
-        setTimeout(performRedirect, 100);
-        return; // No continuar con el procesamiento normal
-      }
-
       // 🔄 REDIRECCIONAMIENTO POST-REGISTRO
       // Si requiere pago, redirigir automáticamente al pago de MercadoPago
       if (requiresPayment && paymentUrl) {
@@ -301,11 +262,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return; // No continuar con navegación normal
       }
 
-      // 🏠 FALLBACK: Si no hay redirectTo ni pago, redirigir a página principal
-      console.log('🏠 Registro completo, redirigiendo a /cultivo por defecto');
+      // 🚀 REDIRECCIÓN SIMPLE Y DIRECTA
+      const targetUrl = redirectTo || '/cultivo';
+      console.log('🔄 Registro completo, redirigiendo a:', targetUrl);
+      
+      // 🛡️ PREVENIR MÚLTIPLES REDIRECCIONES
       setTimeout(() => {
-        window.location.replace('/cultivo');
-      }, 100);
+        window.location.replace(targetUrl);
+      }, 150); // Tiempo mínimo para establecer cookies
 
     } catch (error) {
       console.error('🚨 Error en register:', error);
@@ -320,11 +284,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * 1. Elimina token de localStorage
    * 2. Resetea estado local del token
    * 3. Resetea datos del usuario
+   * 4. Limpia flags de redirección
    */
   function logout() {
     clearTokenWithCookies(); // 🗑️ Elimina de localStorage y cookies
     setTok(null);    // 🔄 Resetea estado del token
     setUser(null);   // 🔄 Resetea datos del usuario
+    
+    // 🧹 LIMPIAR FLAGS DE REDIRECCIÓN
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('hasRedirected');
+    }
     
     console.log('✅ Logout exitoso - sesión terminada');
   }
