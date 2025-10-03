@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Usuario from '@/lib/models/Usuario';
 import jwt from 'jsonwebtoken';
-import { setAuthCookie, COOKIE_OPTIONS } from '@/lib/auth/storage';
 
 /**
  * 🔐 ENDPOINT DE LOGIN - Autenticación de Usuarios
@@ -34,6 +33,17 @@ import { setAuthCookie, COOKIE_OPTIONS } from '@/lib/auth/storage';
  * JWT secret para firmar tokens - debe coincidir con las APIs del servidor
  */
 const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
+
+/**
+ * 🍪 CONFIGURACIÓN DE COOKIES HTTP-ONLY
+ */
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+  maxAge: 60 * 60 * 24 * 7, // 7 días
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -98,7 +108,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 🍪 SETEAR COOKIE HTTP-ONLY PARA MIDDLEWARE
-    setAuthCookie(response, jwtToken);
+    response.cookies.set('auth-token', jwtToken, COOKIE_OPTIONS);
 
     return response;
 

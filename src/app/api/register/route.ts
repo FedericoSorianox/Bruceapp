@@ -3,7 +3,6 @@ import connectDB, { connectToUserDB, getDatabaseName } from '@/lib/mongodb';
 import Usuario from '@/lib/models/Usuario';
 import jwt from 'jsonwebtoken';
 import { createSubscriptionPreference } from '@/lib/services/mercadopago';
-import { setAuthCookie } from '@/lib/auth/storage';
 
 /**
  * 🔐 REGISTRO PÚBLICO - Crea un admin con período de prueba y preferencia de pago
@@ -21,6 +20,17 @@ import { setAuthCookie } from '@/lib/auth/storage';
  * 6. Devuelve JWT para autenticación inmediata
  */
 const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
+
+/**
+ * 🍪 CONFIGURACIÓN DE COOKIES HTTP-ONLY
+ */
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+  maxAge: 60 * 60 * 24 * 7, // 7 días
+};
 
 export async function POST(request: NextRequest) {
   let globalConnection;
@@ -135,7 +145,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 🍪 SETEAR COOKIE HTTP-ONLY PARA MIDDLEWARE
-    setAuthCookie(response, jwtToken);
+    response.cookies.set('auth-token', jwtToken, COOKIE_OPTIONS);
 
     return response;
 
