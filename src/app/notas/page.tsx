@@ -109,7 +109,7 @@ const NotasPage = () => {
             Cargando notas...
           </h2>
           <p className="text-gray-600">
-            Obteniendo datos desde db.json
+            Obteniendo datos desde la base de datos
           </p>
         </div>
       </div>

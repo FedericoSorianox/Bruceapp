@@ -18,11 +18,26 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     // Obtener la conexión específica del usuario
     const connection = await connectToUserDB(userEmail);
 
+    // Verificar si la conexión es válida (no es mock)
+    if (connection.readyState === 99) {
+      console.warn('⚠️ Conexión mock detectada - retornando datos vacíos');
+      return NextResponse.json({
+        success: true,
+        data: [],
+        total: 0,
+        page: 1,
+        totalPages: 0,
+        message: 'Base de datos no disponible temporalmente'
+      });
+    }
+
     const url = new URL(request.url);
     const searchQuery = url.searchParams.get('q');
     const category = url.searchParams.get('category');
     const author = url.searchParams.get('author');
     const priority = url.searchParams.get('priority');
+    const sort = url.searchParams.get('_sort') || 'date';
+    const order = url.searchParams.get('_order') || 'desc';
     const page = parseInt(url.searchParams.get('_page') || '1');
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
@@ -35,15 +50,19 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     // Obtener el modelo específico para esta conexión
     const NotaModel = getNotaModel(connection) as Model<NotaDocument>;
 
+    // Construir el objeto de ordenamiento dinámicamente
+    const sortOrder: Record<string, 1 | -1> = {};
+    sortOrder[sort] = order === 'desc' ? -1 : 1;
+
     let notasQuery;
 
     if (searchQuery) {
       notasQuery = NotaModel.find(
         { ...query, $text: { $search: searchQuery } },
         { score: { $meta: 'textScore' } }
-      ).sort({ score: { $meta: 'textScore' }, date: -1 });
+      ).sort({ score: { $meta: 'textScore' }, ...sortOrder });
     } else {
-      notasQuery = NotaModel.find(query).sort({ date: -1 });
+      notasQuery = NotaModel.find(query).sort(sortOrder);
     }
 
     const notas = await notasQuery
@@ -78,6 +97,14 @@ export const POST = withUserDB(async (request: Request, userEmail: string) => {
   try {
     // Obtener la conexión específica del usuario
     const connection = await connectToUserDB(userEmail);
+
+    // Verificar si la conexión es válida (no es mock)
+    if (connection.readyState === 99) {
+      return NextResponse.json(
+        { success: false, error: 'Base de datos no disponible', message: 'La base de datos no está disponible temporalmente' },
+        { status: 503 }
+      );
+    }
 
     const notaData = await request.json();
     const notaConFechas = {
