@@ -80,7 +80,9 @@ function LoginForm() {
         await register(email.trim(), pwd);
       }
 
-      router.replace(next);
+      // 🔄 REDIRECCIÓN COMPLETA PARA ASEGURAR QUE LAS COOKIES SE ENVIEN
+      // Usamos window.location.href en lugar de router.replace para enviar cookies
+      window.location.href = next;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Error de autenticación';
       setErr(msg);
