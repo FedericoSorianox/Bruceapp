@@ -3,6 +3,7 @@ import connectDB, { connectToUserDB, getDatabaseName } from '@/lib/mongodb';
 import Usuario from '@/lib/models/Usuario';
 import jwt from 'jsonwebtoken';
 import { createSubscriptionPreference } from '@/lib/services/mercadopago';
+import { setAuthCookie } from '@/lib/auth/storage';
 
 /**
  * 🔐 REGISTRO PÚBLICO - Crea un admin con período de prueba y preferencia de pago
@@ -119,7 +120,8 @@ export async function POST(request: NextRequest) {
 
     const jwtToken = jwt.sign(tokenPayload, JWT_SECRET);
 
-    return NextResponse.json({
+    // ✅ RESPUESTA EXITOSA CON COOKIE HTTP-ONLY
+    const response = NextResponse.json({
       success: true,
       token: jwtToken,
       user: { email: guardado.email, role: guardado.role },
@@ -131,6 +133,11 @@ export async function POST(request: NextRequest) {
         ? `Cuenta creada exitosamente. Tienes 7 días de prueba gratuita.`
         : `Admin registrado exitosamente. Base de datos: ${dbName}`
     });
+
+    // 🍪 SETEAR COOKIE HTTP-ONLY PARA MIDDLEWARE
+    setAuthCookie(response, jwtToken);
+
+    return response;
 
   } catch (error) {
     console.error('🚨 Error en register:', error);

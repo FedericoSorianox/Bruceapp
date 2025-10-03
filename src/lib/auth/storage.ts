@@ -136,44 +136,56 @@ export function getTokenFromCookies(request: Request): string | null {
 }
 
 /**
- * 💾 GUARDAR TOKEN EN LOCALSTORAGE Y COOKIES
+ * 💾 GUARDAR TOKEN EN LOCALSTORAGE
  *
- * Función que almacena el token de autenticación tanto en localStorage
- * como en cookies HTTP-only para compatibilidad con middleware.
+ * Función que almacena el token de autenticación en localStorage del navegador.
+ * Las cookies HTTP-only se manejan por separado en el middleware.
  *
  * @param {string} token - Token de autenticación a almacenar
- * @param {Response} response - Objeto Response para setear cookies (opcional)
  */
-export function setTokenWithCookies(token: string, response?: Response) {
+export function setTokenWithCookies(token: string) {
   // Guardar en localStorage (cliente)
   if (typeof window !== 'undefined') {
     localStorage.setItem(KEY, token);
   }
-
-  // Guardar en cookies (para middleware)
-  if (response) {
-    response.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
-  }
 }
 
 /**
- * 🗑️ LIMPIAR TOKEN DE LOCALSTORAGE Y COOKIES
+ * 🗑️ LIMPIAR TOKEN DE LOCALSTORAGE
  *
- * Función que elimina el token de autenticación tanto del localStorage
- * como de las cookies HTTP-only.
- *
- * @param {Response} response - Objeto Response para eliminar cookies (opcional)
+ * Función que elimina el token de autenticación del localStorage del navegador.
+ * Las cookies HTTP-only se manejan por separado en el middleware.
  */
-export function clearTokenWithCookies(response?: Response) {
+export function clearTokenWithCookies() {
   // Limpiar localStorage (cliente)
   if (typeof window !== 'undefined') {
     localStorage.removeItem(KEY);
   }
+}
 
-  // Limpiar cookies (para middleware)
-  if (response) {
-    response.cookies.set(COOKIE_NAME, '', { ...COOKIE_OPTIONS, maxAge: 0 });
-  }
+/**
+ * 🍪 SETEAR COOKIE HTTP-ONLY (para middleware)
+ *
+ * Función para setear una cookie HTTP-only desde el middleware de Next.js.
+ * Solo debe usarse en el contexto del middleware.
+ *
+ * @param {import('next/server').NextResponse} response - Objeto NextResponse
+ * @param {string} token - Token de autenticación a almacenar
+ */
+export function setAuthCookie(response: any, token: string) {
+  response.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS);
+}
+
+/**
+ * 🍪 LIMPIAR COOKIE HTTP-ONLY (para middleware)
+ *
+ * Función para eliminar la cookie HTTP-only desde el middleware de Next.js.
+ * Solo debe usarse en el contexto del middleware.
+ *
+ * @param {import('next/server').NextResponse} response - Objeto NextResponse
+ */
+export function clearAuthCookie(response: any) {
+  response.cookies.set(COOKIE_NAME, '', { ...COOKIE_OPTIONS, maxAge: 0 });
 }
 
 /**
@@ -182,4 +194,4 @@ export function clearTokenWithCookies(response?: Response) {
  * Exporta las claves de storage y cookies para uso en otros módulos
  * que necesiten acceder directamente o hacer debugging.
  */
-export { KEY as AUTH_STORAGE_KEY, COOKIE_NAME as AUTH_COOKIE_NAME };
+export { KEY as AUTH_STORAGE_KEY, COOKIE_NAME as AUTH_COOKIE_NAME, COOKIE_OPTIONS };

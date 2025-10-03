@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Usuario from '@/lib/models/Usuario';
 import jwt from 'jsonwebtoken';
+import { setAuthCookie, COOKIE_OPTIONS } from '@/lib/auth/storage';
 
 /**
  * 🔐 ENDPOINT DE LOGIN - Autenticación de Usuarios
@@ -86,8 +87,8 @@ export async function POST(request: NextRequest) {
 
     const jwtToken = jwt.sign(tokenPayload, JWT_SECRET);
 
-    // ✅ RESPUESTA EXITOSA
-    return NextResponse.json({
+    // ✅ RESPUESTA EXITOSA CON COOKIE HTTP-ONLY
+    const response = NextResponse.json({
       success: true,
       token: jwtToken,
       user: {
@@ -95,6 +96,11 @@ export async function POST(request: NextRequest) {
         role: usuario.role
       }
     });
+
+    // 🍪 SETEAR COOKIE HTTP-ONLY PARA MIDDLEWARE
+    setAuthCookie(response, jwtToken);
+
+    return response;
 
   } catch (error) {
     console.error('🚨 Error en login:', error);
