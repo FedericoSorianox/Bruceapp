@@ -82,6 +82,8 @@ export async function middleware(request: NextRequest) {
   // 🔑 Intentar obtener token de las cookies usando la función utilitaria
   const token = getTokenFromCookies(request);
 
+  console.log('🔍 Middleware check para:', pathname, '| Token existe:', !!token);
+
   if (!token) {
     // 🚨 Sin token - Redirigir al login
     console.log('🚨 Middleware: Acceso denegado - sin token para ruta:', pathname);
@@ -96,6 +98,7 @@ export async function middleware(request: NextRequest) {
       // Para páginas, redirigir al login
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('next', pathname);
+      console.log('🔄 Redirigiendo a:', loginUrl.toString());
       return NextResponse.redirect(loginUrl);
     }
   }
@@ -105,7 +108,7 @@ export async function middleware(request: NextRequest) {
 
   if (!validation.valid) {
     // 🚨 Token inválido - Redirigir al login
-    console.log('🚨 Middleware: Token inválido para ruta:', pathname);
+    console.log('🚨 Middleware: Token inválido para ruta:', pathname, '| Validation result:', JSON.stringify(validation));
 
     if (isProtectedApiRoute) {
       // Para APIs, devolver error 401
@@ -117,6 +120,7 @@ export async function middleware(request: NextRequest) {
       // Para páginas, redirigir al login
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('next', pathname);
+      console.log('🔄 Redirigiendo por token inválido a:', loginUrl.toString());
       return NextResponse.redirect(loginUrl);
     }
   }

@@ -29,7 +29,7 @@ function LoginForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // 🎯 Destino post-auth - Decodificar URL
-  const next = sp.get('next') ? decodeURIComponent(sp.get('next')!) : '/notas';
+  const next = sp.get('next') ? decodeURIComponent(sp.get('next')!) : '/cultivo';
 
   // Verificar mensajes de URL
   useEffect(() => {

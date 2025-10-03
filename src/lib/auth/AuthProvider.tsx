@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * @param redirectUrl - URL opcional para redirección automática desde el servidor
    * @throws Error si las credenciales son inválidas o hay error de conexión
    */
-  async function login(email: string, password: string, redirectUrl?: string) {
+  const login = useCallback(async (email: string, password: string, redirectUrl?: string) => {
     try {
       // 🔍 VALIDACIÓN BÁSICA DE EMAIL
       if (!email.includes('@')) {
@@ -180,7 +180,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITÓ
       if (redirectTo && redirectTo.startsWith('/')) {
         console.log('🔄 Redirigiendo automáticamente a:', redirectTo);
-        window.location.replace(redirectTo);
+        // 🛡️ SOLUCIÓN: Verificar que la autenticación esté completa antes de redirigir
+        const performRedirect = () => {
+          // Doble verificación: token en localStorage y estado actualizado
+          if (getToken() && user) {
+            console.log('✅ Auth completo, ejecutando redirección a:', redirectTo);
+            window.location.replace(redirectTo);
+          } else {
+            console.log('⚠️ Auth no completado, esperando...');
+            // Si no está listo, esperar un poco más
+            setTimeout(performRedirect, 50);
+          }
+        };
+        
+        // Empezar el proceso de verificación con un pequeño delay
+        setTimeout(performRedirect, 100);
         return; // No continuar con el procesamiento normal
       }
 
@@ -188,7 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('🚨 Error en login:', error);
       throw error; // Re-lanza el error para que lo maneje el componente
     }
-  }
+  }, [user]); // Dependencias del useCallback
 
   /**
    * 🆕 FUNCIÓN DE REGISTRO (CREAR ADMIN/TENANT)
@@ -199,7 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * @param password - Password del usuario
    * @param redirectUrl - URL opcional para redirección automática desde el servidor
    */
-  async function register(email: string, password: string, redirectUrl?: string) {
+  const register = useCallback(async (email: string, password: string, redirectUrl?: string) => {
     try {
       if (!email.includes('@')) {
         throw new Error('Email inválido - debe contener @');
@@ -255,7 +269,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 🚀 REDIRECCIÓN AUTOMÁTICA SI SE SOLICITÓ (PRIORIDAD SOBRE PAGO)
       if (redirectTo && redirectTo.startsWith('/')) {
         console.log('🔄 Redirigiendo automáticamente a:', redirectTo);
-        window.location.replace(redirectTo);
+        // 🛡️ SOLUCIÓN: Verificar que la autenticación esté completa antes de redirigir
+        const performRedirect = () => {
+          // Doble verificación: token en localStorage y estado actualizado
+          if (getToken() && user) {
+            console.log('✅ Auth completo, ejecutando redirección a:', redirectTo);
+            window.location.replace(redirectTo);
+          } else {
+            console.log('⚠️ Auth no completado, esperando...');
+            // Si no está listo, esperar un poco más
+            setTimeout(performRedirect, 50);
+          }
+        };
+        
+        // Empezar el proceso de verificación con un pequeño delay
+        setTimeout(performRedirect, 100);
         return; // No continuar con el procesamiento normal
       }
 
@@ -271,7 +299,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('🚨 Error en register:', error);
       throw error;
     }
-  }
+  }, [user]); // Dependencias del useCallback
 
   /**
    * 🚪 FUNCIÓN DE LOGOUT
@@ -444,7 +472,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       hasActiveSubscription,
       isExemptFromPayments
     }),
-    [ready, token, user, hasRole, canCreateCultivo, canDeleteCultivo, canCreateTarea, canDeleteTarea, canEditRecursos, canCreateUsuario, canViewUsuarios, checkSubscription, hasActiveSubscription, isExemptFromPayments]
+    [ready, token, user, login, register, hasRole, canCreateCultivo, canDeleteCultivo, canCreateTarea, canDeleteTarea, canEditRecursos, canCreateUsuario, canViewUsuarios, checkSubscription, hasActiveSubscription, isExemptFromPayments]
   );
 
   // 🌐 PROVEEDOR DEL CONTEXTO

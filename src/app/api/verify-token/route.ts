@@ -67,9 +67,19 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     // 🚨 TOKEN INVÁLIDO O EXPIRADO
-    console.error('🚨 Error verificando token:', error);
+    let errorMessage = 'Token inválido o expirado';
+    
+    if (error instanceof jwt.JsonWebTokenError) {
+      errorMessage = 'Token malformado';
+    } else if (error instanceof jwt.TokenExpiredError) {
+      errorMessage = 'Token expirado';
+    } else if (error instanceof jwt.NotBeforeError) {
+      errorMessage = 'Token no válido aún';
+    }
+    
+    console.error('🚨 Error verificando token:', errorMessage, error);
     return NextResponse.json(
-      { valid: false, error: 'Token inválido o expirado' },
+      { valid: false, error: errorMessage },
       { status: 401 }
     );
   }

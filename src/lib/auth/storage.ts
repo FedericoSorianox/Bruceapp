@@ -123,11 +123,12 @@ export function getTokenFromCookies(request: Request): string | null {
   const cookies = request.headers.get('cookie');
   if (!cookies) return null;
 
-  // Parsear cookies manualmente
+  // Parsear cookies manualmente con mejor manejo de caracteres especiales
   const cookiePairs = cookies.split(';').map(c => c.trim());
   for (const pair of cookiePairs) {
-    const [name, value] = pair.split('=');
-    if (name === COOKIE_NAME && value) {
+    const [name, ...valueParts] = pair.split('=');
+    if (name === COOKIE_NAME && valueParts.length > 0) {
+      const value = valueParts.join('='); // Rejoin in case JWT contains '='
       return decodeURIComponent(value);
     }
   }
