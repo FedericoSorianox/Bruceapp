@@ -16,7 +16,7 @@ import { useSearchParams } from 'next/navigation';
  */
 function LoginForm() {
   // 🎣 HOOKS
-  const { login, register } = useAuth();
+  const { login, register, token, user } = useAuth();
   const sp = useSearchParams();
 
   // 📊 ESTADOS
@@ -31,18 +31,33 @@ function LoginForm() {
   // 🎯 Destino post-auth - Decodificar URL
   const next = sp.get('next') ? decodeURIComponent(sp.get('next')!) : '/cultivo';
 
-  // 🔄 REDIRIGIR SI YA ESTÁ AUTENTICADO (DESHABILITADO TEMPORALMENTE)
-  // useEffect(() => {
-  //   if (token && user) {
-  //     console.log('✅ Usuario ya está autenticado, redirigiendo a:', next);
-  //     // 🛡️ PREVENIR MÚLTIPLES EJECUCIONES CON FLAG
-  //     const hasRedirected = sessionStorage.getItem('hasRedirected');
-  //     if (!hasRedirected) {
-  //       sessionStorage.setItem('hasRedirected', 'true');
-  //       window.location.replace(next);
-  //     }
-  //   }
-  // }, [token, user]); // 🚨 REMOVIDO 'next' para evitar loop
+  // 🔄 REDIRIGIR SI YA ESTÁ AUTENTICADO (VERSIÓN SEGURA)
+  useEffect(() => {
+    console.log('🔍 LoginForm useEffect - token:', !!token, 'user:', !!user, 'next:', next);
+    
+    if (token && user) {
+      console.log('✅ Usuario ya está autenticado, preparando redirección a:', next);
+      
+      // 🛡️ PREVENIR MÚLTIPLES EJECUCIONES - Solo redirigir una vez por sesión
+      const lastRedirect = sessionStorage.getItem('lastRedirect');
+      console.log('🕐 LastRedirect:', lastRedirect, 'Current time:', Date.now());
+      
+      if (!lastRedirect || Date.now() - parseInt(lastRedirect) > 5000) { // 5 segundos de cooldown
+        sessionStorage.setItem('lastRedirect', Date.now().toString());
+        console.log('🚀 Ejecutando redirección a:', next);
+        
+        // 🔄 FORZAR REDIRECCIÓN INMEDIATA PARA DEBUG
+        setTimeout(() => {
+          console.log('⏰ Timeout ejecutándose, redirigiendo...');
+          window.location.replace(next);
+        }, 100);
+      } else {
+        console.log('⏳ Redirección en cooldown, saltando...');
+      }
+    } else {
+      console.log('❌ No token o user - token:', !!token, 'user:', !!user);
+    }
+  }, [token, user, next]); // Incluir 'next' pero controlado con cooldown
 
   // Verificar mensajes de URL
   useEffect(() => {
