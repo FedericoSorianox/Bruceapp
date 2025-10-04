@@ -16,7 +16,7 @@ import { useSearchParams } from 'next/navigation';
  */
 function LoginForm() {
   // 🎣 HOOKS
-  const { login, register, token, user } = useAuth();
+  const { login, register } = useAuth();
   const sp = useSearchParams();
 
   // 📊 ESTADOS
@@ -31,29 +31,29 @@ function LoginForm() {
   // 🎯 Destino post-auth - Decodificar URL
   const next = sp.get('next') ? decodeURIComponent(sp.get('next')!) : '/cultivo';
 
-  // 🔄 REDIRIGIR SI YA ESTÁ AUTENTICADO (VERSIÓN SIMPLE Y CONFIABLE)
-  useEffect(() => {
-    console.log('🔍 LoginForm useEffect - token:', !!token, 'user:', !!user, 'next:', next);
-    
-    if (token && user) {
-      console.log('✅ Usuario ya está autenticado, ejecutando redirección INMEDIATA a:', next);
-      
-      // 🚀 REDIRECCIÓN INMEDIATA SIN COOLDOWN (para solucionar el problema)
-      console.log('🔄 Redirigiendo sin restricciones...');
-      
-      // Limpiar cualquier cooldown previo
-      sessionStorage.removeItem('lastRedirect');
-      
-      // Redirección inmediata
-      setTimeout(() => {
-        console.log('⏰ Ejecutando window.location.replace a:', next);
-        window.location.replace(next);
-      }, 50); // Mínimo delay para logs
-      
-    } else {
-      console.log('❌ No token o user - token:', !!token, 'user:', !!user);
-    }
-  }, [token, user, next]);
+  // 🚫 TEMPORALMENTE DESHABILITADO PARA DETENER LOOP
+  // useEffect(() => {
+  //   console.log('🔍 LoginForm useEffect - token:', !!token, 'user:', !!user, 'next:', next);
+  //   
+  //   if (token && user) {
+  //     console.log('✅ Usuario ya está autenticado, ejecutando redirección INMEDIATA a:', next);
+  //     
+  //     // 🚀 REDIRECCIÓN INMEDIATA SIN COOLDOWN (para solucionar el problema)
+  //     console.log('🔄 Redirigiendo sin restricciones...');
+  //     
+  //     // Limpiar cualquier cooldown previo
+  //     sessionStorage.removeItem('lastRedirect');
+  //     
+  //     // Redirección inmediata
+  //     setTimeout(() => {
+  //       console.log('⏰ Ejecutando window.location.replace a:', next);
+  //       window.location.replace(next);
+  //     }, 50); // Mínimo delay para logs
+  //     
+  //   } else {
+  //     console.log('❌ No token o user - token:', !!token, 'user:', !!user);
+  //   }
+  // }, [token, user, next]);
 
   // Verificar mensajes de URL
   useEffect(() => {

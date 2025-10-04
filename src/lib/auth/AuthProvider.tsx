@@ -177,16 +177,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('✅ Login exitoso para:', userData.email, 'con rol:', userData.role);
 
-      // 🚀 SOLO REDIRIGIR SI HAY redirectTo ESPECÍFICO
-      // La página de login manejará la redirección por defecto
-      if (redirectTo && redirectTo.startsWith('/')) {
-        console.log('🔄 Redirigiendo a URL específica:', redirectTo);
-        setTimeout(() => {
-          window.location.replace(redirectTo);
-        }, 100);
-      } else {
-        console.log('🏠 Sin redirectTo específico, la página de login manejará la redirección');
-      }
+      // 🚀 REDIRECCIÓN SIMPLE Y DIRECTA - SIEMPRE REDIRIGIR TRAS LOGIN
+      const targetUrl = redirectTo || '/cultivo';
+      console.log('🔄 Login completado, redirigiendo a:', targetUrl);
+      
+      // 🛡️ REDIRECCIÓN INMEDIATA TRAS LOGIN
+      setTimeout(() => {
+        console.log('⏰ Ejecutando redirección post-login a:', targetUrl);
+        window.location.replace(targetUrl);
+      }, 200); // Tiempo suficiente para establecer cookies
 
     } catch (error) {
       console.error('🚨 Error en login:', error);
