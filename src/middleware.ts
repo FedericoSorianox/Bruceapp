@@ -40,17 +40,11 @@ function validateTokenDirect(token: string): { valid: boolean; user?: { email: s
   try {
     const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
     
-    console.log('🔍 Validando JWT con secret length:', JWT_SECRET.length);
-    console.log('🔍 Token a validar length:', token.length);
-    console.log('🔍 Token preview:', token.substring(0, 50) + '...');
-    
     const decoded = jwt.verify(token, JWT_SECRET) as {
       email: string;
       role: 'admin' | 'user';
       exp: number;
     };
-
-    console.log('✅ JWT válido para usuario:', decoded.email, 'rol:', decoded.role);
     
     return {
       valid: true,
@@ -60,8 +54,7 @@ function validateTokenDirect(token: string): { valid: boolean; user?: { email: s
       }
     };
   } catch (error) {
-    console.error('❌ Error validando token directo:', error instanceof Error ? error.message : 'Unknown');
-    console.error('❌ Error completo:', error);
+    console.error('❌ JWT validation error:', error instanceof Error ? error.message : 'Unknown');
     return { valid: false };
   }
 }
@@ -93,16 +86,6 @@ export function middleware(request: NextRequest) {
 
   // 🔑 Intentar obtener token de las cookies usando la función utilitaria
   const token = getTokenFromCookies(request);
-  
-  // 🔍 DEBUG: Información detallada de cookies
-  const cookies = request.headers.get('cookie');
-  console.log('🔍 Middleware check para:', pathname);
-  console.log('🍪 Cookies header:', cookies ? 'Presente' : 'Ausente');
-  console.log('🔑 Token extraído:', token ? 'Presente' : 'Ausente');
-  
-  if (cookies) {
-    console.log('🍪 Cookies raw:', cookies.substring(0, 200) + '...');
-  }
 
   if (!token) {
     // 🚨 Sin token - Redirigir al login
