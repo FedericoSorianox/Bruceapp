@@ -86,8 +86,16 @@ export function middleware(request: NextRequest) {
 
   // 🔑 Intentar obtener token de las cookies usando la función utilitaria
   const token = getTokenFromCookies(request);
-
-  console.log('🔍 Middleware check para:', pathname, '| Token existe:', !!token);
+  
+  // 🔍 DEBUG: Información detallada de cookies
+  const cookies = request.headers.get('cookie');
+  console.log('🔍 Middleware check para:', pathname);
+  console.log('🍪 Cookies header:', cookies ? 'Presente' : 'Ausente');
+  console.log('🔑 Token extraído:', token ? 'Presente' : 'Ausente');
+  
+  if (cookies) {
+    console.log('🍪 Cookies raw:', cookies.substring(0, 200) + '...');
+  }
 
   if (!token) {
     // 🚨 Sin token - Redirigir al login

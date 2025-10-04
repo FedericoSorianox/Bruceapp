@@ -121,18 +121,33 @@ export function clearToken() {
  */
 export function getTokenFromCookies(request: Request): string | null {
   const cookies = request.headers.get('cookie');
-  if (!cookies) return null;
+  console.log('🔍 getTokenFromCookies - Cookies header:', cookies ? 'Presente' : 'Ausente');
+  
+  if (!cookies) {
+    console.log('❌ No hay header de cookies');
+    return null;
+  }
+
+  console.log('🍪 Cookies completas:', cookies);
+  console.log('🔍 Buscando cookie con nombre:', COOKIE_NAME);
 
   // Parsear cookies manualmente con mejor manejo de caracteres especiales
   const cookiePairs = cookies.split(';').map(c => c.trim());
+  console.log('🍪 Cookie pairs encontrados:', cookiePairs.length);
+  
   for (const pair of cookiePairs) {
+    console.log('🔍 Procesando pair:', pair);
     const [name, ...valueParts] = pair.split('=');
+    console.log('📝 Cookie name:', name, '| Buscando:', COOKIE_NAME, '| Match:', name === COOKIE_NAME);
+    
     if (name === COOKIE_NAME && valueParts.length > 0) {
       const value = valueParts.join('='); // Rejoin in case JWT contains '='
+      console.log('✅ Token encontrado! Longitud:', value.length);
       return decodeURIComponent(value);
     }
   }
 
+  console.log('❌ Cookie auth-token no encontrada');
   return null;
 }
 
