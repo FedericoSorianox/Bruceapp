@@ -16,7 +16,7 @@ import { useSearchParams } from 'next/navigation';
  */
 function LoginForm() {
   // 🎣 HOOKS
-  const { login, register } = useAuth();
+  const { login, register, token, user } = useAuth();
   const sp = useSearchParams();
 
   // 📊 ESTADOS
@@ -31,29 +31,21 @@ function LoginForm() {
   // 🎯 Destino post-auth - Decodificar URL
   const next = sp.get('next') ? decodeURIComponent(sp.get('next')!) : '/cultivo';
 
-  // 🚫 TEMPORALMENTE DESHABILITADO PARA DETENER LOOP
-  // useEffect(() => {
-  //   console.log('🔍 LoginForm useEffect - token:', !!token, 'user:', !!user, 'next:', next);
-  //   
-  //   if (token && user) {
-  //     console.log('✅ Usuario ya está autenticado, ejecutando redirección INMEDIATA a:', next);
-  //     
-  //     // 🚀 REDIRECCIÓN INMEDIATA SIN COOLDOWN (para solucionar el problema)
-  //     console.log('🔄 Redirigiendo sin restricciones...');
-  //     
-  //     // Limpiar cualquier cooldown previo
-  //     sessionStorage.removeItem('lastRedirect');
-  //     
-  //     // Redirección inmediata
-  //     setTimeout(() => {
-  //       console.log('⏰ Ejecutando window.location.replace a:', next);
-  //       window.location.replace(next);
-  //     }, 50); // Mínimo delay para logs
-  //     
-  //   } else {
-  //     console.log('❌ No token o user - token:', !!token, 'user:', !!user);
-  //   }
-  // }, [token, user, next]);
+  // 🔄 REDIRECCIÓN AUTOMÁTICA PARA USUARIOS YA AUTENTICADOS
+  useEffect(() => {
+    // Solo redirigir si hay token Y usuario Y la página está completamente cargada
+    if (token && user) {
+      console.log('🔄 Usuario ya autenticado, redirigiendo a:', next);
+      
+      // 🛡️ Prevenir múltiples redirecciones con timeout
+      const timeoutId = setTimeout(() => {
+        window.location.replace(next);
+      }, 100); // Pequeño delay para asegurar que el estado esté estable
+      
+      // Cleanup del timeout si el componente se desmonta
+      return () => clearTimeout(timeoutId);
+    }
+  }, [token, user, next]); // Dependencias controladas
 
   // Verificar mensajes de URL
   useEffect(() => {

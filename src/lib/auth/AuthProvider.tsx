@@ -292,11 +292,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTok(null);    // 🔄 Resetea estado del token
     setUser(null);   // 🔄 Resetea datos del usuario
     
-    // 🧹 LIMPIAR FLAGS DE REDIRECCIÓN
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('hasRedirected');
-    }
-    
     console.log('✅ Logout exitoso - sesión terminada');
   }
 
