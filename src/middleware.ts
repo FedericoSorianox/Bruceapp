@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getTokenFromCookies } from './lib/auth/storage';
+import jwt from 'jsonwebtoken';
 
 /**
  * 🛡️ MIDDLEWARE DE AUTENTICACIÓN PARA NEXT.JS
@@ -32,24 +33,28 @@ const protectedApiRoutes = ['/api/cultivos', '/api/notas', '/api/tareas', '/api/
 const publicApiRoutes = ['/api/login', '/api/register', '/api/verify-token', '/api/subscription'];
 
 /**
- * 🔐 VERIFICACIÓN DE TOKEN JWT
- * Valida el token contra el endpoint del servidor
+ * 🔐 VERIFICACIÓN DE TOKEN JWT DIRECTA (SIN FETCH)
+ * Valida el token directamente en el middleware para evitar loops
  */
-async function validateToken(token: string): Promise<{ valid: boolean; user?: { email: string; role: string } }> {
+function validateTokenDirect(token: string): { valid: boolean; user?: { email: string; role: string } } {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/verify-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token }),
-    });
+    const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
+    
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      email: string;
+      role: 'admin' | 'user';
+      exp: number;
+    };
 
-    const data = await response.json();
-    return data;
+    return {
+      valid: true,
+      user: {
+        email: decoded.email,
+        role: decoded.role
+      }
+    };
   } catch (error) {
-    console.error('❌ Error validando token en middleware:', error);
+    console.error('❌ Error validando token directo:', error instanceof Error ? error.message : 'Unknown');
     return { valid: false };
   }
 }
@@ -57,7 +62,7 @@ async function validateToken(token: string): Promise<{ valid: boolean; user?: { 
 /**
  * 🎯 FUNCIÓN PRINCIPAL DEL MIDDLEWARE
  */
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 🔍 Determinar si es una ruta protegida
@@ -104,7 +109,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // ✅ Validar token
-  const validation = await validateToken(token);
+  const validation = validateTokenDirect(token);
 
   if (!validation.valid) {
     // 🚨 Token inválido - Redirigir al login

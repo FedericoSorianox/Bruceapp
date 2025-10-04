@@ -35,23 +35,27 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
 
 /**
- * 🍪 CONFIGURACIÓN DE COOKIES HTTP-ONLY
+ * 🍪 CONFIGURACIÓN DE COOKIES HTTP-ONLY PARA PRODUCCIÓN
  */
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción  
+  sameSite: 'lax' as const, // Mantener lax para evitar problemas
   path: '/',
   maxAge: 60 * 60 * 24 * 7, // 7 días
 };
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔐 Login request recibido');
+    
     // Conectar a MongoDB
     await connectDB();
 
     // 📥 OBTENER DATOS DEL REQUEST
     const { email, password, redirectUrl } = await request.json();
+    
+    console.log('📧 Login attempt para:', email, '| Redirect URL:', redirectUrl);
 
     // 🔍 VALIDACIONES BÁSICAS
     if (!email || !password) {
@@ -96,9 +100,13 @@ export async function POST(request: NextRequest) {
     };
 
     const jwtToken = jwt.sign(tokenPayload, JWT_SECRET);
+    
+    console.log('✅ Token JWT generado exitosamente');
 
     // 🚀 REDIRECCIÓN SOLICITADA - DEVOLVER INFO PARA REDIRECCIÓN
     if (redirectUrl && redirectUrl.startsWith('/')) {
+      console.log('🔄 Preparando respuesta con redirectTo:', redirectUrl);
+      
       const response = NextResponse.json({
         success: true,
         token: jwtToken,
@@ -111,6 +119,7 @@ export async function POST(request: NextRequest) {
 
       // 🍪 SETEAR COOKIE HTTP-ONLY PARA MIDDLEWARE
       response.cookies.set('auth-token', jwtToken, COOKIE_OPTIONS);
+      console.log('🍪 Cookie establecida con opciones:', COOKIE_OPTIONS);
 
       return response;
     }
