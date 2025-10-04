@@ -1,8 +1,1 @@
-name: Deployment pipeline
 
-on:
-  push:
-    branches:
-      - main
-
-jobs:
