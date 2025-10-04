@@ -125,15 +125,34 @@ function LoginForm() {
       {/* Remover después del debug */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
         <p className="text-yellow-800 text-sm mb-2">🔍 Debug: ¿Estás logueado?</p>
-        <button
-          onClick={() => {
-            console.log('🔍 Navegando manualmente a /cultivo');
-            window.location.href = '/cultivo';
-          }}
-          className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-        >
-          Ir a Cultivo (Debug)
-        </button>
+        <div className="space-x-2">
+          <button
+            onClick={() => {
+              console.log('🔍 Navegando manualmente a /cultivo');
+              window.location.href = '/cultivo';
+            }}
+            className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+          >
+            Ir a Cultivo (Debug)
+          </button>
+          <button
+            onClick={async () => {
+              console.log('🔍 Verificando cookies en servidor...');
+              try {
+                const response = await fetch('/api/debug-cookies');
+                const data = await response.json();
+                console.log('🍪 Debug cookies response:', data);
+                alert(JSON.stringify(data, null, 2));
+              } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error: ' + error);
+              }
+            }}
+            className="bg-green-500 text-white px-3 py-1 rounded text-sm"
+          >
+            Debug Cookies
+          </button>
+        </div>
       </div>
 
       {successMessage && (
