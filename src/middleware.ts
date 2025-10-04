@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getTokenFromCookies } from './lib/auth/storage';
-import jwt from 'jsonwebtoken';
 
 /**
  * 🛡️ MIDDLEWARE DE AUTENTICACIÓN PARA NEXT.JS
@@ -32,65 +31,6 @@ const protectedApiRoutes = ['/api/cultivos', '/api/notas', '/api/tareas', '/api/
 // 🌐 RUTAS DE API PÚBLICAS
 const publicApiRoutes = ['/api/login', '/api/register', '/api/verify-token', '/api/subscription'];
 
-/**
- * 🔐 VERIFICACIÓN DE TOKEN JWT DIRECTA (VERSIÓN ROBUSTA)
- * Valida el token directamente en el middleware con manejo de errores mejorado
- */
-function validateTokenDirect(token: string): { valid: boolean; user?: { email: string; role: string }; error?: string } {
-  try {
-    // 🔑 Usar el mismo secret que en login
-    const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
-    
-    // 🛡️ Verificar que el token no esté vacío
-    if (!token || token.trim() === '') {
-      return { valid: false, error: 'Token vacío' };
-    }
-    
-    // 🔍 Verificar estructura básica de JWT
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      return { valid: false, error: 'Token malformado - no tiene 3 partes' };
-    }
-    
-    // ✅ Verificar el JWT
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      email: string;
-      role: 'admin' | 'user';
-      exp: number;
-      iat: number;
-    };
-    
-    // 🕐 Verificar expiración manualmente (por si hay problemas de timezone)
-    const now = Math.floor(Date.now() / 1000);
-    if (decoded.exp && decoded.exp < now) {
-      return { valid: false, error: 'Token expirado' };
-    }
-    
-    // ✅ Token válido
-    return {
-      valid: true,
-      user: {
-        email: decoded.email,
-        role: decoded.role
-      }
-    };
-    
-  } catch (error) {
-    let errorMessage = 'Error desconocido';
-    
-    if (error instanceof jwt.JsonWebTokenError) {
-      errorMessage = 'JWT malformado';
-    } else if (error instanceof jwt.TokenExpiredError) {
-      errorMessage = 'JWT expirado';
-    } else if (error instanceof jwt.NotBeforeError) {
-      errorMessage = 'JWT no válido aún';
-    } else if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    
-    return { valid: false, error: errorMessage };
-  }
-}
 
 /**
  * 🎯 FUNCIÓN PRINCIPAL DEL MIDDLEWARE
