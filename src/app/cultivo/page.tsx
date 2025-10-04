@@ -524,8 +524,6 @@ const CultivoPage = React.memo(() => {
         </main>
     </RequireAuth>
   );
-};
-
 });
 
 CultivoPage.displayName = 'CultivoPage';
