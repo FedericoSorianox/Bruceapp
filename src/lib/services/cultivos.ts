@@ -159,7 +159,11 @@ export async function listCultivos(
     // Fallback directo si no tiene el formato esperado
     return Array.isArray(response) ? response as Cultivo[] : [];
   } catch (error) {
-    console.error('Error al listar cultivos:', error);
+    // No mostrar error en consola para AbortError, ya que es un comportamiento esperado
+    // cuando el componente se desmonta o cambian los parámetros de búsqueda
+    if (!(error instanceof Error) || error.name !== 'AbortError') {
+      console.error('Error al listar cultivos:', error);
+    }
     throw error;
   }
 }
@@ -202,7 +206,10 @@ export async function getCultivo(id: string, signal?: AbortSignal, token?: strin
     
     throw new Error('Respuesta de API en formato inesperado o datos faltantes');
   } catch (error) {
-    console.error(`Error al obtener cultivo ${id}:`, error);
+    // No mostrar error en consola para AbortError, ya que es un comportamiento esperado
+    if (!(error instanceof Error) || error.name !== 'AbortError') {
+      console.error(`Error al obtener cultivo ${id}:`, error);
+    }
     throw error;
   }
 }
@@ -384,7 +391,7 @@ export async function getEstadisticasCultivos(token?: string): Promise<{
 }> {
   try {
     const cultivos = await listCultivos({}, undefined, token);
-    
+
     const estadisticas = cultivos.reduce((acc, cultivo) => {
       acc.total += 1;
       if (cultivo.activo) acc.activos += 1;
@@ -402,7 +409,10 @@ export async function getEstadisticasCultivos(token?: string): Promise<{
 
     return estadisticas;
   } catch (error) {
-    console.error('Error al obtener estadísticas de cultivos:', error);
+    // No mostrar error en consola para AbortError, ya que es comportamiento esperado
+    if (!(error instanceof Error) || error.name !== 'AbortError') {
+      console.error('Error al obtener estadísticas de cultivos:', error);
+    }
     throw error;
   }
 }

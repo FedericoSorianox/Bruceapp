@@ -70,14 +70,18 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
         // Llama al servicio para obtener los cultivos con los parámetros actuales
         const data = await listCultivos(params, controller.signal, token || undefined);
 
-        // Actualiza el estado con los cultivos obtenidos
-        setCultivos(data);
+        // Solo actualiza el estado si la petición no fue abortada
+        if (!controller.signal.aborted) {
+          setCultivos(data);
+        }
 
         // Carga estadísticas si es la primera carga o cambió el filtro de activos
-        if (!params.q) {
+        if (!params.q && !controller.signal.aborted) {
           try {
             const stats = await getEstadisticasCultivos(token || undefined);
-            setEstadisticas(stats);
+            if (!controller.signal.aborted) {
+              setEstadisticas(stats);
+            }
           } catch (statsError) {
             console.warn('Error al cargar estadísticas:', statsError);
           }
@@ -85,12 +89,14 @@ export function useCultivos(initial: ListaCultivosParams = { _sort: 'nombre', _o
       } catch (e: unknown) {
         // Solo maneja errores que no sean de cancelación de petición
         const error = e as Error;
-        if (error?.name !== 'AbortError') {
+        if (error?.name !== 'AbortError' && !controller.signal.aborted) {
           setError(error?.message ?? 'Error desconocido al cargar cultivos');
         }
       } finally {
-        // Siempre marca como terminado el estado de carga
-        setLoading(false);
+        // Solo marca como terminado el estado de carga si la petición no fue abortada
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     })();
 

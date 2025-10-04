@@ -69,6 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady]   = useState(false);        // Control de hidratación
   const [token, setTok]     = useState<string | null>(null);  // Token actual
   const [user, setUser]     = useState<User | null>(null);    // Usuario actual
+  const [isVerifying, setIsVerifying] = useState(false); // Control para evitar múltiples verificaciones
 
   /**
    * 🚀 INICIALIZACIÓN Y HIDRATACIÓN
@@ -82,9 +83,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   useEffect(() => {
     const initializeAuth = async () => {
+      // Evita múltiples verificaciones simultáneas
+      if (isVerifying) return;
+
       const t = getToken(); // Intenta obtener token guardado
 
       if (t) {
+        setIsVerifying(true);
         try {
           // 🔍 VALIDACIÓN JWT DEL TOKEN VIA API
           // Verifica el token usando el endpoint del servidor
@@ -113,6 +118,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // 🛡️ MANEJO DE ERRORES DE RED O SERVIDOR
           console.error('🚨 Error al validar token JWT:', error);
           clearTokenWithCookies(); // Limpia token si hay error de validación
+        } finally {
+          setIsVerifying(false);
         }
       }
 

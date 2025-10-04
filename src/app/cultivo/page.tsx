@@ -25,7 +25,7 @@ import type { TareaCultivo } from "@/types/planificacion";
  * - Planificación de cultivos con calendario interactivo
  * - Gestión de tareas con recordatorios automáticos
  */
-const CultivoPage = () => {
+const CultivoPage = React.memo(() => {
   // Hook personalizado que gestiona todas las operaciones de cultivos
   const { cultivos, loading, error, estadisticas, setQuery, setSort, setFiltroActivo, create, update, remove } =
     useCultivos({ _sort: 'nombre', _order: 'asc' });
@@ -525,5 +525,9 @@ const CultivoPage = () => {
     </RequireAuth>
   );
 };
+
+});
+
+CultivoPage.displayName = 'CultivoPage';
 
 export default CultivoPage;
