@@ -31,33 +31,29 @@ function LoginForm() {
   // 🎯 Destino post-auth - Decodificar URL
   const next = sp.get('next') ? decodeURIComponent(sp.get('next')!) : '/cultivo';
 
-  // 🔄 REDIRIGIR SI YA ESTÁ AUTENTICADO (VERSIÓN SEGURA)
+  // 🔄 REDIRIGIR SI YA ESTÁ AUTENTICADO (VERSIÓN SIMPLE Y CONFIABLE)
   useEffect(() => {
     console.log('🔍 LoginForm useEffect - token:', !!token, 'user:', !!user, 'next:', next);
     
     if (token && user) {
-      console.log('✅ Usuario ya está autenticado, preparando redirección a:', next);
+      console.log('✅ Usuario ya está autenticado, ejecutando redirección INMEDIATA a:', next);
       
-      // 🛡️ PREVENIR MÚLTIPLES EJECUCIONES - Solo redirigir una vez por sesión
-      const lastRedirect = sessionStorage.getItem('lastRedirect');
-      console.log('🕐 LastRedirect:', lastRedirect, 'Current time:', Date.now());
+      // 🚀 REDIRECCIÓN INMEDIATA SIN COOLDOWN (para solucionar el problema)
+      console.log('🔄 Redirigiendo sin restricciones...');
       
-      if (!lastRedirect || Date.now() - parseInt(lastRedirect) > 5000) { // 5 segundos de cooldown
-        sessionStorage.setItem('lastRedirect', Date.now().toString());
-        console.log('🚀 Ejecutando redirección a:', next);
-        
-        // 🔄 FORZAR REDIRECCIÓN INMEDIATA PARA DEBUG
-        setTimeout(() => {
-          console.log('⏰ Timeout ejecutándose, redirigiendo...');
-          window.location.replace(next);
-        }, 100);
-      } else {
-        console.log('⏳ Redirección en cooldown, saltando...');
-      }
+      // Limpiar cualquier cooldown previo
+      sessionStorage.removeItem('lastRedirect');
+      
+      // Redirección inmediata
+      setTimeout(() => {
+        console.log('⏰ Ejecutando window.location.replace a:', next);
+        window.location.replace(next);
+      }, 50); // Mínimo delay para logs
+      
     } else {
       console.log('❌ No token o user - token:', !!token, 'user:', !!user);
     }
-  }, [token, user, next]); // Incluir 'next' pero controlado con cooldown
+  }, [token, user, next]);
 
   // Verificar mensajes de URL
   useEffect(() => {
