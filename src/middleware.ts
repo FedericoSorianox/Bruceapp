@@ -30,7 +30,7 @@ const publicRoutes = ['/', '/login', '/register', '/blog', '/subscription-requir
 const protectedApiRoutes = ['/api/cultivos', '/api/notas', '/api/tareas', '/api/comentarios', '/api/galeria'];
 
 // 🌐 RUTAS DE API PÚBLICAS
-const publicApiRoutes = ['/api/login', '/api/register', '/api/verify-token', '/api/subscription'];
+const publicApiRoutes = ['/api/login', '/api/register', '/api/verify-token', '/api/subscription', '/api/debug-cookies', '/api/debug-jwt'];
 
 /**
  * 🔐 VERIFICACIÓN DE TOKEN JWT DIRECTA (SIN FETCH)
@@ -40,12 +40,18 @@ function validateTokenDirect(token: string): { valid: boolean; user?: { email: s
   try {
     const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
     
+    console.log('🔍 Validando JWT con secret length:', JWT_SECRET.length);
+    console.log('🔍 Token a validar length:', token.length);
+    console.log('🔍 Token preview:', token.substring(0, 50) + '...');
+    
     const decoded = jwt.verify(token, JWT_SECRET) as {
       email: string;
       role: 'admin' | 'user';
       exp: number;
     };
 
+    console.log('✅ JWT válido para usuario:', decoded.email, 'rol:', decoded.role);
+    
     return {
       valid: true,
       user: {
@@ -55,6 +61,7 @@ function validateTokenDirect(token: string): { valid: boolean; user?: { email: s
     };
   } catch (error) {
     console.error('❌ Error validando token directo:', error instanceof Error ? error.message : 'Unknown');
+    console.error('❌ Error completo:', error);
     return { valid: false };
   }
 }

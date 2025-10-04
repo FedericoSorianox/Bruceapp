@@ -125,7 +125,7 @@ function LoginForm() {
       {/* Remover después del debug */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
         <p className="text-yellow-800 text-sm mb-2">🔍 Debug: ¿Estás logueado?</p>
-        <div className="space-x-2">
+        <div className="space-x-2 space-y-1">
           <button
             onClick={() => {
               console.log('🔍 Navegando manualmente a /cultivo');
@@ -151,6 +151,23 @@ function LoginForm() {
             className="bg-green-500 text-white px-3 py-1 rounded text-sm"
           >
             Debug Cookies
+          </button>
+          <button
+            onClick={async () => {
+              console.log('🔍 Verificando validación JWT...');
+              try {
+                const response = await fetch('/api/debug-jwt');
+                const data = await response.json();
+                console.log('🔐 Debug JWT response:', data);
+                alert(JSON.stringify(data, null, 2));
+              } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error: ' + error);
+              }
+            }}
+            className="bg-purple-500 text-white px-3 py-1 rounded text-sm"
+          >
+            Debug JWT
           </button>
         </div>
       </div>
