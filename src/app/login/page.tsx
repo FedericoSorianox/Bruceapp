@@ -121,57 +121,6 @@ function LoginForm() {
     <main className="mx-auto max-w-sm p-6 space-y-4">
       <h1 className="text-2xl font-bold">{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
 
-      {/* 🚨 DEBUG: Botón temporal para verificar si el usuario está logueado */}
-      {/* Remover después del debug */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-        <p className="text-yellow-800 text-sm mb-2">🔍 Debug: ¿Estás logueado?</p>
-        <div className="space-x-2 space-y-1">
-          <button
-            onClick={() => {
-              console.log('🔍 Navegando manualmente a /cultivo');
-              window.location.href = '/cultivo';
-            }}
-            className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-          >
-            Ir a Cultivo (Debug)
-          </button>
-          <button
-            onClick={async () => {
-              console.log('🔍 Verificando cookies en servidor...');
-              try {
-                const response = await fetch('/api/debug-cookies');
-                const data = await response.json();
-                console.log('🍪 Debug cookies response:', data);
-                alert(JSON.stringify(data, null, 2));
-              } catch (error) {
-                console.error('❌ Error:', error);
-                alert('Error: ' + error);
-              }
-            }}
-            className="bg-green-500 text-white px-3 py-1 rounded text-sm"
-          >
-            Debug Cookies
-          </button>
-          <button
-            onClick={async () => {
-              console.log('🔍 Verificando validación JWT...');
-              try {
-                const response = await fetch('/api/debug-jwt');
-                const data = await response.json();
-                console.log('🔐 Debug JWT response:', data);
-                alert(JSON.stringify(data, null, 2));
-              } catch (error) {
-                console.error('❌ Error:', error);
-                alert('Error: ' + error);
-              }
-            }}
-            className="bg-purple-500 text-white px-3 py-1 rounded text-sm"
-          >
-            Debug JWT
-          </button>
-        </div>
-      </div>
-
       {successMessage && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
           <p className="text-green-800 text-sm">{successMessage}</p>

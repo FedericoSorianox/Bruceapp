@@ -30,7 +30,7 @@ const publicRoutes = ['/', '/login', '/register', '/blog', '/subscription-requir
 const protectedApiRoutes = ['/api/cultivos', '/api/notas', '/api/tareas', '/api/comentarios', '/api/galeria'];
 
 // 🌐 RUTAS DE API PÚBLICAS
-const publicApiRoutes = ['/api/login', '/api/register', '/api/verify-token', '/api/subscription', '/api/debug-cookies', '/api/debug-jwt'];
+const publicApiRoutes = ['/api/login', '/api/register', '/api/verify-token', '/api/subscription'];
 
 /**
  * 🔐 VERIFICACIÓN DE TOKEN JWT DIRECTA (VERSIÓN ROBUSTA)
@@ -139,36 +139,29 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 🚨 TEMPORAL: SOLO VERIFICAR EXISTENCIA DE TOKEN (SIN VALIDAR JWT)
-  // Esto debería permitir acceso si hay cookie, independientemente de validación JWT
-  console.log('⚠️ TEMPORAL: Permitiendo acceso solo con existencia de token');
-  console.log('✅ Middleware: Token encontrado, permitiendo acceso');
+  // ✅ Validar token
+  const validation = validateTokenDirect(token);
+
+  if (!validation.valid) {
+    // 🚨 Token inválido - Redirigir al login
+    console.log('🚨 Middleware: Token inválido para ruta:', pathname, '| Error:', validation.error);
+
+    if (isProtectedApiRoute) {
+      // Para APIs, devolver error 401
+      return NextResponse.json(
+        { error: 'Invalid token', details: validation.error },
+        { status: 401 }
+      );
+    } else {
+      // Para páginas, redirigir al login
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('next', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // ✅ Token válido - Permitir acceso
   return NextResponse.next();
-
-  // ✅ Validar token (DESHABILITADO TEMPORALMENTE)
-  // const validation = validateTokenDirect(token);
-
-  // if (!validation.valid) {
-  //   // 🚨 Token inválido - Redirigir al login
-  //   console.log('🚨 Middleware: Token inválido para ruta:', pathname, '| Error:', validation.error);
-
-  //   if (isProtectedApiRoute) {
-  //     // Para APIs, devolver error 401
-  //     return NextResponse.json(
-  //       { error: 'Invalid token', details: validation.error },
-  //       { status: 401 }
-  //     );
-  //   } else {
-  //     // Para páginas, redirigir al login
-  //     const loginUrl = new URL('/login', request.url);
-  //     loginUrl.searchParams.set('next', pathname);
-  //     return NextResponse.redirect(loginUrl);
-  //   }
-  // }
-
-  // // ✅ Token válido - Permitir acceso
-  // console.log('✅ Middleware: Acceso permitido para usuario:', validation.user?.email);
-  // return NextResponse.next();
 }
 
 /**

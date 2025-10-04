@@ -512,8 +512,24 @@ export function withUserDB<T = Response>(
 ) {
   return async (req: Request, context?: unknown): Promise<T> => {
     try {
-      // Extraer token y validar usuario
-      const token = req.headers.get('authorization')?.replace('Bearer ', '') || null;
+      // 🔍 MEJORADO: Extraer token de Authorization header O cookies
+      let token = req.headers.get('authorization')?.replace('Bearer ', '') || null;
+      
+      // Si no hay token en Authorization, buscar en cookies
+      if (!token) {
+        const cookies = req.headers.get('cookie');
+        if (cookies) {
+          const cookiePairs = cookies.split(';').map(c => c.trim());
+          for (const pair of cookiePairs) {
+            const [name, ...valueParts] = pair.split('=');
+            if (name === 'auth-token' && valueParts.length > 0) {
+              token = decodeURIComponent(valueParts.join('='));
+              break;
+            }
+          }
+        }
+      }
+      
       if (!token) {
         throw new Error('Token de autenticación requerido');
       }
