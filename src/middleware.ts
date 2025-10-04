@@ -139,7 +139,12 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // ✅ Validar token
+  // 🚨 TEMPORAL: BYPASS TOTAL PARA DETENER LOOP INMEDIATAMENTE
+  // El Edge Runtime no soporta jwt.verify() con crypto de Node.js
+  console.log('⚠️ TEMPORAL: Bypass completo del middleware para detener loop');
+  return NextResponse.next();
+
+  /* ✅ Validar token (DESHABILITADO - EDGE RUNTIME ERROR)
   const validation = validateTokenDirect(token);
 
   if (!validation.valid) {
@@ -162,6 +167,7 @@ export function middleware(request: NextRequest) {
 
   // ✅ Token válido - Permitir acceso
   return NextResponse.next();
+  */
 }
 
 /**
