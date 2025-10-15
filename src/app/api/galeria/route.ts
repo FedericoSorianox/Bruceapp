@@ -69,13 +69,12 @@ export async function POST(request: Request) {
       return buildErrorResponse(`El archivo ${nombreOriginal} supera el límite permitido de 10MB.`, 413);
     }
 
-    const arrayBuffer = await archivo.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString('base64');
-
     const formato = archivo.type.split('/')[1] || 'jpeg';
-    const secureUrl = `data:${archivo.type};base64,${base64}`;
     const publicId = `local-galeria-${Date.now()}`;
+    
+    // En lugar de base64, usar una URL placeholder que apunte al archivo temporal
+    // En producción, esto debería subirse a un servicio como Cloudinary, AWS S3, etc.
+    const secureUrl = `/api/galeria/temp/${publicId}.${formato}`;
 
     const body: RespuestaApiGaleria = {
       success: true,

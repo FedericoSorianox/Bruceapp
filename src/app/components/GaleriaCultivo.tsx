@@ -64,7 +64,7 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
   };
 
   /**
-   * Convierte un archivo en base64 para preview y almacenamiento local
+   * Convierte un archivo en base64 solo para preview (no para almacenamiento)
    */
   const convertirArchivoABase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -146,12 +146,13 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
         try {
           const nuevaImagen = await subirArchivoCloudinary(archivo);
           
-          // Actualizar cultivo con la nueva imagen
+          // Actualizar cultivo con la nueva imagen (solo información, no base64)
           const cultivoActualizado = {
             ...cultivo,
             galeria: [...(cultivo.galeria || []), nuevaImagen],
           };
           
+          // Solo enviar la información de la galería, no las imágenes completas
           onActualizarCultivo(cultivoActualizado);
         } catch (error) {
           setError(`Error al subir ${archivo.file.name}: ${error instanceof Error ? error.message : 'Error desconocido'}`);
@@ -177,12 +178,14 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
 
     const confirmar = confirm(`¿Estás seguro de que quieres eliminar la imagen "${imagen.nombre}"?`);
     if (confirmar) {
-      const cultivoActualizado = {
-        ...cultivo,
-        galeria: imagenes.filter(img => img.id !== imagenId),
-      };
+      // Solo actualizar la lista de imágenes, no enviar datos completos
+      const galeriaActualizada = imagenes.filter(img => img.id !== imagenId);
       
-      onActualizarCultivo(cultivoActualizado);
+      // Enviar solo la información de la galería actualizada
+      onActualizarCultivo({
+        ...cultivo,
+        galeria: galeriaActualizada,
+      });
       
       // Cerrar vista detalle si es la imagen eliminada
       if (imagenSeleccionada?.id === imagenId) {
@@ -196,16 +199,18 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
    * Actualiza la descripción de una imagen
    */
   const handleActualizarDescripcion = (imagenId: string, nuevaDescripcion: string) => {
-    const cultivoActualizado = {
-      ...cultivo,
-      galeria: imagenes.map(img => 
-        img.id === imagenId 
-          ? { ...img, descripcion: nuevaDescripcion }
-          : img
-      ),
-    };
+    // Solo actualizar la descripción de la imagen específica
+    const galeriaActualizada = imagenes.map(img => 
+      img.id === imagenId 
+        ? { ...img, descripcion: nuevaDescripcion }
+        : img
+    );
     
-    onActualizarCultivo(cultivoActualizado);
+    // Enviar solo la información de la galería actualizada
+    onActualizarCultivo({
+      ...cultivo,
+      galeria: galeriaActualizada,
+    });
     
     // Actualizar imagen seleccionada si es la misma
     if (imagenSeleccionada?.id === imagenId) {
