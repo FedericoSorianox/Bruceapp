@@ -337,7 +337,7 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
                     alt={imagen.nombre}
                     fill
                     className="object-cover"
-                    unoptimized={imagen.url.startsWith('data:')}
+                    unoptimized={imagen.url.startsWith('data:') || imagen.url.includes('/api/galeria/temp/')}
                   />
                 </div>
                 
@@ -415,7 +415,7 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
                     alt={imagenSeleccionada.nombre}
                     fill
                     className="object-contain rounded-lg"
-                    unoptimized={imagenSeleccionada.url.startsWith('data:')}
+                    unoptimized={imagenSeleccionada.url.startsWith('data:') || imagenSeleccionada.url.includes('/api/galeria/temp/')}
                     onError={() => {
                       console.error('Error cargando imagen:', imagenSeleccionada.nombre);
                       // Next.js Image component will handle the fallback automatically

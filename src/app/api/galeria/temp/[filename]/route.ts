@@ -26,23 +26,16 @@ export async function GET(
       );
     }
 
-    // Por ahora, devolver un placeholder
+    // Crear un placeholder PNG simple (1x1 pixel gris)
     // En producción, esto debería servir la imagen real desde el almacenamiento
-    const placeholderImage = `data:image/svg+xml;base64,${Buffer.from(`
-      <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="#f3f4f6"/>
-        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="16" fill="#6b7280" text-anchor="middle" dy=".3em">
-          Imagen: ${filename}
-        </text>
-        <text x="50%" y="60%" font-family="Arial, sans-serif" font-size="12" fill="#9ca3af" text-anchor="middle" dy=".3em">
-          (Temporal - Implementar almacenamiento real)
-        </text>
-      </svg>
-    `).toString('base64')}`;
+    const placeholderPng = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      'base64'
+    );
 
-    return new NextResponse(placeholderImage, {
+    return new NextResponse(placeholderPng, {
       headers: {
-        'Content-Type': 'image/svg+xml',
+        'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=3600', // Cache por 1 hora
       },
     });
