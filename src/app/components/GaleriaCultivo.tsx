@@ -286,20 +286,13 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
             <div key={archivo.id} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden">
-                  {archivo.preview.startsWith('data:') ? (
-                    <img
-                      src={archivo.preview}
-                      alt={archivo.file.name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <Image
-                      src={archivo.preview}
-                      alt={archivo.file.name}
-                      fill
-                      className="object-cover"
-                    />
-                  )}
+                  <Image
+                    src={archivo.preview}
+                    alt={archivo.file.name}
+                    fill
+                    className="object-cover rounded-lg"
+                    unoptimized={archivo.preview.startsWith('data:')}
+                  />
                 </div>
                 <div className="flex-grow">
                   <p className="text-sm font-medium text-gray-900">{archivo.file.name}</p>
@@ -339,20 +332,13 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
                   className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-105"
                   onClick={() => handleAbrirDetalle(imagen)}
                 >
-                  {imagen.url.startsWith('data:') ? (
-                    <img
-                      src={imagen.url}
-                      alt={imagen.nombre}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Image
-                      src={imagen.url}
-                      alt={imagen.nombre}
-                      fill
-                      className="object-cover"
-                    />
-                  )}
+                  <Image
+                    src={imagen.url}
+                    alt={imagen.nombre}
+                    fill
+                    className="object-cover"
+                    unoptimized={imagen.url.startsWith('data:')}
+                  />
                 </div>
                 
                 {/* Overlay con acciones */}
@@ -424,26 +410,17 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
               {/* Imagen */}
               <div className="flex-shrink-0 bg-gray-100 flex items-center justify-center p-4">
                 <div className="relative max-w-full max-h-96 lg:max-h-[60vh] w-full h-96 lg:h-[60vh]">
-                  {imagenSeleccionada.url.startsWith('data:') ? (
-                    // Para imágenes base64, usar img regular para mejor compatibilidad
-                    <img
-                      src={imagenSeleccionada.url}
-                      alt={imagenSeleccionada.nombre}
-                      className="max-w-full max-h-full object-contain rounded-lg"
-                      onError={(e) => {
-                        console.error('Error cargando imagen base64:', imagenSeleccionada.nombre);
-                        e.currentTarget.src = '/placeholder-image.png'; // fallback
-                      }}
-                    />
-                  ) : (
-                    // Para URLs normales, usar Next.js Image
-                    <Image
-                      src={imagenSeleccionada.url}
-                      alt={imagenSeleccionada.nombre}
-                      fill
-                      className="object-contain rounded-lg"
-                    />
-                  )}
+                  <Image
+                    src={imagenSeleccionada.url}
+                    alt={imagenSeleccionada.nombre}
+                    fill
+                    className="object-contain rounded-lg"
+                    unoptimized={imagenSeleccionada.url.startsWith('data:')}
+                    onError={() => {
+                      console.error('Error cargando imagen:', imagenSeleccionada.nombre);
+                      // Next.js Image component will handle the fallback automatically
+                    }}
+                  />
                 </div>
               </div>
 
