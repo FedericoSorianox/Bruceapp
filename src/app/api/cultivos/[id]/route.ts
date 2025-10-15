@@ -85,15 +85,21 @@ export const GET = withUserDB(async (request, userEmail) => {
  */
 export const PATCH = withUserDB(async (request, userEmail) => {
   try {
+    console.log('🔍 PATCH /api/cultivos/[id] - Iniciando actualización...');
+    console.log('👤 Usuario:', userEmail);
+
     // Obtener la conexión específica del usuario
     const connection = await connectToUserDB(userEmail);
+    console.log('🔗 Conexión DB obtenida:', connection.readyState);
 
     // Extraer ID desde la URL
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
+    console.log('🆔 ID del cultivo:', id);
 
     // Validar que se proporcione un ID
     if (!id) {
+      console.error('❌ Error: ID de cultivo no proporcionado');
       return NextResponse.json(
         {
           success: false,
@@ -104,11 +110,38 @@ export const PATCH = withUserDB(async (request, userEmail) => {
       );
     }
 
+    // Validar formato del ID
+    if (!/^[a-f\d]{24}$/i.test(id)) {
+      console.error('❌ Error: ID de cultivo inválido:', id);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'ID inválido',
+          message: 'El ID del cultivo no tiene un formato válido'
+        },
+        { status: 400 }
+      );
+    }
+
     // Leer datos del request
     const updates = await request.json();
+    console.log('📝 Datos a actualizar:', Object.keys(updates));
 
     // Obtener el modelo específico para esta conexión
     const CultivoModel = getCultivoModel(connection) as any;
+
+    // Validar que el modelo se haya obtenido correctamente
+    if (!CultivoModel) {
+      console.error('❌ Error: No se pudo obtener el modelo Cultivo');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Error de configuración',
+          message: 'No se pudo inicializar el modelo de cultivo'
+        },
+        { status: 500 }
+      );
+    }
 
     // Agregar auditoría automáticamente
     const updatesConAuditoria = {
@@ -116,6 +149,8 @@ export const PATCH = withUserDB(async (request, userEmail) => {
       fechaActualizacion: new Date().toISOString().split('T')[0],
       editadoPor: userEmail
     };
+
+    console.log('🔄 Ejecutando findByIdAndUpdate...');
 
     // Actualizar el cultivo en MongoDB
     const cultivoActualizado = await CultivoModel.findByIdAndUpdate(
@@ -128,6 +163,7 @@ export const PATCH = withUserDB(async (request, userEmail) => {
     ).lean();
 
     if (!cultivoActualizado) {
+      console.error('❌ Error: Cultivo no encontrado con ID:', id);
       return NextResponse.json(
         {
           success: false,
@@ -137,6 +173,8 @@ export const PATCH = withUserDB(async (request, userEmail) => {
         { status: 404 }
       );
     }
+
+    console.log('✅ Cultivo actualizado exitosamente:', cultivoActualizado._id);
 
     // Devolver el cultivo actualizado
     return NextResponse.json({
@@ -149,12 +187,23 @@ export const PATCH = withUserDB(async (request, userEmail) => {
     });
 
   } catch (error) {
-    console.error('Error en PATCH /api/cultivos/[id]:', error);
+    console.error('💥 Error en PATCH /api/cultivos/[id]:', error);
+    
+    // Log detallado del error
+    if (error instanceof Error) {
+      console.error('📋 Detalles del error:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+    }
+
     return NextResponse.json(
       {
         success: false,
         error: 'Error interno del servidor',
-        message: 'No se pudo actualizar el cultivo'
+        message: 'No se pudo actualizar el cultivo',
+        details: error instanceof Error ? error.message : 'Error desconocido'
       },
       { status: 500 }
     );

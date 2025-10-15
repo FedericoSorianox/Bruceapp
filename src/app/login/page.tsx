@@ -200,9 +200,7 @@ function LoginForm() {
         </div>
       </form>
 
-      <p className="text-xs text-gray-600 text-center">
-        * Demo educativa: no uses credenciales reales.
-      </p>
+ 
     </main>
   );
 }

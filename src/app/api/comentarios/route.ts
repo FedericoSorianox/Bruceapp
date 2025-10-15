@@ -1,15 +1,20 @@
 /**
- * API Route para gestión de comentarios con MongoDB
+ * API Route para gestión de comentarios con MongoDB - Sistema Multi-tenant
  */
 
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import { withUserDB } from '@/lib/mongodb';
-import Comentario from '@/lib/models/Comentario';
+import { withUserDB, connectToUserDB, getComentarioModel } from '@/lib/mongodb';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const GET = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
   try {
+    // Conectar a la base de datos específica del usuario
+    const userConnection = await connectToUserDB(userEmail);
+
+    // Obtener el modelo Comentario específico para esta conexión
+    const ComentarioModel = getComentarioModel(userConnection);
+
     const url = new URL(request.url);
     const cultivoId = url.searchParams.get('cultivoId');
     const tipo = url.searchParams.get('tipo');
@@ -24,13 +29,13 @@ export const GET = withUserDB(async (request: Request, userEmail: string, mongoo
     if (prioridad) query.prioridad = prioridad;
     if (resuelto !== null) query.resuelto = resuelto === 'true';
 
-    const comentarios = await Comentario.find(query)
+    const comentarios = await ComentarioModel.find(query)
       .sort({ fecha: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
-    const total = await Comentario.countDocuments(query);
+    const total = await ComentarioModel.countDocuments(query);
 
     return NextResponse.json({
       success: true,
@@ -52,6 +57,12 @@ export const GET = withUserDB(async (request: Request, userEmail: string, mongoo
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const POST = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
   try {
+    // Conectar a la base de datos específica del usuario
+    const userConnection = await connectToUserDB(userEmail);
+
+    // Obtener el modelo Comentario específico para esta conexión
+    const ComentarioModel = getComentarioModel(userConnection);
+
     const comentarioData = await request.json();
     const comentarioConFechas = {
       ...comentarioData,
@@ -63,7 +74,7 @@ export const POST = withUserDB(async (request: Request, userEmail: string, mongo
       numeroEdiciones: 0
     };
 
-    const nuevoComentario = new Comentario(comentarioConFechas);
+    const nuevoComentario = new ComentarioModel(comentarioConFechas);
     const comentarioGuardado = await nuevoComentario.save();
 
     return NextResponse.json({

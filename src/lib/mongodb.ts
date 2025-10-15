@@ -512,9 +512,11 @@ export function withUserDB<T = Response>(
 ) {
   return async (req: Request, context?: unknown): Promise<T> => {
     try {
-      // 🔍 MEJORADO: Extraer token de Authorization header O cookies
-      let token = req.headers.get('authorization')?.replace('Bearer ', '') || null;
+      console.log('🔍 withUserDB: Iniciando validación de autenticación...');
       
+      // 🔍 MEJORADO: Extraer token de Authorization header, cookies O header del middleware
+      let token = req.headers.get('authorization')?.replace('Bearer ', '') || null;
+
       // Si no hay token en Authorization, buscar en cookies
       if (!token) {
         const cookies = req.headers.get('cookie');
@@ -529,27 +531,77 @@ export function withUserDB<T = Response>(
           }
         }
       }
-      
+
+      // Si tampoco está en cookies, buscar en el header del middleware
       if (!token) {
+        token = req.headers.get('x-auth-token');
+      }
+
+      if (!token) {
+        console.error('❌ withUserDB: No se encontró token de autenticación');
         throw new Error('Token de autenticación requerido');
       }
 
+      console.log('🔑 withUserDB: Token encontrado, validando...');
+
       // Verificar token JWT
       const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
-      const decoded = jwt.verify(token, JWT_SECRET) as { email: string; role: string };
+      let decoded: { email: string; role: string };
+      
+      try {
+        decoded = jwt.verify(token, JWT_SECRET) as { email: string; role: string };
+      } catch (jwtError) {
+        console.error('❌ withUserDB: Error validando JWT:', jwtError);
+        throw new Error('Token inválido o expirado');
+      }
 
       if (!decoded.email) {
+        console.error('❌ withUserDB: Email faltante en token decodificado');
         throw new Error('Token inválido - email faltante');
       }
 
+      console.log('✅ withUserDB: Token válido para usuario:', decoded.email);
+
       // Conectar a la DB del usuario
-      // Por ahora pasamos undefined para mantener compatibilidad backward
-      // Las APIs que necesitan modelos específicos deben obtenerlos manualmente
-      const mongooseInstance = undefined;
+      console.log('🔗 withUserDB: Conectando a DB del usuario...');
+      const userConnection = await connectToUserDB(decoded.email);
+      
+      if (userConnection.readyState === 99) {
+        console.error('❌ withUserDB: DB no disponible (readyState: 99)');
+        throw new Error('Base de datos no disponible temporalmente');
+      }
+
+      console.log('✅ withUserDB: Conexión a DB establecida, readyState:', userConnection.readyState);
+
+      // Crear nueva instancia de Mongoose y registrar modelos en ella
+      const mongooseInstance = new mongoose.Mongoose();
+      registerModels(mongooseInstance);
+
+      // Conectar la instancia a la conexión del usuario
+      // Si la conexión ya está establecida (readyState === 1), no necesitamos reconectar
+      // Si no está establecida, usar el nombre de la base de datos
+      const dbName = getDatabaseName(decoded.email);
+      const mongoUri = process.env.MONGODB_URI?.replace(/\/[^/]*$/, `/${dbName}`) || `mongodb://localhost:27017/${dbName}`;
+      
+      if (userConnection.readyState !== 1) {
+        await mongooseInstance.connect(mongoUri);
+      }
+
+      console.log('✅ withUserDB: Mongoose instance conectada, ejecutando handler...');
 
       return await handler(req, decoded.email, mongooseInstance, context);
     } catch (error) {
-      console.error('❌ Error en middleware de DB:', error);
+      console.error('💥 withUserDB: Error en middleware:', error);
+      
+      // Log detallado del error
+      if (error instanceof Error) {
+        console.error('📋 withUserDB - Detalles del error:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
+      
       throw error;
     }
   };
