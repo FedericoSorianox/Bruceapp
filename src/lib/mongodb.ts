@@ -100,10 +100,14 @@ export function registerModels(mongooseInstance: mongoose.Mongoose): void {
  * @param connection - Conexión de MongoDB
  * @returns Modelo específico para esta conexión
  */
-function createModelForConnection(baseSchema: mongoose.Schema, collectionName: string, connection: mongoose.Connection) {
+function createModelForConnection<T extends mongoose.Document = mongoose.Document>(
+  baseSchema: mongoose.Schema<T>,
+  collectionName: string,
+  connection: mongoose.Connection
+): mongoose.Model<T> {
   const modelName = `${collectionName}_${connection.name}`;
   if (connection.models[modelName]) {
-    return connection.models[modelName];
+    return connection.models[modelName] as mongoose.Model<T>;
   }
 
   // Crear una copia del esquema para evitar modificar el original
@@ -112,7 +116,7 @@ function createModelForConnection(baseSchema: mongoose.Schema, collectionName: s
   // Usar el nombre de colección estándar (cada usuario tiene su propia DB, no necesitamos subcolecciones)
   schemaCopy.set('collection', collectionName.toLowerCase());
 
-  return connection.model(modelName, schemaCopy);
+  return connection.model<T>(modelName, schemaCopy);
 }
 
 /**
