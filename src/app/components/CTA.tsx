@@ -18,6 +18,7 @@ const CTA = () => {
       className="relative overflow-hidden bg-gradient-to-br from-green-600 via-green-700 to-green-800 py-20"
       aria-labelledby="cta-title"
       role="complementary"
+      data-testid="cta-section"
     >
       {/* Elementos decorativos de fondo - agregamos aria-hidden */}
       <div className="absolute inset-0" aria-hidden="true">
@@ -33,7 +34,7 @@ const CTA = () => {
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           {/* Badge superior - mejoramos contraste */}
-          <div className="mb-8 inline-flex items-center rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
+          <div className="mb-8 inline-flex items-center rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm" data-testid="cta-badge">
             <span className="mr-2" aria-hidden="true">⚡</span>
             Únete a la Revolución Agrícola
           </div>
@@ -41,6 +42,7 @@ const CTA = () => {
           {/* Título principal - agregamos id para aria-labelledby */}
           <h2
             id="cta-title"
+            data-testid="cta-title"
             className="mb-6 text-4xl font-bold text-white sm:text-5xl lg:text-6xl"
           >
             Transforma tu
@@ -49,7 +51,7 @@ const CTA = () => {
           </h2>
 
           {/* Subtítulo - mejoramos contraste */}
-          <p className="mx-auto mb-12 max-w-3xl text-xl leading-relaxed text-green-100 sm:text-2xl">
+          <p className="mx-auto mb-12 max-w-3xl text-xl leading-relaxed text-green-100 sm:text-2xl" data-testid="cta-description">
             No te quedes atrás en la evolución tecnológica del sector agrícola
           </p>
 
@@ -74,9 +76,10 @@ const CTA = () => {
           </div>**/}
 
           {/* Botones CTA principales - mejoramos tamaños para accesibilidad */}
-          <div className="mb-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mb-8 flex flex-col items-center justify-center gap-4 sm:flex-row" data-testid="cta-buttons">
             <Link
               href="/cultivo"
+              data-testid="cta-button-cultivo"
               className="inline-flex transform items-center rounded-lg border border-transparent bg-white px-8 py-4 text-lg font-medium text-green-700 shadow-lg transition-all duration-200 hover:scale-105 hover:bg-green-50 hover:shadow-xl focus:ring-2 focus:ring-white focus:ring-offset-2 focus:outline-none min-h-[48px]"
               aria-label="Comenzar prueba gratuita de gestión de cultivos"
             >
@@ -86,6 +89,7 @@ const CTA = () => {
 
             <Link
               href="/notas"
+              data-testid="cta-button-notas"
               className="inline-flex items-center rounded-lg border-2 border-white bg-transparent px-8 py-4 text-lg font-medium text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/10 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:outline-none min-h-[48px]"
               aria-label="Ver demo de gestión de notas"
             >

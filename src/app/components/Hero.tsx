@@ -18,6 +18,7 @@ const Hero = () => {
       className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50"
       aria-labelledby="hero-title"
       role="banner"
+      data-testid="hero-section"
     >
       {/* Elementos decorativos de fondo - agregamos aria-hidden para que los lectores de pantalla los ignoren */}
       <div
@@ -28,7 +29,7 @@ const Hero = () => {
       <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div className="text-center">
           {/* Badge/Etiqueta superior - mejoramos contraste */}
-          <div className="mb-8 inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800">
+          <div className="mb-8 inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800" data-testid="hero-badge">
             <span className="mr-2" aria-hidden="true">🚀</span>
             Nueva Era en Agricultura Digital
           </div>
@@ -36,6 +37,7 @@ const Hero = () => {
           {/* Título principal - agregamos id para aria-labelledby */}
           <h1
             id="hero-title"
+            data-testid="hero-title"
             className="mb-6 text-4xl font-bold text-gray-900 sm:text-5xl lg:text-6xl"
           >
             Cultiva el{" "}
@@ -46,7 +48,7 @@ const Hero = () => {
           </h1>
 
           {/* Subtítulo/Descripción - mejoramos el contraste del texto */}
-          <p className="mx-auto mb-10 max-w-3xl text-xl leading-relaxed text-gray-700 sm:text-2xl">
+          <p className="mx-auto mb-10 max-w-3xl text-xl leading-relaxed text-gray-700 sm:text-2xl" data-testid="hero-description">
             La plataforma integral para gestionar tus cultivos, registrar notas
             detalladas y optimizar tu producción agrícola con inteligencia
             artificial.
@@ -71,9 +73,10 @@ const Hero = () => {
           </div>
 
           {/* Call-to-Action Buttons - mejoramos tamaños para accesibilidad */}
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row" data-testid="hero-cta-buttons">
             <Link
               href="/cultivo"
+              data-testid="hero-button-cultivo"
               className="inline-flex transform items-center rounded-lg border border-transparent bg-green-600 px-8 py-4 text-lg font-medium text-white shadow-lg transition-all duration-200 hover:scale-105 hover:bg-green-700 hover:shadow-xl focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none min-h-[48px]"
               aria-label="Comenzar a gestionar cultivos"
             >
@@ -83,6 +86,7 @@ const Hero = () => {
 
             <Link
               href="/notas"
+              data-testid="hero-button-notas"
               className="inline-flex items-center rounded-lg border-2 border-green-600 bg-white px-8 py-4 text-lg font-medium text-green-600 transition-all duration-200 hover:bg-green-50 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none min-h-[48px]"
               aria-label="Ver sección de notas"
             >

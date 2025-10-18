@@ -77,15 +77,16 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
   // Renderiza el formulario con todos los campos de la nota
   return (
     // Formulario con estilos Tailwind: espaciado, bordes redondeados, borde y padding
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border p-4">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border p-4" data-testid="note-form">
       {/* Muestra mensaje de error si existe */}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600" data-testid="note-form-error">{error}</p>}
 
       {/* Campo de título - obligatorio */}
       <div className="grid gap-2">
         <label htmlFor="title" className="text-sm font-medium">Título *</label>
         <input
           id="title"
+          data-testid="note-form-title"
           className="rounded border p-2"
           value={title}
           onChange={e => setTitle(e.target.value)}
@@ -97,6 +98,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
         <label htmlFor="content" className="text-sm font-medium">Contenido *</label>
         <textarea
           id="content"
+          data-testid="note-form-content"
           className="rounded border p-2"
           rows={4}
           value={content}
@@ -111,6 +113,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
           <label htmlFor="category" className="text-sm font-medium">Categoría</label>
           <input
             id="category"
+            data-testid="note-form-category"
             className="rounded border p-2"
             value={category}
             onChange={e => setCategory(e.target.value)}
@@ -122,6 +125,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
           <label htmlFor="tags" className="text-sm font-medium">Tags (coma-separados)</label>
           <input
             id="tags"
+            data-testid="note-form-tags"
             className="rounded border p-2"
             value={tagsInput}
             onChange={e => setTagsInput(e.target.value)}
@@ -136,6 +140,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
           <label htmlFor="date" className="text-sm font-medium">Fecha</label>
           <input
             id="date"
+            data-testid="note-form-date"
             type="date"
             className="rounded border p-2"
             value={date}
@@ -148,6 +153,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
           <label htmlFor="author" className="text-sm font-medium">Autor</label>
           <input
             id="author"
+            data-testid="note-form-author"
             className="rounded border p-2"
             value={author}
             onChange={e => setAuthor(e.target.value)}
@@ -159,6 +165,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
           <label htmlFor="priority" className="text-sm font-medium">Prioridad</label>
           <select
             id="priority"
+            data-testid="note-form-priority"
             className="rounded border p-2"
             value={priority}
             onChange={e => setPriority(e.target.value as Priority)}
@@ -174,6 +181,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
       <div className="flex items-center gap-2">
         <input
           id="hasImages"
+          data-testid="note-form-has-images"
           type="checkbox"
           checked={hasImages}
           onChange={e => setHasImages(e.target.checked)}
@@ -186,6 +194,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
         <label htmlFor="cropArea" className="text-sm font-medium">Área de cultivo</label>
         <input
           id="cropArea"
+          data-testid="note-form-crop-area"
           className="rounded border p-2"
           value={cropArea}
           onChange={e => setCropArea(e.target.value)}
@@ -197,6 +206,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
         {/* Botón de envío - deshabilitado si faltan campos requeridos */}
         <button
           type="submit"
+          data-testid="note-form-submit"
           disabled={disabled}
           className="rounded-lg border px-3 py-2 disabled:opacity-50"
         >
@@ -207,6 +217,7 @@ export default function NoteForm({ initial, onSubmit, onCancel, submitLabel = 'G
         {onCancel && (
           <button
             type="button"
+            data-testid="note-form-cancel"
             onClick={onCancel}
             className="rounded-lg border px-3 py-2"
           >

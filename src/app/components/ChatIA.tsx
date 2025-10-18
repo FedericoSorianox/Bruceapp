@@ -273,9 +273,9 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
   };
 
   return (
-    <div className={`bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 ${className}`}>
+    <div className={`bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 ${className}`} data-testid="chat-ia-component">
       {/* Header del chat */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-gray-200" data-testid="chat-header">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-xl bg-green-100 text-green-600">
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,8 +283,8 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
             </svg>
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">Asistente de Cannabis Medicinal</h3>
-            <p className="text-gray-600 text-sm">
+            <h3 className="text-xl font-semibold text-gray-900" data-testid="chat-title">Asistente de Cannabis Medicinal</h3>
+            <p className="text-gray-600 text-sm" data-testid="chat-subtitle">
               Experto en {cultivo.genetica || 'cultivo de cannabis'} • {cultivo.nombre}
             </p>
           </div>
@@ -295,9 +295,10 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
       <div 
         ref={mensajesContainerRef}
         className="h-96 overflow-y-auto p-6 space-y-1"
+        data-testid="chat-messages-container"
       >
         {mensajes.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
+          <div className="text-center text-gray-500 py-8" data-testid="chat-empty-state">
             <svg className="h-12 w-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
@@ -350,12 +351,13 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
       )}
 
       {/* Input de mensaje */}
-      <div className="p-6 border-t border-gray-200">
+      <div className="p-6 border-t border-gray-200" data-testid="chat-input-section">
         <div className="flex items-end gap-3">
           {/* Botón para agregar imágenes */}
           <button
             onClick={() => inputFileRef.current?.click()}
             disabled={enviando}
+            data-testid="chat-add-image-button"
             className="flex-shrink-0 p-3 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-colors disabled:opacity-50"
             title="Agregar imágenes"
           >
@@ -373,6 +375,7 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
               onKeyDown={handleKeyDown}
               placeholder="Pregunta sobre tu cultivo, describe un problema, o sube fotos para análisis..."
               disabled={enviando}
+              data-testid="chat-message-input"
               className="w-full resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 disabled:opacity-50 min-h-[44px] max-h-32"
               rows={1}
             />
@@ -382,6 +385,7 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
           <button
             onClick={handleEnviarMensaje}
             disabled={enviando || (!mensaje.trim() && imagenes.length === 0)}
+            data-testid="chat-send-button"
             className="flex-shrink-0 p-3 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             title="Enviar mensaje"
           >

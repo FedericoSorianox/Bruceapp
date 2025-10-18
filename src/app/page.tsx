@@ -46,7 +46,7 @@ export const metadata: Metadata = {
  */
 const HomePage = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" data-testid="home-page">
       {/* 
         Hero Section - Primera impresión
         Objetivo: Captar atención y comunicar valor propuesto

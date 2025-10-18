@@ -73,17 +73,17 @@ const CultivoPage = React.memo(() => {
 
   return (
     <RequireAuth>
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-100">
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-100" data-testid="cultivo-page">
         <div className="mx-auto max-w-7xl p-8 space-y-8">
           {/* Hero Section */}
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl shadow-xl p-8 text-white">
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl shadow-xl p-8 text-white" data-testid="cultivo-hero">
             <div className="text-center">
               <div className="mb-6 inline-flex items-center rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
                 <span className="mr-2">🌱</span>
                 Gestión Inteligente de Cultivos
               </div>
 
-              <h1 className="mb-6 text-4xl font-bold sm:text-5xl">
+              <h1 className="mb-6 text-4xl font-bold sm:text-5xl" data-testid="cultivo-page-title">
                 Tu Dashboard de
                 <br />
                 <span className="text-green-200">Cultivos Inteligentes</span>
@@ -118,10 +118,11 @@ const CultivoPage = React.memo(() => {
           </div>
 
           {/* Pestañas de navegación */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20" data-testid="cultivo-tabs-container">
             <div className="flex border-b border-gray-200">
               <button
                 onClick={() => setPestanaActiva('cultivos')}
+                data-testid="cultivo-tab-cultivos"
                 className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
                   pestanaActiva === 'cultivos'
                     ? 'text-green-600 border-b-2 border-green-600 bg-green-50'
@@ -133,6 +134,7 @@ const CultivoPage = React.memo(() => {
               </button>
               <button
                 onClick={() => setPestanaActiva('planificacion')}
+                data-testid="cultivo-tab-planificacion"
                 className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
                   pestanaActiva === 'planificacion'
                     ? 'text-green-600 border-b-2 border-green-600 bg-green-50'
@@ -167,6 +169,7 @@ const CultivoPage = React.memo(() => {
                       </div>
                       <button
                         type="submit"
+                        data-testid="cultivo-search-button"
                         className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 focus:ring-4 focus:ring-green-200"
                       >
                         Buscar
@@ -198,6 +201,7 @@ const CultivoPage = React.memo(() => {
                       {canCreateCultivo() && (
                         <button
                           onClick={() => { setCreating(true); setEditing(null); }}
+                          data-testid="cultivo-new-button"
                           className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 focus:ring-4 focus:ring-green-200"
                         >
                           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -145,12 +145,12 @@ const NotasPage = () => {
 
   return (
     <RequireAuth>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50" data-testid="notas-page">
       {/* Hero Section específica de Notas */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 py-16 text-white">
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 py-16 text-white" data-testid="notas-hero">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="mb-6 text-4xl font-bold sm:text-5xl">
+            <h1 className="mb-6 text-4xl font-bold sm:text-5xl" data-testid="notas-page-title">
               Gestiona tus
               <br />
               <span className="text-blue-200">Notas</span>
@@ -379,6 +379,7 @@ const NotasPage = () => {
                 {isAdmin && (
                   <button
                     onClick={() => { setCreating(true); setEditing(null); }}
+                    data-testid="notas-new-button"
                     className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-700"
                   >
                     <svg

@@ -15,13 +15,13 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto bg-gray-900 text-white">
+    <footer className="mt-auto bg-gray-900 text-white" data-testid="main-footer">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Sección de Brand/Logo */}
-          <div className="col-span-1 md:col-span-2">
+          <div className="col-span-1 md:col-span-2" data-testid="footer-brand">
             <div className="mb-4 flex items-center">
-              <span className="text-2xl font-bold text-green-400">
+              <span className="text-2xl font-bold text-green-400" data-testid="footer-logo">
                 🌱 Bruce
               </span>
             </div>
@@ -33,7 +33,7 @@ const Footer = () => {
           </div>
 
           {/* Sección de Navegación */}
-          <div>
+          <div data-testid="footer-navigation">
             <h3 className="mb-4 text-lg font-semibold text-green-400">
               Navegación
             </h3>
@@ -42,6 +42,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/"
+                    data-testid="footer-link-home"
                     className="text-sm text-gray-300 transition-colors duration-200 hover:text-green-400"
                     aria-label="Ir a página principal"
                   >
@@ -51,6 +52,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/cultivo"
+                    data-testid="footer-link-cultivo"
                     className="text-sm text-gray-300 transition-colors duration-200 hover:text-green-400"
                     aria-label="Ir a sección de cultivos"
                   >
@@ -60,6 +62,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/notas"
+                    data-testid="footer-link-notas"
                     className="text-sm text-gray-300 transition-colors duration-200 hover:text-green-400"
                     aria-label="Ir a sección de notas"
                   >
@@ -71,7 +74,7 @@ const Footer = () => {
           </div>
 
           {/* Sección de Contacto/Información */}
-          <div>
+          <div data-testid="footer-contact">
             <h3 className="mb-4 text-lg font-semibold text-green-400">
               Contacto
             </h3>
@@ -93,6 +96,7 @@ const Footer = () => {
                 </svg>
                 <a
                   href="mailto:contacto@bruce.app"
+                  data-testid="footer-email"
                   className="transition-colors duration-200 hover:text-green-400"
                   aria-label="Enviar email a contacto@bruce.app"
                 >
@@ -125,14 +129,15 @@ const Footer = () => {
         <div className="mt-8 border-t border-gray-700 pt-8">
           <div className="flex flex-col items-center justify-between sm:flex-row">
             {/* Copyright */}
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-gray-400" data-testid="footer-copyright">
               © {currentYear} Bruce App. Todos los derechos reservados.
             </div>
 
             {/* Links legales/adicionales */}
-            <div className="mt-4 flex space-x-6 sm:mt-0">
+            <div className="mt-4 flex space-x-6 sm:mt-0" data-testid="footer-legal-links">
               <a
                 href="/privacidad"
+                data-testid="footer-link-privacy"
                 className="text-sm text-gray-400 transition-colors duration-200 hover:text-green-400"
                 aria-label="Ver política de privacidad"
               >
@@ -140,6 +145,7 @@ const Footer = () => {
               </a>
               <a
                 href="/terminos"
+                data-testid="footer-link-terms"
                 className="text-sm text-gray-400 transition-colors duration-200 hover:text-green-400"
                 aria-label="Ver términos de servicio"
               >
@@ -147,6 +153,7 @@ const Footer = () => {
               </a>
               <a
                 href="/ayuda"
+                data-testid="footer-link-help"
                 className="text-sm text-gray-400 transition-colors duration-200 hover:text-green-400"
                 aria-label="Obtener ayuda"
               >

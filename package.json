@@ -31,8 +31,19 @@
     "lint:css": "Ejecuta Stylelint para verificar estilos CSS",
     "format": "Formatea código con Prettier",
     "format:check": "Verifica formato del código sin modificarlo",
-    "generate-icons": "Genera iconos PWA en diferentes tamaños desde SVG fuente"
+    "generate-icons": "Genera iconos PWA en diferentes tamaños desde SVG fuente",
+    "test": "Ejecuta pruebas con Playwright",
+    "test:watch": "Ejecuta pruebas en modo watch",
+    "test:ui": "Ejecuta pruebas en modo UI",
+    "test:html": "Genera reporte HTML de pruebas",
+    "test:json": "Genera reporte JSON de pruebas",
+    "test:junit": "Genera reporte JUnit de pruebas",
+    "test:xml": "Genera reporte XML de pruebas",
+    "test:lcov": "Genera reporte LCOV de pruebas",
+    "test:coverage": "Genera reporte de cobertura de pruebas"
   },
+
+  
   "_dependencies_comentario": "Dependencias de producción - incluidas en el bundle final",
   "dependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -60,6 +71,7 @@
   },
   "_devDependencies_comentario": "Dependencias de desarrollo - solo para desarrollo y construcción",
   "devDependencies": {
+    "@playwright/test": "^1.56.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

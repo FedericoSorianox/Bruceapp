@@ -45,7 +45,7 @@ export default function FormField({ label, error, helper, children, required, cl
   return (
     // Contenedor principal con layout grid y gap entre elementos
     // Si no se proporciona className, usa 'grid gap-2' por defecto
-    <div className={className ?? 'grid gap-2'}>
+    <div className={className ?? 'grid gap-2'} data-testid="form-field">
 
       {/* Label opcional - solo se renderiza si existe */}
       {/* Incluye asterisco rojo si el campo es requerido */}

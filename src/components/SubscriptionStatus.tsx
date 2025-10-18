@@ -38,7 +38,7 @@ export default function SubscriptionStatus() {
   // Si está exento de pagos, mostrar mensaje especial
   if (isExemptFromPayments()) {
     return (
-      <div className="rounded-lg border p-4 bg-green-50 border-green-200">
+      <div className="rounded-lg border p-4 bg-green-50 border-green-200" data-testid="subscription-exempt-status">
         <div className="flex items-center space-x-3">
           <span className="text-2xl">🎁</span>
           <div>
@@ -103,15 +103,15 @@ export default function SubscriptionStatus() {
   const statusInfo = getStatusInfo();
 
   return (
-    <div className={`rounded-lg border p-4 bg-${statusInfo.color}-50 border-${statusInfo.color}-200`}>
+    <div className={`rounded-lg border p-4 bg-${statusInfo.color}-50 border-${statusInfo.color}-200`} data-testid="subscription-status">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <span className="text-2xl">{statusInfo.icon}</span>
           <div>
-            <h3 className={`font-semibold text-${statusInfo.color}-900`}>
+            <h3 className={`font-semibold text-${statusInfo.color}-900`} data-testid="subscription-title">
               {statusInfo.title}
             </h3>
-            <p className={`text-sm text-${statusInfo.color}-700`}>
+            <p className={`text-sm text-${statusInfo.color}-700`} data-testid="subscription-description">
               {statusInfo.description}
             </p>
           </div>
@@ -122,6 +122,7 @@ export default function SubscriptionStatus() {
             <button
               onClick={handleSubscribe}
               disabled={loading}
+              data-testid="subscription-subscribe-button"
               className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? 'Cargando...' : 'Suscribirse'}
@@ -131,7 +132,7 @@ export default function SubscriptionStatus() {
       </div>
 
       {user?.subscriptionStatus === 'trial' && user?.trialExpired && (
-        <div className="mt-3 p-2 bg-red-100 border border-red-300 rounded text-sm text-red-800">
+        <div className="mt-3 p-2 bg-red-100 border border-red-300 rounded text-sm text-red-800" data-testid="subscription-expired-message">
           Tu período de prueba ha expirado. Suscríbete para continuar usando la aplicación.
         </div>
       )}

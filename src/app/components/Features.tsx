@@ -190,12 +190,14 @@ const Features = () => {
       className="bg-white py-20"
       aria-labelledby="features-heading"
       role="main"
+      data-testid="features-section"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header de la sección */}
         <div className="mb-16 text-center">
           <h2
             id="features-heading"
+            data-testid="features-title"
             className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl"
           >
             Funcionalidades{" "}
@@ -203,17 +205,18 @@ const Features = () => {
               Avanzadas
             </span>
           </h2>
-          <p className="mx-auto max-w-3xl text-xl text-gray-700">
+          <p className="mx-auto max-w-3xl text-xl text-gray-700" data-testid="features-description">
             Descubre todas las herramientas que Bruce pone a tu disposición para
             revolucionar la manera en que gestionas tus cultivos.
           </p>
         </div>
 
         {/* Grid de features */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3" data-testid="features-grid">
           {features.map((feature) => (
             <article
               key={feature.id}
+              data-testid={`feature-${feature.id}`}
               className="group rounded-xl border border-gray-200 bg-white p-6 transition-all duration-300 hover:border-green-200 hover:shadow-lg focus-within:ring-2 focus-within:ring-green-500 focus-within:ring-offset-2"
             >
               {/* Icon container */}
@@ -261,11 +264,12 @@ const Features = () => {
 
         {/* Call-to-action al final de features */}
         <div className="mt-16 text-center">
-          <p className="mb-6 text-gray-700 font-medium">
+          <p className="mb-6 text-gray-700 font-medium" data-testid="features-cta-text">
             ¿Listo para experimentar todas estas funcionalidades?
           </p>
           <a
             href="/cultivo"
+            data-testid="features-explore-button"
             className="inline-flex items-center rounded-lg border border-transparent bg-green-600 px-6 py-3 text-base font-medium text-white transition-all duration-200 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none min-h-[44px]"
             aria-label="Explorar funcionalidades de cultivo"
           >

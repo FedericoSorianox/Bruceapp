@@ -349,10 +349,10 @@ export default function CultivoForm({
   return (
     <>
       {/* Formulario principal */}
-      <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-gray-200 p-6 bg-white shadow-sm">
+      <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-gray-200 p-6 bg-white shadow-sm" data-testid="cultivo-form">
         {/* Muestra mensaje de error si existe */}
         {error && (
-          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+          <div className="p-4 bg-red-50 rounded-lg border border-red-200" data-testid="cultivo-form-error">
             <p className="text-sm text-red-600 font-medium">{error}</p>
           </div>
         )}
@@ -364,6 +364,7 @@ export default function CultivoForm({
           </label>
           <input
             id="nombre"
+            data-testid="cultivo-form-nombre"
             className="w-full rounded-lg border border-gray-300 p-3 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-colors duration-200"
             value={nombre}
             onChange={e => setNombre(e.target.value)}
@@ -383,6 +384,7 @@ export default function CultivoForm({
             <button
               type="button"
               onClick={() => setModalAbierto('basica')}
+              data-testid="cultivo-modal-basica-button"
               className="flex flex-col items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border-2 border-blue-200 hover:border-blue-300 transition-all duration-200"
             >
               <div className="p-3 bg-blue-100 rounded-full">
@@ -400,6 +402,7 @@ export default function CultivoForm({
             <button
               type="button"
               onClick={() => setModalAbierto('tecnica')}
+              data-testid="cultivo-modal-tecnica-button"
               className="flex flex-col items-center gap-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border-2 border-purple-200 hover:border-purple-300 transition-all duration-200"
             >
               <div className="p-3 bg-purple-100 rounded-full">
@@ -418,6 +421,7 @@ export default function CultivoForm({
             <button
               type="button"
               onClick={() => setModalAbierto('adicional')}
+              data-testid="cultivo-modal-adicional-button"
               className="flex flex-col items-center gap-3 p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border-2 border-orange-200 hover:border-orange-300 transition-all duration-200"
             >
               <div className="p-3 bg-orange-100 rounded-full">
@@ -486,6 +490,7 @@ export default function CultivoForm({
         <div className="flex gap-3 pt-4 border-t border-gray-200">
           <button
             type="submit"
+            data-testid="cultivo-form-submit"
             disabled={disabled}
             className="flex-1 rounded-lg bg-green-600 px-4 py-3 text-white font-semibold shadow-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
@@ -494,6 +499,7 @@ export default function CultivoForm({
           {onCancel && (
             <button
               type="button"
+              data-testid="cultivo-form-cancel"
               onClick={onCancel}
               className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
             >

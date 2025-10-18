@@ -110,22 +110,23 @@ function LoginForm() {
   }
 
   return (
-    <main className="mx-auto max-w-sm p-6 space-y-4">
-      <h1 className="text-2xl font-bold">{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
+    <main className="mx-auto max-w-sm p-6 space-y-4" data-testid="login-page">
+      <h1 className="text-2xl font-bold" data-testid="login-title">{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
 
       {successMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3" data-testid="login-success-message">
           <p className="text-green-800 text-sm">{successMessage}</p>
         </div>
       )}
 
-      {err && <p className="text-red-600 text-sm" role="alert">{err}</p>}
+      {err && <p className="text-red-600 text-sm" role="alert" data-testid="login-error-message">{err}</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border p-4" aria-label={mode === 'login' ? 'Formulario de inicio de sesión' : 'Formulario de registro'}>
+      <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border p-4" aria-label={mode === 'login' ? 'Formulario de inicio de sesión' : 'Formulario de registro'} data-testid="login-form">
         <div className="grid gap-2">
           <label htmlFor="email" className="text-sm font-medium">Email</label>
           <input
             id="email"
+            data-testid="login-email-input"
             type="email"
             className="rounded border p-2"
             value={email}
@@ -140,6 +141,7 @@ function LoginForm() {
           <label htmlFor="pwd" className="text-sm font-medium">Password</label>
           <input
             id="pwd"
+            data-testid="login-password-input"
             type="password"
             className="rounded border p-2"
             value={pwd}
@@ -156,6 +158,7 @@ function LoginForm() {
               <label htmlFor="pwd2" className="text-sm font-medium">Confirmar Password</label>
               <input
                 id="pwd2"
+                data-testid="login-confirm-password-input"
                 type="password"
                 className="rounded border p-2"
                 value={pwd2}
@@ -182,6 +185,7 @@ function LoginForm() {
 
         <button
           disabled={loading || !email || !pwd || (mode === 'register' && !pwd2)}
+          data-testid="login-submit-button"
           className="rounded-lg border px-3 py-2 disabled:opacity-50 w-full hover:bg-gray-50 transition-colors"
           aria-busy={loading}
         >
@@ -192,6 +196,7 @@ function LoginForm() {
           <button
             type="button"
             onClick={handleToggleMode}
+            data-testid="login-toggle-mode-button"
             className="text-sm text-blue-600 hover:underline"
             aria-label={mode === 'login' ? 'Ir a crear cuenta' : 'Ir a iniciar sesión'}
           >
