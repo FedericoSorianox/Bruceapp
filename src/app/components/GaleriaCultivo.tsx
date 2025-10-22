@@ -49,6 +49,8 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
   const [archivosSubiendo, setArchivosSubiendo] = useState<ArchivoSubida[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [mostrarVistaDetalle, setMostrarVistaDetalle] = useState(false);
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [descripcionTemporal, setDescripcionTemporal] = useState('');
 
   // Referencias
   const inputFileRef = useRef<HTMLInputElement>(null);
@@ -232,6 +234,37 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
   const handleCerrarDetalle = () => {
     setImagenSeleccionada(null);
     setMostrarVistaDetalle(false);
+    setModoEdicion(false);
+    setDescripcionTemporal('');
+  };
+
+  /**
+   * Inicia el modo de edición de la descripción
+   */
+  const handleIniciarEdicion = () => {
+    if (imagenSeleccionada) {
+      setModoEdicion(true);
+      setDescripcionTemporal(imagenSeleccionada.descripcion || '');
+    }
+  };
+
+  /**
+   * Guarda los cambios de la descripción
+   */
+  const handleGuardarEdicion = () => {
+    if (imagenSeleccionada) {
+      handleActualizarDescripcion(imagenSeleccionada.id, descripcionTemporal);
+      setModoEdicion(false);
+      setDescripcionTemporal('');
+    }
+  };
+
+  /**
+   * Cancela la edición de la descripción
+   */
+  const handleCancelarEdicion = () => {
+    setModoEdicion(false);
+    setDescripcionTemporal('');
   };
 
   return (
@@ -409,12 +442,13 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
             <div className="flex flex-col lg:flex-row max-h-[80vh]">
               {/* Imagen */}
               <div className="flex-shrink-0 bg-gray-100 flex items-center justify-center p-4">
-                <div className="relative max-w-full max-h-96 lg:max-h-[60vh] w-full h-96 lg:h-[60vh]">
+                <div className="relative w-full max-w-2xl h-auto max-h-[70vh] min-h-[400px]">
                   <Image
                     src={imagenSeleccionada.url}
                     alt={imagenSeleccionada.nombre}
-                    fill
-                    className="object-contain rounded-lg"
+                    width={800}
+                    height={600}
+                    className="object-contain rounded-lg w-full h-auto max-h-[70vh]"
                     unoptimized={imagenSeleccionada.url.startsWith('data:') || imagenSeleccionada.url.includes('/api/galeria/temp/')}
                     onError={() => {
                       console.error('Error cargando imagen:', imagenSeleccionada.nombre);
@@ -430,13 +464,43 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Descripción
                   </label>
-                  <textarea
-                    value={imagenSeleccionada.descripcion || ''}
-                    onChange={(e) => handleActualizarDescripcion(imagenSeleccionada.id, e.target.value)}
-                    placeholder="Agrega una descripción a esta imagen..."
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    rows={3}
-                  />
+                  {modoEdicion ? (
+                    <div className="space-y-3">
+                      <textarea
+                        value={descripcionTemporal}
+                        onChange={(e) => setDescripcionTemporal(e.target.value)}
+                        placeholder="Agrega una descripción a esta imagen..."
+                        className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        rows={3}
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleGuardarEdicion}
+                          className="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          onClick={handleCancelarEdicion}
+                          className="flex-1 px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-200"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors min-h-[80px] flex items-center"
+                      onClick={handleIniciarEdicion}
+                    >
+                      {imagenSeleccionada.descripcion ? (
+                        <span className="text-gray-900">{imagenSeleccionada.descripcion}</span>
+                      ) : (
+                        <span className="text-gray-500 italic">Haz clic para agregar una descripción...</span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Metadatos */}
