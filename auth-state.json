@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "auth-token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZlZGUuZGFuZ3VhcmRAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzYxMTI3OTg2LCJleHAiOjE3NjEyMTQzODZ9.BpALYDAozYjbHDXdwfbuorM-bd8rb50gDOa_32jFf4k",
+      "domain": "bruceapp.onrender.com",
+      "path": "/",
+      "expires": 1761732786.196658,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://bruceapp.onrender.com",
+      "localStorage": [
+        {
+          "name": "auth_token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZlZGUuZGFuZ3VhcmRAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzYxMTI3OTg2LCJleHAiOjE3NjEyMTQzODZ9.BpALYDAozYjbHDXdwfbuorM-bd8rb50gDOa_32jFf4k"
+        }
+      ]
+    }
+  ]
+}

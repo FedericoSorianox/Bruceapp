@@ -13,6 +13,7 @@
     "migrate": "node scripts/migrate-to-mongodb.js",
     "seed": "node scripts/seed-mongodb.js",
     "exempt-users": "node scripts/exempt-users.js",
+    "test-cloudinary": "node scripts/test-cloudinary.js",
     "db:reset": "npm run seed",
     "lint": "next lint",
     "lint:css": "stylelint '**/*.css' --ignore-path .gitignore",
@@ -32,6 +33,7 @@
     "format": "Formatea código con Prettier",
     "format:check": "Verifica formato del código sin modificarlo",
     "generate-icons": "Genera iconos PWA en diferentes tamaños desde SVG fuente",
+    "test-cloudinary": "Prueba la configuración y conexión con Cloudinary",
     "test": "Ejecuta pruebas con Playwright",
     "test:watch": "Ejecuta pruebas en modo watch",
     "test:ui": "Ejecuta pruebas en modo UI",
@@ -42,8 +44,6 @@
     "test:lcov": "Genera reporte LCOV de pruebas",
     "test:coverage": "Genera reporte de cobertura de pruebas"
   },
-
-  
   "_dependencies_comentario": "Dependencias de producción - incluidas en el bundle final",
   "dependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -51,6 +51,7 @@
     "@types/mongoose": "^5.11.96",
     "autoprefixer": "^10.4.20",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.8.0",
     "dotenv": "^17.2.3",
     "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",

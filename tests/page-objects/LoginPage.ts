@@ -5,6 +5,9 @@
 
 import { Page, Locator, expect } from '@playwright/test';
 
+// Fuente única para la URL base usada por Page Objects en contextos sin baseURL
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'https://bruceapp.onrender.com';
+
 /**
  * Page Object para la página de Login
  */
@@ -41,7 +44,7 @@ export class LoginPage {
    * Navegar a la página de login
    */
   async gotoLoginPage(): Promise<void> {
-    await this.page.goto('/');
+    await this.page.goto(`${BASE_URL}/`);
   }
 
   /**
@@ -52,7 +55,7 @@ export class LoginPage {
   async login(email: string, password: string): Promise<void> {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
-    //await this.loginButton.click();
+    
   }
 
   /**
@@ -85,7 +88,7 @@ export class LoginPage {
    * Verificar que estamos en la página de login
    */
   async loginPageIsVisible(): Promise<void> {
-    await expect(this.page).toHaveURL('/login');
+    await expect(this.page).toHaveURL(`${BASE_URL}/login`);
     await expect(this.emailInput).toBeVisible();
     await expect(this.passwordInput).toBeVisible();
   }

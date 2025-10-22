@@ -61,7 +61,34 @@ DB_PORT=3002
 
 # JWT Secret para autenticación
 JWT_SECRET=tu_jwt_secret_aqui
+
+# Cloudinary para almacenamiento de imágenes de galería
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=tu_api_key
+CLOUDINARY_API_SECRET=tu_api_secret
 ```
+
+### Configuración de Cloudinary
+
+Para el almacenamiento de imágenes en la galería de cultivos, la aplicación utiliza Cloudinary. Sigue estos pasos:
+
+1. **Crear cuenta en Cloudinary**: Ve a [https://cloudinary.com](https://cloudinary.com) y crea una cuenta gratuita.
+
+2. **Obtener credenciales**: Una vez registrado, ve al Dashboard y copia:
+   - **Cloud Name**: Aparece en la parte superior del dashboard
+   - **API Key**: Ve a "Account Details" → "API Keys"
+   - **API Secret**: Ve a "Account Details" → "API Keys"
+
+3. **Configurar variables de entorno**: Actualiza el archivo `.env.local` con tus credenciales reales.
+
+4. **Probar configuración**:
+   ```bash
+   npm run test-cloudinary
+   ```
+
+   Este comando verificará que las credenciales estén configuradas correctamente y probará la conexión.
+
+**Nota**: Si no configuras Cloudinary, la aplicación seguirá funcionando pero las imágenes no se almacenarán permanentemente.
 
 ### Desarrollo Local
 
