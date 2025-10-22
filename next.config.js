@@ -46,7 +46,7 @@ const nextConfig = {
   // Configuración de imágenes para Next.js
   images: {
     // Permitir imágenes de dominios locales y API endpoints
-    domains: ['bruceapp.onrender.com', 'localhost'],
+    domains: ['bruceapp.onrender.com', 'localhost', 'res.cloudinary.com'],
     // Configurar paths remotos para API endpoints locales
     remotePatterns: [
       {
@@ -54,6 +54,13 @@ const nextConfig = {
         hostname: 'bruceapp.onrender.com',
         port: '',
         pathname: '/api/galeria/temp/**',
+      },
+      // Permitir imágenes directas desde Cloudinary
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
       },
       {
         protocol: 'http',
