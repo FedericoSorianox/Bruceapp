@@ -15,7 +15,6 @@ test.describe('Cultivo Page Tests', () => {
    * Realiza login automático antes de cada prueba
    */
   test.beforeEach(async ({ page }) => {
-    loginPage = new LoginPage(page);
     cultivoPage = new CultivoPage(page);
     
     // Navegar a la página de login y autenticarse
