@@ -1,15 +1,19 @@
 /**
- * Configuración de Next.js para la aplicación Bruce
+ * Configuración de Next.js para la aplicación Bruce (ESM)
  *
- * Archivo de configuración principal de Next.js que permite personalizar
- * el comportamiento del framework.
- *
- * Incluye configuración PWA para Progressive Web App
- *
- * @type {import('next').NextConfig}
+ * Migrado a ESM para evitar `require()` y cumplir con las reglas de lint.
+ * Incluye configuración PWA y alias de paths.
  */
-const path = require('path');
-const withPWA = require('next-pwa')({
+import path from 'path';
+import { fileURLToPath } from 'url';
+import withPWA from 'next-pwa';
+
+// __dirname en ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configuración PWA
+const withPWAConfig = withPWA({
   dest: 'public',
   register: false, // Desactivado porque registramos manualmente
   skipWaiting: true,
@@ -18,7 +22,7 @@ const withPWA = require('next-pwa')({
   buildExcludes: [/manifest\.json$/],
   runtimeCaching: [
     {
-      urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
+      urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*$/i,
       handler: 'CacheFirst',
       options: {
         cacheName: 'google-fonts-webfonts',
@@ -29,7 +33,7 @@ const withPWA = require('next-pwa')({
       },
     },
     {
-      urlPattern: /^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,
+      urlPattern: /^https:\/\/fonts\.(?:googleapis)\.com\/.*$/i,
       handler: 'StaleWhileRevalidate',
       options: {
         cacheName: 'google-fonts-stylesheets',
@@ -74,11 +78,12 @@ const nextConfig = {
   // Esto asegura que los alias @/ funcionen correctamente en todos los entornos
   webpack: (config) => {
     // Configurar alias explícito para @/ -> ./src/
-    // Usamos __dirname para CommonJS compatibility
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
 
     return config;
   },
 };
 
-module.exports = withPWA(nextConfig);
+export default withPWAConfig(nextConfig);
+
+
