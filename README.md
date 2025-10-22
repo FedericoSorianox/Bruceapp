@@ -88,6 +88,12 @@ Para el almacenamiento de imágenes en la galería de cultivos, la aplicación u
 
    Este comando verificará que las credenciales estén configuradas correctamente y probará la conexión.
 
+**Características de la integración**:
+- Almacenamiento permanente en la nube
+- Optimización automática de calidad de imagen
+- URLs HTTPS seguras para todas las imágenes
+- Gestión automática de diferentes formatos
+
 **Nota**: Si no configuras Cloudinary, la aplicación seguirá funcionando pero las imágenes no se almacenarán permanentemente.
 
 ### Desarrollo Local

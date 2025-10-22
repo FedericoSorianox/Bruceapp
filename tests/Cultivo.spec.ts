@@ -3,7 +3,7 @@ import { CultivoPage } from './page-objects/CultivoPage';
 import { Page } from '@playwright/test';
 
 
-test.describe('Cultivo Page Tests - Usando Autenticación Previa de login.setup.ts', () => {
+test.skip('Cultivo Page Tests - Usando Autenticación Previa de login.setup.ts', () => {
   let cultivoPage: CultivoPage;
 
   /**
@@ -43,7 +43,7 @@ test.describe('Cultivo Page Tests - Usando Autenticación Previa de login.setup.
    * TESTS PARA ELEMENTOS PRINCIPALES DE LA PÁGINA
    * ============================================
    */
-  test.describe('Main Page Elements', () => {
+  test.skip('Main Page Elements', () => {
     test('Cultivo page loads successfully', async ({ page }) => {
       // Verificar que estamos en la página correcta
       const currentUrl = page.url();

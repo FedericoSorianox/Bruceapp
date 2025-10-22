@@ -75,6 +75,7 @@ async function probarSubida() {
         public_id: `test-galeria-${Date.now()}`,
         folder: 'galeria-cultivos/test',
         resource_type: 'image',
+        quality: 'auto',
       },
       (error, result) => {
         if (error) {

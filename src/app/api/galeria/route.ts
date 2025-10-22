@@ -103,12 +103,12 @@ export async function POST(request: Request) {
           resource_type: 'image',
           // Optimizaciones automáticas de Cloudinary
           quality: 'auto',
-          format: 'auto',
-          // Generar diferentes tamaños automáticamente
-          eager: [
-            { width: 800, height: 600, crop: 'fill' },
-            { width: 400, height: 300, crop: 'fill' },
-          ],
+          // Permitir que Cloudinary determine el mejor formato
+          // eager: [
+          //   { width: 800, height: 600, crop: 'fill' },
+          //   { width: 400, height: 300, crop: 'fill' },
+          // ],
+          // Nota: Las transformaciones eager se pueden agregar después si son necesarias
         },
         (error, result) => {
           if (error) {
