@@ -25,6 +25,12 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
+  webServer: {
+    command: 'npm run dev',
+    port: 3000,
+    reuseExistingServer: !process.env.CI,
+  },
+
 
 
   // Projects configuration for testing , different browsers and devices with their own settings
