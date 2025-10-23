@@ -8,14 +8,14 @@
  */
 export const testUsers = {
   validUser: {
-    email: 'test@bruceapp.com',
-    password: 'password123',
+    email: process.env.TEST_USER_EMAIL || 'test@bruceapp.com',
+    password: process.env.TEST_USER_PASSWORD || 'password123',
     name: 'Usuario Test',
     id: 'test-user-id'
   },
   adminUser: {
-    email: 'admin@bruceapp.com',
-    password: 'admin123',
+    email: process.env.ADMIN_USER_EMAIL || 'admin@bruceapp.com',
+    password: process.env.ADMIN_USER_PASSWORD || 'admin123',
     name: 'Admin Test',
     id: 'admin-user-id',
     role: 'admin'
@@ -29,7 +29,7 @@ export const testUsers = {
     password: 'newpassword123',
     name: 'Nuevo Usuario'
   }
-} as const;
+};
 
 /**
  * Datos de cultivos para testing

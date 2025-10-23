@@ -21,7 +21,7 @@ export default defineConfig({
   reporter: 'html',
   // Configuration for the browser and device to use for testing
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
   },
 
