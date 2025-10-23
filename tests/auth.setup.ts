@@ -18,8 +18,17 @@ setup('authenticate', async ({ page }) => {
     // Hacer clic en el botón de login
     await loginPage.entrarButton.click();
 
+    // Esperar un poco para que aparezca un posible mensaje de error
+    await page.waitForTimeout(2000);
+
+    // Verificar si hay un mensaje de error
+    if (await loginPage.errorMessage.isVisible()) {
+        const errorText = await loginPage.getErrorMessageText();
+        throw new Error(`Login failed: ${errorText}`);
+    }
+
     // Esperar a que la página cambie después del login exitoso
-    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 10000 });
+    await page.waitForURL('/', { timeout: 15000 });
     await page.waitForLoadState('networkidle');
 
     // Guardar el estado de autenticación
