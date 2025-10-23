@@ -5,9 +5,6 @@
 
 import { Page, Locator, expect } from '@playwright/test';
 
-// Fuente única para la URL base usada por Page Objects en contextos sin baseURL
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'https://bruceapp.onrender.com';
-
 /**
  * Page Object para la página de Login
  */
@@ -44,7 +41,7 @@ export class LoginPage {
    * Navegar a la página de login
    */
   async gotoLoginPage(): Promise<void> {
-    await this.page.goto(`${BASE_URL}/`);
+    await this.page.goto('/login');
   }
 
   /**
@@ -55,7 +52,7 @@ export class LoginPage {
   async login(email: string, password: string): Promise<void> {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
-    
+
   }
 
   /**
@@ -88,7 +85,7 @@ export class LoginPage {
    * Verificar que estamos en la página de login
    */
   async loginPageIsVisible(): Promise<void> {
-    await expect(this.page).toHaveURL(`${BASE_URL}/login`);
+    await expect(this.page).toHaveURL(/\/login$/);
     await expect(this.emailInput).toBeVisible();
     await expect(this.passwordInput).toBeVisible();
   }
@@ -97,108 +94,108 @@ export class LoginPage {
   /**
    * Ir a la página de creación de cuenta
    */
-    async gotoCrearCuentaPage(): Promise<void> {
+  async gotoCrearCuentaPage(): Promise<void> {
     await this.registerLink.click();
   }
 
-async yaTenesCuentaLinkIsVisible(): Promise<void> {
-  await expect(this.yaTenesCuentaLink).toBeVisible();
-}
+  async yaTenesCuentaLinkIsVisible(): Promise<void> {
+    await expect(this.yaTenesCuentaLink).toBeVisible();
+  }
 
-async repitePasswordIsVisible(): Promise<void> {
-  await expect(this.repitePassword).toBeVisible();
-}
-
-
-async periodoDePruebaIsVisible(): Promise<void> {
-  await expect(this.periodoDePrueba).toBeVisible();
-}
+  async repitePasswordIsVisible(): Promise<void> {
+    await expect(this.repitePassword).toBeVisible();
+  }
 
 
-async crearCuentaIsVisible(): Promise<void> {
-  await expect(this.crearCuenta).toBeVisible();
-}
+  async periodoDePruebaIsVisible(): Promise<void> {
+    await expect(this.periodoDePrueba).toBeVisible();
+  }
 
-async entrarButtonIsVisible(): Promise<void> {
-  await expect(this.entrarButton).toBeVisible();
-}
 
-/**
- * Verifica que el botón "Crear Cuenta" está deshabilitado
- * cuando el email, password o repetir password están vacíos.
- */
-async expectCrearCuentaButtonDisabledIfFieldsEmpty(): Promise<void> {
-  // Vaciar los campos
-  await this.emailInput.fill('');
-  await this.passwordInput.fill('');
-  await this.repitePassword.fill('');
-  // El botón debe estar deshabilitado
-  await expect(this.crearCuenta).toBeDisabled();
+  async crearCuentaIsVisible(): Promise<void> {
+    await expect(this.crearCuenta).toBeVisible();
+  }
 
-  // Rellenar solo email
-  await this.emailInput.fill('test@email.com');
-  await this.passwordInput.fill('');
-  await this.repitePassword.fill('');
-  await expect(this.crearCuenta).toBeDisabled();
+  async entrarButtonIsVisible(): Promise<void> {
+    await expect(this.entrarButton).toBeVisible();
+  }
 
-  // Rellenar solo password
-  await this.emailInput.fill('');
-  await this.passwordInput.fill('password123');
-  await this.repitePassword.fill('');
-  await expect(this.crearCuenta).toBeDisabled();
+  /**
+   * Verifica que el botón "Crear Cuenta" está deshabilitado
+   * cuando el email, password o repetir password están vacíos.
+   */
+  async expectCrearCuentaButtonDisabledIfFieldsEmpty(): Promise<void> {
+    // Vaciar los campos
+    await this.emailInput.fill('');
+    await this.passwordInput.fill('');
+    await this.repitePassword.fill('');
+    // El botón debe estar deshabilitado
+    await expect(this.crearCuenta).toBeDisabled();
 
-  // Rellenar solo repetir password
-  await this.emailInput.fill('');
-  await this.passwordInput.fill('');
-  await this.repitePassword.fill('password123');
-  await expect(this.crearCuenta).toBeDisabled();
+    // Rellenar solo email
+    await this.emailInput.fill('test@email.com');
+    await this.passwordInput.fill('');
+    await this.repitePassword.fill('');
+    await expect(this.crearCuenta).toBeDisabled();
 
-  // Solo uno vacío (ejemplo: repetir password vacío)
-  await this.emailInput.fill('test@email.com');
-  await this.passwordInput.fill('password123');
-  await this.repitePassword.fill('');
-  await expect(this.crearCuenta).toBeDisabled();
+    // Rellenar solo password
+    await this.emailInput.fill('');
+    await this.passwordInput.fill('password123');
+    await this.repitePassword.fill('');
+    await expect(this.crearCuenta).toBeDisabled();
 
-  // Solo uno vacío (ejemplo: email vacío)
-  await this.emailInput.fill('');
-  await this.passwordInput.fill('password123');
-  await this.repitePassword.fill('password123');
-  await expect(this.crearCuenta).toBeDisabled();
+    // Rellenar solo repetir password
+    await this.emailInput.fill('');
+    await this.passwordInput.fill('');
+    await this.repitePassword.fill('password123');
+    await expect(this.crearCuenta).toBeDisabled();
 
-  // Solo uno vacío (ejemplo: password vacío)
-  await this.emailInput.fill('test@email.com');
-  await this.passwordInput.fill('');
-  await this.repitePassword.fill('password123');
-  await expect(this.crearCuenta).toBeDisabled();
-}
+    // Solo uno vacío (ejemplo: repetir password vacío)
+    await this.emailInput.fill('test@email.com');
+    await this.passwordInput.fill('password123');
+    await this.repitePassword.fill('');
+    await expect(this.crearCuenta).toBeDisabled();
 
-/**
- * Verifica que el botón "Crear Cuenta" está habilitado
- * cuando los tres campos requeridos están completos.
- */
-async expectCrearCuentaButtonEnabledIfFieldsFilled(): Promise<void> {
-  // Llenar todos los campos requeridos
-  await this.emailInput.fill('test@email.com');
-  await this.passwordInput.fill('password123');
-  await this.repitePassword.fill('password123');
-  // El botón debe estar habilitado
-  await expect(this.crearCuenta).toBeEnabled();
-}
+    // Solo uno vacío (ejemplo: email vacío)
+    await this.emailInput.fill('');
+    await this.passwordInput.fill('password123');
+    await this.repitePassword.fill('password123');
+    await expect(this.crearCuenta).toBeDisabled();
 
-async expectEntrarButtonDisabledIfFieldsEmpty(): Promise<void> {
-  // Vaciar los campos
-  await this.emailInput.fill('');
-  await this.passwordInput.fill('');
-  // El botón debe estar deshabilitado
-  await expect(this.entrarButton).toBeDisabled();
-}
+    // Solo uno vacío (ejemplo: password vacío)
+    await this.emailInput.fill('test@email.com');
+    await this.passwordInput.fill('');
+    await this.repitePassword.fill('password123');
+    await expect(this.crearCuenta).toBeDisabled();
+  }
 
-async expectEntrarButtonEnabledIfFieldsFilled(): Promise<void> {
-  // Llenar todos los campos requeridos
-  await this.emailInput.fill('test@email.com');
-  await this.passwordInput.fill('password123');
-  // El botón debe estar habilitado
-  await expect(this.entrarButton).toBeEnabled();
-}
+  /**
+   * Verifica que el botón "Crear Cuenta" está habilitado
+   * cuando los tres campos requeridos están completos.
+   */
+  async expectCrearCuentaButtonEnabledIfFieldsFilled(): Promise<void> {
+    // Llenar todos los campos requeridos
+    await this.emailInput.fill('test@email.com');
+    await this.passwordInput.fill('password123');
+    await this.repitePassword.fill('password123');
+    // El botón debe estar habilitado
+    await expect(this.crearCuenta).toBeEnabled();
+  }
+
+  async expectEntrarButtonDisabledIfFieldsEmpty(): Promise<void> {
+    // Vaciar los campos
+    await this.emailInput.fill('');
+    await this.passwordInput.fill('');
+    // El botón debe estar deshabilitado
+    await expect(this.entrarButton).toBeDisabled();
+  }
+
+  async expectEntrarButtonEnabledIfFieldsFilled(): Promise<void> {
+    // Llenar todos los campos requeridos
+    await this.emailInput.fill('test@email.com');
+    await this.passwordInput.fill('password123');
+    // El botón debe estar habilitado
+    await expect(this.entrarButton).toBeEnabled();
+  }
 
 }

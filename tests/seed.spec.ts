@@ -7,7 +7,7 @@ async function globalSetup() {
   const page = await browser.newPage();
 
   await page.goto('https://bruceapp.onrender.com/login');
-  
+
   // Realiza login
   await page.fill('input[id="email"]', 'fede.danguard@gmail.com');
   await page.fill('input[id="pwd"]', 'Fede2020!');

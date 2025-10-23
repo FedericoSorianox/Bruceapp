@@ -14,28 +14,35 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   timeout: 40000,
-  fullyParallel: false, // Deshabilitar paralelización para evitar conflictos de autenticación
+  //fullyParallel: false, // Deshabilitar paralelización para evitar conflictos de autenticación
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1, // Usar solo 1 worker para evitar conflictos de storageState
   reporter: 'html',
-  globalSetup: './tests/fixtures/login.setup.ts',
   // Configuration for the browser and device to use for testing
   use: {
-    baseURL: 'https://bruceapp.onrender.com/',
+    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
-    // Usar el estado de autenticación guardado para evitar login repetitivo
-    storageState: 'storageState.json',
   },
- 
 
-  
+
+
   // Projects configuration for testing , different browsers and devices with their own settings
   projects: [
     {
-      name: 'chromium',
+      name: 'setup',
+      testMatch: '**/auth.setup.ts',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Usar el estado de autenticación guardado para evitar login repetitivo
+        storageState: 'storageState.json',
+      },
+      dependencies: ['setup'],
+    },
 
-
- ]});
+  ]
+});

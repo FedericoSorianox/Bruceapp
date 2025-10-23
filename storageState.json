@@ -2,10 +2,10 @@
   "cookies": [
     {
       "name": "auth-token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZlZGUuZGFuZ3VhcmRAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzYxMTM1MTA0LCJleHAiOjE3NjEyMjE1MDR9.UDCBewe_X5vTg2zbqh9spUdeOmJ7N5R-KhUpnxiiIP0",
-      "domain": "bruceapp.onrender.com",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAYnJ1Y2VhcHAuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzYxMjM5NTkzLCJleHAiOjE3NjEzMjU5OTN9.pg1r5LWfQ97RafoENzmJRAAvgUiB-cK0_wdsLN5kDD8",
+      "domain": "localhost",
       "path": "/",
-      "expires": 1761739904.208338,
+      "expires": 1761844393.738124,
       "httpOnly": true,
       "secure": true,
       "sameSite": "Lax"
@@ -13,11 +13,11 @@
   ],
   "origins": [
     {
-      "origin": "https://bruceapp.onrender.com",
+      "origin": "http://localhost:3000",
       "localStorage": [
         {
           "name": "auth_token",
-          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZlZGUuZGFuZ3VhcmRAZ21haWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzYxMTM1MTA0LCJleHAiOjE3NjEyMjE1MDR9.UDCBewe_X5vTg2zbqh9spUdeOmJ7N5R-KhUpnxiiIP0"
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAYnJ1Y2VhcHAuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzYxMjM5NTkzLCJleHAiOjE3NjEzMjU5OTN9.pg1r5LWfQ97RafoENzmJRAAvgUiB-cK0_wdsLN5kDD8"
         }
       ]
     }
