@@ -17,8 +17,13 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+    - name: Build application
+      run: npm run build
     - name: Start server
       run: npm start &
+      env:
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
     - name: Setup test users
       if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
       run: node scripts/setup-test-users.js
