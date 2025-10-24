@@ -24,15 +24,7 @@ jobs:
       env:
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
-    - name: Setup test users
-      if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-      run: node scripts/setup-test-users.js
-      env:
-        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-        ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
-        ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
-        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+
     - name: Wait for server to be ready
       run: |
         timeout 60 bash -c 'until curl -f http://localhost:3000/api/health || curl -f http://localhost:3000; do sleep 1; done' || echo "Server startup timeout"
