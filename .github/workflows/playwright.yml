@@ -39,9 +39,8 @@ jobs:
       run: |
         echo "🔍 Environment check:"
         echo "NODE_ENV: $NODE_ENV"
-        echo "MongoDB URI set: ${{ secrets.MONGODB_URI != '' }}"
-        echo "JWT Secret set: ${{ secrets.JWT_SECRET != '' }}"
         echo "Test user email: $TEST_USER_EMAIL"
+        echo "Admin user email: $ADMIN_USER_EMAIL"
     
     - name: Run Playwright tests
       if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
