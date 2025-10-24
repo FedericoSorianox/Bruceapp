@@ -46,7 +46,7 @@ setup('authenticate', async ({ page }) => {
     // Aumentamos el timeout y agregamos alternativas de URL
     try {
         console.log('⏳ Waiting for URL change...');
-        await page.waitForURL(/\/(cultivo)/, { timeout: 30000 });
+        await page.waitForURL(/\/(cultivo|dashboard)/, { timeout: 30000 });
         console.log('✅ URL changed successfully');
     } catch {
         // Si falla, intentamos verificar si al menos salimos de login

@@ -40,6 +40,10 @@ Ve a tu repositorio en GitHub > Settings > Secrets and variables > Actions > New
 - Todas las variables necesarias se pasan a los tests
 - `NODE_ENV=test` para identificar el entorno de testing
 
+### 6. **Servicio de MongoDB en CI**
+- Agregado servicio MongoDB (mongo:5.0) en GitHub Actions
+- Los tests ahora tienen acceso a una base de datos MongoDB real
+
 ## Debugging
 
 Si los tests siguen fallando, revisa los logs de GitHub Actions para ver:
