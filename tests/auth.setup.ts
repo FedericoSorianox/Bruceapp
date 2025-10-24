@@ -28,7 +28,7 @@ setup('authenticate', async ({ page }) => {
     }
 
     // Esperar a que la página cambie después del login exitoso
-    await page.waitForURL('/', { timeout: 15000 });
+    await page.waitForURL('/cultivo', { timeout: 15000 });
     await page.waitForLoadState('networkidle');
 
     // Guardar el estado de autenticación
