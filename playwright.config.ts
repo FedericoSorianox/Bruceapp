@@ -28,12 +28,10 @@ export default defineConfig({
   },
 
   webServer: {
-    command: 'npm run dev',
+    command: process.env.CI ? 'npm start' : 'npm run dev',
     port: 3000,
-    reuseExistingServer: true,
-    timeout: 120 * 1000, // 2 minutos en CI
-    stderr: 'pipe',
-    stdout: 'pipe',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000, // 2 minutos
   },
 
 

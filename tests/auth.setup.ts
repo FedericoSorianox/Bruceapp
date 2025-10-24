@@ -9,6 +9,12 @@ setup('authenticate', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
     console.log('🔐 Starting authentication setup...');
+    console.log('Environment check:', {
+        NODE_ENV: process.env.NODE_ENV,
+        CI: process.env.CI,
+        hasMongoUri: !!process.env.MONGODB_URI,
+        hasJwtSecret: !!process.env.JWT_SECRET,
+    });
     console.log('Using credentials:', {
         email: testUsers.validUser.email,
         password: testUsers.validUser.password ? '***' : 'undefined'
@@ -27,6 +33,23 @@ setup('authenticate', async ({ page }) => {
     // Llenar las credenciales
     await loginPage.login(testUsers.validUser.email, testUsers.validUser.password);
     console.log('📝 Credentials filled');
+
+    // Interceptar la respuesta de login para debug
+    page.on('response', async (response) => {
+        if (response.url().includes('/api/login')) {
+            console.log('🔍 Login API Response:', {
+                status: response.status(),
+                statusText: response.statusText(),
+                headers: response.headers(),
+            });
+            try {
+                const body = await response.json();
+                console.log('📦 Response body:', JSON.stringify(body, null, 2));
+            } catch {
+                console.log('⚠️ Could not parse response as JSON');
+            }
+        }
+    });
 
     // Hacer clic en el botón de login
     await loginPage.entrarButton.click();

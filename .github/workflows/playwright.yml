@@ -8,43 +8,52 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+      ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
+      ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
+      NODE_ENV: production
     steps:
     - uses: actions/checkout@v4
+    
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
+    
     - name: Install dependencies
       run: npm ci
+    
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+    
     - name: Build application
       run: npm run build
-    - name: Start server
-      run: npm start &
-      env:
-        MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-
-    - name: Wait for server to be ready
+    
+    - name: Ensure test users exist
+      run: node scripts/ensure-test-user.js
+    
+    - name: Debug environment
       run: |
-        timeout 60 bash -c 'until curl -f http://localhost:3000/api/health || curl -f http://localhost:3000; do sleep 1; done' || echo "Server startup timeout"
+        echo "🔍 Environment check:"
+        echo "NODE_ENV: $NODE_ENV"
+        echo "MongoDB URI set: ${{ secrets.MONGODB_URI != '' }}"
+        echo "JWT Secret set: ${{ secrets.JWT_SECRET != '' }}"
+        echo "Test user email: $TEST_USER_EMAIL"
+    
     - name: Run Playwright tests
       if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
       run: npx playwright test
-      env:
-        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-        ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
-        ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
-        MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        NODE_ENV: test
+    
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+    
     - name: Deploy to Render
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
