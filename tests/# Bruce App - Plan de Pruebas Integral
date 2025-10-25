@@ -1,0 +1,578 @@
+# Bruce App - Plan de Pruebas Integral
+
+## Descripción de la Aplicación
+
+Bruce App es una aplicación de gestión agrícola basada en Next.js que proporciona funcionalidad integral para el manejo de cultivos. La aplicación incluye:
+
+- **Autenticación de Usuarios**: Sistema de login/logout con autenticación basada en JWT
+- **Dashboard**: Interfaz principal con vista general de actividades de cultivo
+- **Gestión de Cultivos**: Operaciones CRUD completas para registros de cultivo
+- **Sistema de Notas**: Funcionalidad de notas y documentación para usuarios
+- **Blog**: Gestión de contenido para artículos e información agrícola
+- **Panel de Administración**: Funciones administrativas para gestión de usuarios y contenido
+- **Integración de API**: APIs RESTful para gestión de datos e integraciones externas
+- **Gestión de Suscripciones**: Suscripciones de usuarios y funciones premium
+- **Galería**: Gestión de imágenes para documentación de cultivos
+- **Funcionalidad de Chat**: Características de comunicación dentro de la aplicación
+
+## Configuración del Entorno de Pruebas
+
+**Prerrequisitos:**
+- Aplicación ejecutándose localmente en `http://localhost:3000`
+- Base de datos de prueba con datos semilla
+- Credenciales de usuario de prueba válidas (`test@bruceapp.com` con rol admin)
+- Estado limpio del navegador para cada sesión de prueba
+- Token de autenticación: Configurado en `storageState.json`
+
+## Escenarios de Prueba
+
+### 1. Autenticación y Gestión de Usuarios
+
+**Semilla:** `tests/auth.setup.ts`
+
+#### 1.1 Login de Usuario - Credenciales Válidas
+**Pasos:**
+1. Navegar a la página de login (`/login`)
+2. Ingresar email válido: `test@bruceapp.com`
+3. Ingresar contraseña válida
+4. Hacer clic en el botón "Login"
+
+**Resultados Esperados:**
+- Usuario es redirigido al dashboard
+- Token de autenticación se almacena en localStorage y cookies
+- Sesión de usuario se establece correctamente
+- Menú de navegación muestra opciones específicas del usuario
+- Header muestra información del usuario logueado
+
+#### 1.2 Login de Usuario - Credenciales Inválidas
+**Pasos:**
+1. Navegar a la página de login (`/login`)
+2. Ingresar email inválido
+3. Ingresar contraseña incorrecta
+4. Hacer clic en el botón "Login"
+
+**Resultados Esperados:**
+- Mensaje de error muestra "Credenciales inválidas"
+- Usuario permanece en la página de login
+- No se crea token de autenticación
+- Campos del formulario se manejan según diseño UX
+
+#### 1.3 Logout de Usuario
+**Pasos:**
+1. Login con credenciales válidas
+2. Navegar a cualquier página autenticada
+3. Hacer clic en botón/opción de logout
+
+**Resultados Esperados:**
+- Usuario es redirigido a la página de login
+- Token de autenticación se elimina
+- Todos los datos de sesión se remueven
+- Intentar acceder a páginas protegidas redirige a login
+
+#### 1.4 Acceso a Rutas Protegidas Sin Autenticación
+**Pasos:**
+1. Limpiar todo el almacenamiento/cookies del navegador
+2. Intentar navegar directamente a `/dashboard`
+3. Intentar navegar a `/cultivo`
+4. Intentar navegar a `/admin`
+
+**Resultados Esperados:**
+- Usuario es redirigido a página de login para todas las rutas protegidas
+- No se muestra data de la aplicación
+- Manejo apropiado de errores sin crashes de la aplicación
+
+### 2. Funcionalidad del Dashboard
+
+**Semilla:** `tests/Dashboard.spec.ts`
+
+#### 2.1 Carga y Visualización del Dashboard
+**Pasos:**
+1. Login con credenciales válidas
+2. Navegar al dashboard (`/` o `/dashboard`)
+3. Verificar que la página carga completamente
+
+**Resultados Esperados:**
+- Dashboard se muestra sin errores
+- Todos los widgets/componentes del dashboard son visibles
+- Data específica del usuario se muestra correctamente
+- Menú de navegación es accesible
+- Indicadores de estado y métricas se cargan
+
+#### 2.2 Actualización de Data del Dashboard
+**Pasos:**
+1. Login y acceder al dashboard
+2. Realizar acciones que actualicen data del dashboard (agregar cultivo, crear nota)
+3. Regresar al dashboard
+4. Verificar que data refleja cambios recientes
+
+**Resultados Esperados:**
+- Dashboard muestra información actualizada
+- Sincronización de data en tiempo real o casi real
+- No se muestra data obsoleta
+- Contadores y estadísticas se actualizan correctamente
+
+#### 2.3 Navegación del Dashboard
+**Pasos:**
+1. Acceder al dashboard
+2. Hacer clic en cada enlace/botón de navegación
+3. Verificar que la página correcta se carga
+4. Usar botón de retroceso del navegador para volver al dashboard
+
+**Resultados Esperados:**
+- Todos los enlaces de navegación funcionan correctamente
+- Páginas cargan sin errores
+- Navegación del navegador funciona apropiadamente
+- Navegación breadcrumb (si existe) funciona correctamente
+
+### 3. Gestión de Cultivos
+
+**Semilla:** `tests/Cultivo.spec.ts`
+
+#### 3.1 Ver Lista de Cultivos
+**Pasos:**
+1. Login y navegar a la sección de cultivos (`/cultivo`)
+2. Verificar que la lista de cultivos se muestra
+
+**Resultados Esperados:**
+- Lista de cultivos es visible
+- Cada cultivo muestra información relevante (nombre, estado, fechas)
+- Lista está apropiadamente formateada y legible
+- Paginación funciona si es aplicable
+- Filtros y búsqueda funcionan correctamente
+
+#### 3.2 Crear Nuevo Cultivo
+**Pasos:**
+1. Navegar a la sección de cultivos
+2. Hacer clic en botón "Agregar Nuevo" o "Crear Cultivo"
+3. Llenar campos requeridos:
+   - Nombre del cultivo
+   - Tipo de cultivo
+   - Fecha de plantación
+   - Fecha esperada de cosecha
+   - Información de ubicación/parcela
+   - Descripción adicional
+4. Guardar el nuevo cultivo
+
+**Resultados Esperados:**
+- Validación de formulario funciona para campos requeridos
+- Cultivo se crea exitosamente
+- Usuario es redirigido a lista de cultivos o vista detallada
+- Nuevo cultivo aparece en la lista
+- Mensaje de éxito se muestra
+
+#### 3.3 Editar Cultivo Existente
+**Pasos:**
+1. Navegar a lista de cultivos
+2. Seleccionar un cultivo existente
+3. Hacer clic en botón de editar
+4. Modificar información del cultivo
+5. Guardar cambios
+
+**Resultados Esperados:**
+- Formulario de edición se pre-llena con data existente
+- Cambios se guardan exitosamente
+- Información actualizada se refleja en la lista
+- Historial de edición se mantiene (si es aplicable)
+
+#### 3.4 Eliminar Cultivo
+**Pasos:**
+1. Navegar a lista de cultivos
+2. Seleccionar cultivo a eliminar
+3. Hacer clic en botón de eliminar
+4. Confirmar eliminación en diálogo de confirmación
+
+**Resultados Esperados:**
+- Diálogo de confirmación aparece
+- Cultivo se remueve de la lista después de confirmación
+- Data asociada se maneja apropiadamente
+- Mensaje de éxito confirma eliminación
+
+#### 3.5 Vista Detallada de Cultivo
+**Pasos:**
+1. Navegar a lista de cultivos
+2. Hacer clic en un cultivo específico
+3. Revisar información detallada
+
+**Resultados Esperados:**
+- Vista detallada muestra información integral del cultivo
+- Toda la data relacionada se muestra (notas, imágenes, línea de tiempo)
+- Navegación entre cultivos funciona
+- Opciones de editar y eliminar están disponibles
+
+### 4. Gestión de Notas
+
+**Semilla:** `tests/seed.spec.ts`
+
+#### 4.1 Crear Nueva Nota
+**Pasos:**
+1. Navegar a la sección de notas (`/notas`)
+2. Hacer clic en botón "Agregar Nota"
+3. Ingresar título de la nota
+4. Ingresar contenido de la nota
+5. Asociar con cultivo (si es aplicable)
+6. Guardar nota
+
+**Resultados Esperados:**
+- Nota se crea exitosamente
+- Nota aparece en la lista de notas
+- Contenido se guarda con precisión
+- Asociaciones se mantienen correctamente
+
+#### 4.2 Editar Nota
+**Pasos:**
+1. Navegar a lista de notas
+2. Seleccionar nota existente
+3. Hacer clic en botón de editar
+4. Modificar título y/o contenido
+5. Guardar cambios
+
+**Resultados Esperados:**
+- Formulario de edición muestra contenido actual
+- Cambios se guardan exitosamente
+- Nota actualizada refleja cambios
+- Timestamp de edición se actualiza
+
+#### 4.3 Eliminar Nota
+**Pasos:**
+1. Navegar a lista de notas
+2. Seleccionar nota a eliminar
+3. Hacer clic en botón de eliminar
+4. Confirmar eliminación
+
+**Resultados Esperados:**
+- Diálogo de confirmación aparece
+- Nota se remueve después de confirmación
+- Relaciones asociadas se manejan apropiadamente
+
+### 5. Funcionalidad de Administración
+
+**Semilla:** Escenarios de prueba de admin
+
+#### 5.1 Control de Acceso de Admin
+**Pasos:**
+1. Login con usuario no-admin
+2. Intentar acceder a páginas de admin (`/admin`)
+
+**Resultados Esperados:**
+- Acceso es denegado
+- Usuario es redirigido a página apropiada
+- Mensaje de error indica permisos insuficientes
+
+#### 5.2 Acceso al Dashboard de Admin
+**Pasos:**
+1. Login con credenciales de admin (`test@bruceapp.com`)
+2. Navegar a la sección de admin
+3. Verificar que el dashboard de admin carga
+
+**Resultados Esperados:**
+- Dashboard de admin se muestra
+- Funcionalidad específica de admin está disponible
+- Opciones de gestión de usuarios son visibles
+
+#### 5.3 Gestión de Usuarios
+**Pasos:**
+1. Acceder al panel de admin como admin
+2. Navegar a gestión de usuarios
+3. Ver lista de usuarios
+4. Realizar acciones de gestión de usuarios (ver, editar, deshabilitar)
+
+**Resultados Esperados:**
+- Lista de usuarios muestra todos los usuarios
+- Detalles de usuarios son accesibles
+- Acciones administrativas funcionan correctamente
+- Cambios se reflejan inmediatamente
+
+#### 5.4 Gestión de Notas como Admin
+**Pasos:**
+1. Acceder a `/admin/notes` como admin
+2. Ver todas las notas del sistema
+3. Editar/eliminar notas de otros usuarios
+4. Verificar permisos administrativos
+
+**Resultados Esperados:**
+- Admin puede ver todas las notas
+- Admin puede modificar cualquier nota
+- Cambios se registran con información del admin
+- Auditoría de cambios funciona correctamente
+
+### 6. Funcionalidad de API
+
+#### 6.1 Health Check de API
+**Pasos:**
+1. Hacer request a `/api/health`
+2. Verificar respuesta
+
+**Resultados Esperados:**
+- API responde con status 200
+- Data de health check se retorna
+- Tiempo de respuesta es aceptable
+
+#### 6.2 Endpoints de API de Cultivos
+**Pasos:**
+1. Probar GET `/api/cultivos` (listar cultivos)
+2. Probar POST `/api/cultivos` (crear cultivo)
+3. Probar PUT `/api/cultivos/[id]` (actualizar cultivo)
+4. Probar DELETE `/api/cultivos/[id]` (eliminar cultivo)
+
+**Resultados Esperados:**
+- Todas las operaciones CRUD funcionan correctamente
+- Códigos de estado HTTP apropiados se retornan
+- Validación de data se aplica
+- Manejo de errores funciona apropiadamente
+
+#### 6.3 API de Autenticación
+**Pasos:**
+1. Probar endpoint de login con credenciales válidas
+2. Probar endpoint de login con credenciales inválidas
+3. Probar endpoints protegidos con y sin tokens válidos
+
+**Resultados Esperados:**
+- Autenticación funciona correctamente
+- Tokens JWT se generan y validan
+- Endpoints protegidos requieren autenticación
+- Mensajes de error apropiados para acceso no autorizado
+
+#### 6.4 API de Comentarios
+**Pasos:**
+1. Probar GET `/api/comentarios` (listar comentarios)
+2. Probar POST `/api/comentarios` (crear comentario)
+3. Verificar asociación con cultivos
+
+**Resultados Esperados:**
+- Comentarios se listan correctamente
+- Nuevos comentarios se crean exitosamente
+- Asociaciones con cultivos funcionan
+- Validación y permisos se aplican
+
+### 7. Galería y Gestión de Medios
+
+#### 7.1 Subida de Imágenes
+**Pasos:**
+1. Navegar a la sección de galería (`/galeria`)
+2. Seleccionar archivo de imagen para subir
+3. Asociar con cultivo (si es aplicable)
+4. Subir imagen
+
+**Resultados Esperados:**
+- Imagen se sube exitosamente
+- Validación de archivo funciona (tamaño, tipo)
+- Imagen se asocia correctamente
+- Miniatura se genera si es aplicable
+
+#### 7.2 Visualización y Gestión de Imágenes
+**Pasos:**
+1. Navegar a galería
+2. Ver imágenes subidas
+3. Editar metadatos de imagen
+4. Eliminar imágenes
+
+**Resultados Esperados:**
+- Imágenes se muestran correctamente
+- Metadatos pueden editarse
+- Eliminación funciona apropiadamente
+- Optimización de imágenes se aplica
+
+### 8. Funcionalidad del Blog
+
+#### 8.1 Creación de Post de Blog
+**Pasos:**
+1. Navegar a la sección de blog (`/blog`)
+2. Crear nuevo post de blog
+3. Agregar título, contenido y metadatos
+4. Publicar post
+
+**Resultados Esperados:**
+- Post se crea exitosamente
+- Formato de contenido se preserva
+- Estado de publicación se gestiona correctamente
+- Metadatos SEO se manejan
+
+#### 8.2 Visualización de Posts de Blog
+**Pasos:**
+1. Navegar al blog
+2. Ver lista de posts
+3. Hacer clic en post individual
+4. Verificar que contenido se muestra correctamente
+
+**Resultados Esperados:**
+- Lista de posts se muestra apropiadamente
+- Posts individuales cargan correctamente
+- Formato de contenido se mantiene
+- Navegación entre posts funciona
+
+### 9. Gestión de Suscripciones
+
+#### 9.1 Verificación de Estado de Suscripción
+**Pasos:**
+1. Login como usuario con suscripción activa
+2. Navegar a la sección de suscripción (`/subscription-required`)
+3. Verificar estado de suscripción
+
+**Resultados Esperados:**
+- Estado actual de suscripción se muestra
+- Detalles de suscripción son precisos
+- Funciones premium son accesibles
+
+#### 9.2 Páginas que Requieren Suscripción
+**Pasos:**
+1. Login como usuario sin suscripción
+2. Intentar acceder a funciones premium
+3. Verificar manejo apropiado
+
+**Resultados Esperados:**
+- Acceso a funciones premium está restringido
+- Usuario es dirigido a página de suscripción
+- Mensajería clara sobre requerimientos de suscripción
+
+### 10. Funcionalidad de Chat
+
+#### 10.1 Acceso al Chat
+**Pasos:**
+1. Login y navegar a la función de chat (`/api/chat`)
+2. Verificar que la interfaz de chat carga
+3. Probar envío de mensajes
+
+**Resultados Esperados:**
+- Interfaz de chat se carga correctamente
+- Mensajes se envían y reciben
+- Historial de chat se mantiene
+- Notificaciones funcionan
+
+### 11. Responsividad Móvil
+
+#### 11.1 Prueba de Layout Móvil
+**Pasos:**
+1. Acceder a la aplicación en dispositivo móvil o viewport móvil
+2. Navegar a través de todas las secciones principales
+3. Probar interacciones táctiles
+4. Verificar diseño responsivo
+
+**Resultados Esperados:**
+- Layout se adapta a tamaños de pantalla móvil
+- Objetivos táctiles tienen tamaño apropiado
+- Navegación es amigable para móvil
+- Contenido es legible en pantallas pequeñas
+
+### 12. Pruebas de Rendimiento y Carga
+
+#### 12.1 Rendimiento de Carga de Páginas
+**Pasos:**
+1. Medir tiempos de carga para páginas principales
+2. Probar con varias condiciones de red
+3. Verificar métricas de rendimiento
+
+**Resultados Esperados:**
+- Páginas cargan dentro de límites de tiempo aceptables
+- Carga progresiva funciona correctamente
+- Rendimiento no se degrada con volumen de data
+
+### 13. Manejo de Errores y Casos Límite
+
+#### 13.1 Manejo de Errores de Red
+**Pasos:**
+1. Simular desconexión de red
+2. Intentar varias operaciones de la aplicación
+3. Reconectar red y verificar recuperación
+
+**Resultados Esperados:**
+- Mensajes de error apropiados se muestran
+- Aplicación no se cuelga
+- Recuperación es elegante cuando la red regresa
+
+#### 13.2 Manejo de Data Inválida
+**Pasos:**
+1. Intentar enviar formularios con data inválida
+2. Probar condiciones límite para campos de data
+3. Verificar validación de data en toda la aplicación
+
+**Resultados Esperados:**
+- Validación de formulario previene envíos inválidos
+- Mensajes de error claros guían correcciones del usuario
+- Integridad de data se mantiene
+
+### 14. Pruebas de Seguridad
+
+#### 14.1 Prevención de XSS
+**Pasos:**
+1. Intentar inyectar JavaScript en campos de formulario
+2. Probar sanitización de input
+3. Verificar codificación de output
+
+**Resultados Esperados:**
+- Intentos de XSS se previenen
+- Input de usuario se sanitiza apropiadamente
+- Output se codifica de forma segura
+
+#### 14.2 Prevención de Inyección SQL
+**Pasos:**
+1. Intentar inyección SQL en inputs de formulario
+2. Probar queries parametrizadas
+3. Verificar seguridad de base de datos
+
+**Resultados Esperados:**
+- Intentos de inyección SQL fallan
+- Queries de base de datos están parametrizadas
+- No ocurre acceso no autorizado a base de datos
+
+## Guías de Automatización de Pruebas
+
+### Implementación del Modelo de Objeto de Página
+- Mantener objetos de página separados para cada sección principal
+- Usar convenciones de nomenclatura consistentes
+- Implementar métodos reutilizables para acciones comunes
+
+### Gestión de Data de Prueba
+- Usar fixtures para data de prueba consistente
+- Implementar seeding de base de datos para entornos de prueba
+- Limpiar data de prueba después de ejecución de pruebas
+
+### Integración Continua
+- Ejecutar pruebas en pipeline CI/CD
+- Generar reportes de pruebas
+- Rastrear métricas de cobertura de pruebas
+- Alertar sobre fallas de pruebas
+
+### Gestión de Entorno de Pruebas
+- Mantener entornos separados de prueba, staging y producción
+- Usar configuración específica por entorno
+- Asegurar aislamiento de data de pruebas
+
+## Criterios de Éxito
+
+Un escenario de prueba pasa cuando:
+- Todos los pasos pueden ejecutarse sin errores
+- Resultados esperados coinciden con resultados reales
+- No hay errores de consola presentes
+- Métricas de rendimiento están dentro de rangos aceptables
+- Requerimientos de seguridad se cumplen
+
+## Manejo de Fallas
+
+Cuando una prueba falla:
+- Capturar screenshots y logs de error
+- Documentar el punto exacto de falla
+- Verificar si es un problema de prueba o bug de aplicación
+- Crear reportes detallados de bugs para el equipo de desarrollo
+
+## Mantenimiento
+
+Este plan de pruebas debe ser:
+- Actualizado cuando se agregan nuevas funciones
+- Revisado trimestralmente para relevancia
+- Modificado basado en feedback de usuarios y reportes de bugs
+- Alineado con cambios en la hoja de ruta de la aplicación
+
+## Configuración de Autenticación para Pruebas
+
+**Usuario de Prueba Configurado:**
+- Email: `test@bruceapp.com`
+- Rol: `admin`
+- Token almacenado en: `storageState.json`
+- Entorno: `http://localhost:3000`
+
+**Uso del storageState:**
+```typescript
+// En [playwright.config.ts](http://_vscodecontentref_/2)
+use: {
+  storageState: 'storageState.json'
+}
