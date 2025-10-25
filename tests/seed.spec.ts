@@ -1,25 +1,13 @@
-// login.setup.ts
-import { chromium } from '@playwright/test';
+import { test } from '@playwright/test';
+import { CultivoPage } from './page-objects/CultivoPage';
 
+let cultivoPage: CultivoPage;
 
-async function globalSetup() {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
+test.beforeEach(async ({ page }) => {
+  cultivoPage = new CultivoPage(page);
+  await cultivoPage.gotoCultivosPage();
+});
 
-  await page.goto('https://bruceapp.onrender.com/login');
-
-  // Realiza login
-  await page.fill('input[id="email"]', 'fede.danguard@gmail.com');
-  await page.fill('input[id="pwd"]', 'Fede2020!');
-  await page.click('button:has-text("Entrar")');
-
-  // Esperar a que el login esté completo (por ejemplo, URL cambia o aparece algo)
-  await page.waitForURL('https://bruceapp.onrender.com/cultivo');
-
-  // Guardar el estado (cookies, localStorage, etc.)
-  await page.context().storageState({ path: 'storageState.json' });
-
-  await browser.close();
-}
-
-export default globalSetup;
+test('seed Cultivo list is visible', async () => {
+  await cultivoPage.cultivoListIsVisible();
+});
