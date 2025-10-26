@@ -39,10 +39,29 @@ jobs:
     
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
-    
+
     - name: Build application
       run: npm run build
-    
+
+    - name: Wait for MongoDB to be ready
+      run: |
+        echo "🔄 Waiting for MongoDB to be ready..."
+        until nc -z localhost 27017; do
+          echo "MongoDB not ready yet, waiting..."
+          sleep 2
+        done
+        echo "✅ MongoDB is ready!"
+
+    - name: Debug secrets availability
+      run: |
+        echo "🔍 Checking environment variables:"
+        echo "MONGODB_URI is set: $([[ -n "$MONGODB_URI" ]] && echo "✅ Yes" || echo "❌ No")"
+        echo "JWT_SECRET is set: $([[ -n "$JWT_SECRET" ]] && echo "✅ Yes" || echo "❌ No")"
+        echo "TEST_USER_EMAIL is set: $([[ -n "$TEST_USER_EMAIL" ]] && echo "✅ Yes" || echo "❌ No")"
+        echo "TEST_USER_PASSWORD is set: $([[ -n "$TEST_USER_PASSWORD" ]] && echo "✅ Yes" || echo "❌ No")"
+        echo "ADMIN_USER_EMAIL is set: $([[ -n "$ADMIN_USER_EMAIL" ]] && echo "✅ Yes" || echo "❌ No")"
+        echo "ADMIN_USER_PASSWORD is set: $([[ -n "$ADMIN_USER_PASSWORD" ]] && echo "✅ Yes" || echo "❌ No")"
+
     - name: Ensure test users exist
       run: node scripts/ensure-test-user.js
     
