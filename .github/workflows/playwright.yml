@@ -15,6 +15,7 @@ jobs:
       TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
       ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
       ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
+      BASE_URL: ${{ secrets.BASE_URL }}  # Agrega esto si usas un secret
       NODE_ENV: production
     steps:
     - uses: actions/checkout@v4
