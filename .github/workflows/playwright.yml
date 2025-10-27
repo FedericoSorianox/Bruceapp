@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=false
-
+# yaml-language-server: disableWarnings
 name: Playwright Tests
 on:
   push:
