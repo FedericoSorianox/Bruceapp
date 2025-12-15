@@ -6,14 +6,6 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { withUserDB, connectToUserDB, getComentarioModel } from '@/lib/mongodb';
 
-/**
- * API Route para comentarios individuales con MongoDB - Sistema Multi-tenant
- */
-
-import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
-import { withUserDB, connectToUserDB, getComentarioModel } from '@/lib/mongodb';
-
 export const GET = withUserDB(async (request, userEmail) => {
   try {
     const connection = await connectToUserDB(userEmail);

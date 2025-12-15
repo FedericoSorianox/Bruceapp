@@ -1494,3 +1494,5 @@
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/fede/Bruce/bruceapp/.next/cache/webpack/client-development/1.pack.gz_' -> '/Users/fede/Bruce/bruceapp/.next/cache/webpack/client-development/1.pack.gz'
  ✓ Compiled in 266ms (313 modules)
  ✓ Compiled in 272ms (313 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/fede/Bruce/bruceapp/.next/cache/webpack/client-development/0.pack.gz_' -> '/Users/fede/Bruce/bruceapp/.next/cache/webpack/client-development/0.pack.gz'
+ ✓ Compiled in 241ms (313 modules)
