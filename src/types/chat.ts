@@ -86,26 +86,26 @@ export interface ContextoCultivo {
   genetica?: string;
   sustrato?: string;
   fechaComienzo?: string;
-  
+
   // Especificaciones técnicas
   metrosCuadrados?: number;
   numeroplantas?: number;
   litrosMaceta?: number;
   potenciaLamparas?: number;
-  
+
   // Métricas calculadas
   diasDesdeInicio?: number;
   plantasPorM2?: number;
   wattsPorM2?: number;
   litrosTotales?: number;
-  
+
   // Estado y notas
   activo?: boolean;
   notas?: string;
-  
+
   // Galería de imágenes del cultivo (información contextual)
   galeriaImagenes?: ImagenGaleriaContexto[];
-  
+
   // Comentarios recientes del cultivo
   comentariosRecientes?: ComentarioCultivo[];
 }
@@ -126,7 +126,8 @@ export interface ImagenPayload {
  */
 export interface PayloadOpenAI {
   cultivoContext: ContextoCultivo;    // Contexto completo del cultivo
-  mensaje: string;                    // Mensaje del usuario
+  message: string;                    // Mensaje del usuario (renombrado de mensaje)
+  email?: string;                     // Email del usuario (opcional)
   imagenes?: ImagenPayload[];         // Imágenes con base64 y metadatos
   historialReciente?: MensajeChat[];  // Últimos mensajes para contexto
 }
@@ -177,7 +178,7 @@ export interface ComentarioCultivo {
  * Tipos de comentarios para categorización
  * Ayuda a organizar las observaciones por categoría
  */
-export type TipoComentario = 
+export type TipoComentario =
   | 'observacion'              // Observación general
   | 'problema'                 // Problema detectado
   | 'solucion'                 // Solución aplicada

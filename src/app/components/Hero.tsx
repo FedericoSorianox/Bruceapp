@@ -56,20 +56,20 @@ const Hero = () => {
               href="/cultivo"
               data-testid="hero-button-cultivo"
               className="group inline-flex items-center rounded-2xl bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg font-bold text-white shadow-lg shadow-green-600/30 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:from-green-500 hover:to-emerald-500 min-w-[200px] justify-center"
-              aria-label="Comenzar a gestionar cultivos"
+              aria-label="Ir a mis cultivos"
             >
               <span className="mr-2 text-lg sm:text-xl group-hover:animate-bounce" aria-hidden="true">🌱</span>
-              Comenzar Ahora
+              Cultivos
             </Link>
 
             <Link
-              href="/notas"
-              data-testid="hero-button-notas"
+              href="/laboratorio"
+              data-testid="hero-button-laboratorio"
               className="group inline-flex items-center rounded-2xl bg-white/80 backdrop-blur-md border border-gray-200 px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg font-semibold text-gray-700 shadow-sm transition-all duration-300 hover:bg-white hover:text-green-600 hover:border-green-200 hover:shadow-md min-w-[200px] justify-center"
-              aria-label="Ver sección de notas"
+              aria-label="Ir al laboratorio"
             >
-              <span className="mr-2 text-lg sm:text-xl" aria-hidden="true">📝</span>
-              Ver Notas y Registros
+              <span className="mr-2 text-lg sm:text-xl" aria-hidden="true">🧪</span>
+              Laboratorio
             </Link>
           </div>
 

@@ -3,10 +3,10 @@
  * Maneja comunicación con OpenAI y persistencia de mensajes
  */
 
-import type { 
-  MensajeChat, 
-  PayloadOpenAI, 
-  ApiResponseChat, 
+import type {
+  MensajeChat,
+  PayloadOpenAI,
+  ApiResponseChat,
   ContextoCultivo,
   ImagenMensaje,
   ImagenPayload
@@ -15,6 +15,31 @@ import type { Cultivo } from '@/types/cultivo';
 
 // Configuración base
 const API_BASE = '/api';
+
+/**
+ * Convierte una URL de imagen a base64
+ * Útil para procesar imágenes de la galería
+ * @param url - URL de la imagen
+ * @returns Promise con string base64
+ */
+export async function convertirUrlABase64(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = () => reject(new Error('Error al leer el blob de la imagen'));
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    throw new Error(`Error al descargar la imagen: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+  }
+}
 
 /**
  * Convierte archivo de imagen a base64
@@ -42,24 +67,24 @@ export async function convertirImagenABase64(file: File): Promise<string> {
  */
 export async function procesarImagenes(files: FileList): Promise<ImagenMensaje[]> {
   const imagenes: ImagenMensaje[] = [];
-  
+
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    
+
     // Validar que sea una imagen
     if (!file.type.startsWith('image/')) {
       throw new Error(`El archivo ${file.name} no es una imagen válida`);
     }
-    
+
     // Validar tamaño (máximo 10MB)
     if (file.size > 10 * 1024 * 1024) {
       throw new Error(`La imagen ${file.name} es demasiado grande (máximo 10MB)`);
     }
-    
+
     try {
       const base64 = await convertirImagenABase64(file);
       const url = URL.createObjectURL(file);
-      
+
       const imagen: ImagenMensaje = {
         id: `img_${Date.now()}_${i}`,
         name: file.name,
@@ -69,13 +94,13 @@ export async function procesarImagenes(files: FileList): Promise<ImagenMensaje[]
         size: file.size,
         uploadedAt: new Date().toISOString()
       };
-      
+
       imagenes.push(imagen);
     } catch (error) {
       throw new Error(`Error al procesar la imagen ${file.name}: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
-  
+
   return imagenes;
 }
 
@@ -91,7 +116,8 @@ export async function enviarMensajeIA(
   mensaje: string,
   contexto: ContextoCultivo,
   imagenes?: ImagenMensaje[],
-  historial?: MensajeChat[]
+  historial?: MensajeChat[],
+  email?: string
 ): Promise<string> {
   try {
     // Preparar payload para OpenAI
@@ -104,7 +130,8 @@ export async function enviarMensajeIA(
       }));
 
     const payload: PayloadOpenAI = {
-      mensaje,
+      message: mensaje,
+      email,
       cultivoContext: contexto,
       imagenes: imagenesPayload,
       historialReciente: historial
@@ -125,7 +152,7 @@ export async function enviarMensajeIA(
     }
 
     const data: ApiResponseChat<string> = await response.json();
-    
+
     if (!data.success || !data.data) {
       throw new Error(data.error || 'La IA no pudo generar una respuesta');
     }
@@ -227,7 +254,8 @@ export async function gestionarConversacionIA(
   contexto: ContextoCultivo,
   imagenes: ImagenMensaje[] | undefined,
   historial: MensajeChat[],
-  onMensajeCreado: (mensaje: MensajeChat) => void
+  onMensajeCreado: (mensaje: MensajeChat) => void,
+  email?: string
 ): Promise<MensajeChat> {
   // 1. Crear y enviar mensaje del usuario
   const mensajeUsuario = crearMensajeUsuario(cultivoId, mensaje, imagenes);
@@ -237,7 +265,7 @@ export async function gestionarConversacionIA(
   let mensajeSistema: MensajeChat | undefined;
   if (imagenes && imagenes.length > 0) {
     mensajeSistema = crearMensajeSistema(
-      cultivoId, 
+      cultivoId,
       `Analizando ${imagenes.length} imagen${imagenes.length > 1 ? 'es' : ''}...`
     );
     onMensajeCreado(mensajeSistema);
@@ -245,7 +273,7 @@ export async function gestionarConversacionIA(
 
   try {
     // 3. Obtener respuesta de la IA
-    const respuestaIA = await enviarMensajeIA(mensaje, contexto, imagenes, historial);
+    const respuestaIA = await enviarMensajeIA(mensaje, contexto, imagenes, historial, email);
 
     // 4. Crear mensaje de respuesta de la IA
     const mensajeIA = crearMensajeIA(cultivoId, respuestaIA, mensajeUsuario.id);
@@ -263,7 +291,7 @@ export async function gestionarConversacionIA(
       `❌ Error: ${error instanceof Error ? error.message : 'No se pudo obtener respuesta de la IA'}`
     );
     mensajeError.error = error instanceof Error ? error.message : 'Error desconocido';
-    
+
     return mensajeError;
   }
 }

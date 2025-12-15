@@ -20,6 +20,7 @@ import {
   limpiarImagenes,
   prepararContextoCultivo
 } from '@/lib/services/chat';
+import { useAuth } from '@/lib/auth/AuthProvider';
 
 /**
  * Props del componente ChatIA
@@ -42,6 +43,9 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
   const [imagenes, setImagenes] = useState<ImagenMensaje[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Hook de autenticación
+  const { user } = useAuth();
 
   // Referencias para el DOM
   const inputFileRef = useRef<HTMLInputElement>(null);
@@ -160,7 +164,8 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
         contexto,
         imagenes.length > 0 ? imagenes : undefined,
         mensajes,
-        agregarMensaje
+        agregarMensaje,
+        user?.email
       );
 
       // Agregar respuesta de la IA

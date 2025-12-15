@@ -12,7 +12,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { PayloadOpenAI, ApiResponseChat } from '@/types/chat';
 
 // URL del Webhook de n8n definida en variables de entorno
-const N8N_WEBHOOK_URL = process.env.N8N_CHAT_WEBHOOK_URL;
+// URL del Webhook de n8n (hardcoded por requerimiento)
+const N8N_WEBHOOK_URL = 'https://federicosoriano.app.n8n.cloud/webhook/chat-canopia';
 
 /**
  * Maneja peticiones POST al endpoint de chat
@@ -20,22 +21,16 @@ const N8N_WEBHOOK_URL = process.env.N8N_CHAT_WEBHOOK_URL;
  */
 export async function POST(request: NextRequest) {
   try {
-    // 1. Verificar configuración
-    if (!N8N_WEBHOOK_URL) {
-      console.error('❌ N8N_CHAT_WEBHOOK_URL no definida en variables de entorno');
-      return NextResponse.json<ApiResponseChat>({
-        success: false,
-        error: 'Servicio de IA no configurado correctamente (backend)'
-      }, { status: 503 });
-    }
+    // 1. Verificar configuración (ya no es necesario verificar env var)
+    // if (!N8N_WEBHOOK_URL) { ... }
 
     // 2. Parsear y validar el body
     const payload: PayloadOpenAI = await request.json();
 
-    if (!payload.mensaje || !payload.cultivoContext) {
+    if (!payload.message || !payload.cultivoContext) {
       return NextResponse.json<ApiResponseChat>({
         success: false,
-        error: 'Faltan datos requeridos: mensaje y contexto del cultivo'
+        error: 'Faltan datos requeridos: message y contexto del cultivo'
       }, { status: 400 });
     }
 
@@ -46,7 +41,8 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        mensaje: payload.mensaje,
+        email: payload.email,
+        message: payload.message,
         contexto: payload.cultivoContext,
         historial: payload.historialReciente || [],
         imagenes: payload.imagenes || [],
