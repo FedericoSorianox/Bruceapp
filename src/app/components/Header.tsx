@@ -117,7 +117,7 @@ const Header = () => {
                 { label: 'Inicio', href: '/' },
                 ...(user ? [
                   { label: 'Cultivo', href: '/cultivo' },
-                  { label: 'Notas', href: '/notas' }
+                  { label: 'Laboratorio', href: '/laboratorio' }
                 ] : [])
               ].map((link) => (
                 <Link
@@ -210,7 +210,7 @@ const Header = () => {
               { label: 'Inicio', href: '/', icon: '🏠' },
               ...(user ? [
                 { label: 'Cultivo', href: '/cultivo', icon: '🌱' },
-                { label: 'Notas', href: '/notas', icon: '📝' }
+                { label: 'Laboratorio', href: '/laboratorio', icon: '🧪' }
               ] : [])
             ].map((link) => (
               <Link
