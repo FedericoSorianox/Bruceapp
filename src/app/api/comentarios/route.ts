@@ -7,13 +7,13 @@ import mongoose from 'mongoose';
 import { withUserDB, connectToUserDB, getComentarioModel } from '@/lib/mongodb';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const GET = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
+export const GET = withUserDB(async (request: Request, userEmail: string) => {
   try {
-    // Conectar a la base de datos específica del usuario
-    const userConnection = await connectToUserDB(userEmail);
+    // Conectar a la base de datos principal
+    const connection = await connectToUserDB(userEmail);
 
     // Obtener el modelo Comentario específico para esta conexión
-    const ComentarioModel = getComentarioModel(userConnection);
+    const ComentarioModel = getComentarioModel(connection) as any;
 
     const url = new URL(request.url);
     const cultivoId = url.searchParams.get('cultivoId');
@@ -23,7 +23,12 @@ export const GET = withUserDB(async (request: Request, userEmail: string, mongoo
     const page = parseInt(url.searchParams.get('_page') || '1');
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
-    const query: Record<string, unknown> = { activo: true };
+    // FILTRO DE SEGURIDAD: Solo comentarios creados por el usuario
+    const query: Record<string, unknown> = {
+      activo: true,
+      creadoPor: userEmail // 🔒 Filtrar por creador
+    };
+
     if (cultivoId) query.cultivoId = cultivoId;
     if (tipo) query.tipo = tipo;
     if (prioridad) query.prioridad = prioridad;
@@ -55,13 +60,13 @@ export const GET = withUserDB(async (request: Request, userEmail: string, mongoo
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const POST = withUserDB(async (request: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose) => {
+export const POST = withUserDB(async (request: Request, userEmail: string) => {
   try {
-    // Conectar a la base de datos específica del usuario
-    const userConnection = await connectToUserDB(userEmail);
+    // Conectar a la base de datos principal
+    const connection = await connectToUserDB(userEmail);
 
     // Obtener el modelo Comentario específico para esta conexión
-    const ComentarioModel = getComentarioModel(userConnection);
+    const ComentarioModel = getComentarioModel(connection) as any;
 
     const comentarioData = await request.json();
     const comentarioConFechas = {
@@ -71,7 +76,8 @@ export const POST = withUserDB(async (request: Request, userEmail: string, mongo
       resuelto: false,
       activo: true,
       destacado: false,
-      numeroEdiciones: 0
+      numeroEdiciones: 0,
+      creadoPor: userEmail // 🔒 Asignar creador automáticamente
     };
 
     const nuevoComentario = new ComentarioModel(comentarioConFechas);

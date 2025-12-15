@@ -1426,3 +1426,71 @@
 🔍 withUserDB: Iniciando validación de autenticación...
  GET /api/cultivos 200 in 16ms
  ✓ Compiled in 237ms (313 modules)
+ ✓ Compiled /api/login in 133ms (455 modules)
+🔐 Login request recibido
+🔄 Reutilizando conexión global a MongoDB
+📧 Login attempt para: test@canopia.app | Redirect URL: /cultivo
+✅ Token JWT generado exitosamente
+🔄 Preparando respuesta con redirectTo: /cultivo
+🍪 Cookie establecida con opciones: {
+  httpOnly: true,
+  secure: false,
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 604800
+}
+ POST /api/login 200 in 232ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo 200 in 62ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos in 37ms (457 modules)
+ ✓ Compiled (459 modules)
+ POST /api/verify-token 200 in 101ms
+ POST /api/verify-token 200 in 101ms
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 113ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 11ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 6ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo 200 in 74ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ POST /api/verify-token 200 in 11ms
+ POST /api/verify-token 200 in 10ms
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 16ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 11ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 8ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo 200 in 164ms
+ ✓ Compiled /_not-found in 265ms (775 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 314ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo 200 in 45ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 38ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ POST /api/verify-token 200 in 26ms
+ POST /api/verify-token 200 in 26ms
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 31ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 10ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 7ms
+ ✓ Compiled in 1463ms (653 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/fede/Bruce/bruceapp/.next/cache/webpack/client-development/1.pack.gz_' -> '/Users/fede/Bruce/bruceapp/.next/cache/webpack/client-development/1.pack.gz'
+ ✓ Compiled in 266ms (313 modules)
+ ✓ Compiled in 272ms (313 modules)

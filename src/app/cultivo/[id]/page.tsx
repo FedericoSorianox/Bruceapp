@@ -112,7 +112,7 @@ export default function CultivoDetailPage() {
   // Manejar eliminación del cultivo
   const handleDelete = async () => {
     if (!cultivo) return;
-    
+
     const confirmDelete = confirm(`¿Está seguro de que desea eliminar el cultivo "${cultivo.nombre}"?`);
     if (confirmDelete) {
       try {
@@ -207,7 +207,7 @@ export default function CultivoDetailPage() {
           </svg>
           <h2 data-testid="cultivo-error-title" className="text-xl font-semibold text-gray-900 mb-2">Cultivo no encontrado</h2>
           <p data-testid="cultivo-error-desc" className="text-gray-600 mb-6">{error || 'El cultivo solicitado no existe o fue eliminado'}</p>
-          <Link 
+          <Link
             href="/cultivo"
             className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
             data-testid="cultivo-error-volver"
@@ -226,9 +226,9 @@ export default function CultivoDetailPage() {
       <div data-testid="cultivo-main-content" className="mx-auto max-w-7xl p-8 space-y-8">
         {/* Header con navegación */}
         <div data-testid="cultivo-header" className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <Link 
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4 flex-wrap">
+              <Link
                 href="/cultivo"
                 className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
                 data-testid="cultivo-volver-link"
@@ -243,17 +243,16 @@ export default function CultivoDetailPage() {
               </div>
               <span
                 data-testid="cultivo-estado-chip"
-                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  cultivo.activo 
-                    ? 'bg-green-100 text-green-800' 
+                className={`px-3 py-1 rounded-full text-sm font-medium ${cultivo.activo
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-gray-100 text-gray-800'
-                }`}
+                  }`}
               >
                 {cultivo.activo ? 'Activo' : 'Finalizado'}
               </span>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setEditing(!editing)}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
@@ -264,15 +263,14 @@ export default function CultivoDetailPage() {
                 </svg>
                 {editing ? 'Cancelar edición' : 'Editar cultivo'}
               </button>
-              
+
               <button
                 onClick={handleToggleStatus}
                 data-testid="cultivo-toggle-estado-boton"
-                className={`flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-colors duration-200 ${
-                  cultivo.activo 
+                className={`flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-colors duration-200 ${cultivo.activo
                     ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                     : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
+                  }`}
               >
                 {cultivo.activo ? 'Finalizar' : 'Reactivar'}
               </button>
@@ -295,11 +293,10 @@ export default function CultivoDetailPage() {
             <button
               onClick={() => setVistaActiva('detalles')}
               data-testid="cultivo-tab-detalles"
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                vistaActiva === 'detalles'
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${vistaActiva === 'detalles'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -309,11 +306,10 @@ export default function CultivoDetailPage() {
             <button
               onClick={() => setVistaActiva('chat')}
               data-testid="cultivo-tab-chat"
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                vistaActiva === 'chat'
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${vistaActiva === 'chat'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -323,11 +319,10 @@ export default function CultivoDetailPage() {
             <button
               onClick={() => setVistaActiva('comentarios')}
               data-testid="cultivo-tab-comentarios"
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                vistaActiva === 'comentarios'
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${vistaActiva === 'comentarios'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -337,11 +332,10 @@ export default function CultivoDetailPage() {
             <button
               onClick={() => setVistaActiva('galeria')}
               data-testid="cultivo-tab-galeria"
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                vistaActiva === 'galeria'
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${vistaActiva === 'galeria'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -351,11 +345,10 @@ export default function CultivoDetailPage() {
             <button
               onClick={() => setVistaActiva('planificacion')}
               data-testid="cultivo-tab-planificacion"
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                vistaActiva === 'planificacion'
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${vistaActiva === 'planificacion'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -393,347 +386,346 @@ export default function CultivoDetailPage() {
         {vistaActiva === 'detalles' && (
           /* Grid de información y métricas */
           <div className="grid gap-8 lg:grid-cols-3" data-testid="cultivo-detalles-grid">
-          {/* Información principal */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Información básica */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-info-basica">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Información Básica
-              </h2>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-sustrato">
-                  <dt className="text-sm font-medium text-gray-500">Sustrato</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.sustrato || 'No especificado'}</dd>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-genetica">
-                  <dt className="text-sm font-medium text-gray-500">Genética</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.genetica || 'No especificada'}</dd>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-fechaComienzo">
-                  <dt className="text-sm font-medium text-gray-500">Fecha de Comienzo</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.fechaComienzo ? formatearFechaCorta(cultivo.fechaComienzo) : 'No especificada'}</dd>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-estado">
-                  <dt className="text-sm font-medium text-gray-500">Estado</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.activo ? 'Activo' : 'Finalizado'}</dd>
-                </div>
-              </div>
-            </div>
-
-            {/* Especificaciones técnicas */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-info-tecnica">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                Especificaciones Técnicas
-              </h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-area">
-                  <dt className="text-sm font-medium text-gray-500">Área</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.metrosCuadrados ? `${cultivo.metrosCuadrados} m²` : 'No especificado'}</dd>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-numero-plantas">
-                  <dt className="text-sm font-medium text-gray-500">Número de Plantas</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.numeroplantas || 'No especificado'}</dd>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-litros-maceta">
-                  <dt className="text-sm font-medium text-gray-500">Litros por Maceta</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.litrosMaceta ? `${cultivo.litrosMaceta} L` : 'No especificado'}</dd>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-potencia-lamparas">
-                  <dt className="text-sm font-medium text-gray-500">Potencia Lámparas</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.potenciaLamparas ? `${cultivo.potenciaLamparas} W` : 'No especificado'}</dd>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-creacion">
-                  <dt className="text-sm font-medium text-gray-500">Fecha Creación</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.fechaCreacion ? formatearFechaCorta(cultivo.fechaCreacion) : 'No disponible'}</dd>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-actualizacion">
-                  <dt className="text-sm font-medium text-gray-500">Última Actualización</dt>
-                  <dd className="text-lg text-gray-900">{cultivo.fechaActualizacion ? formatearFechaCorta(cultivo.fechaActualizacion) : 'No disponible'}</dd>
-                </div>
-              </div>
-            </div>
-
-            {/* Información Adicional del Cultivo */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-info-adicional">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg className="h-5 w-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Información Adicional
-              </h2>
-
-              {/* Estado del Cultivo */}
-              <div className="mb-6" data-testid="cultivo-estado-main">
-                <h3 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Estado del Cultivo
-                </h3>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-200" data-testid="cultivo-estado-faseactual">
-                    <dt className="text-sm font-medium text-orange-700">Fase Actual</dt>
-                    <dd className="text-lg font-semibold text-orange-900 flex items-center gap-2">
-                      {metricas.faseActual === 'floracion' ? (
-                        <>
-                          <span>🌸</span>
-                          <span>Floración</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>🌱</span>
-                          <span>Vegetación</span>
-                        </>
-                      )}
-                    </dd>
-                  </div>
-
-                  {metricas.diasVegetacionActual !== undefined && (
-                    <div className="p-4 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-estado-dias-vegetacion">
-                      <dt className="text-sm font-medium text-green-700">Días Vegetación</dt>
-                      <dd className="text-lg font-semibold text-green-900">{metricas.diasVegetacionActual}</dd>
-                    </div>
-                  )}
-
-                  {metricas.diasFloracionActual !== undefined && metricas.diasFloracionActual > 0 && (
-                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200" data-testid="cultivo-estado-dias-floracion">
-                      <dt className="text-sm font-medium text-purple-700">Días Floración</dt>
-                      <dd className="text-lg font-semibold text-purple-900">{metricas.diasFloracionActual}</dd>
-                    </div>
-                  )}
-
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200" data-testid="cultivo-estado-semanaactual">
-                    <dt className="text-sm font-medium text-blue-700">Semana Actual</dt>
-                    <dd className="text-lg font-semibold text-blue-900">
-                      {metricas.faseActual === 'floracion' && metricas.semanaFloracion
-                        ? `Semana ${metricas.semanaFloracion} de Floración`
-                        : metricas.semanaVegetacion
-                        ? `Semana ${metricas.semanaVegetacion} de Vegetación`
-                        : 'N/A'
-                      }
-                    </dd>
-                  </div>
-                </div>
-
-                {/* Botón para cambiar a floración si está en vegetación */}
-                {metricas.faseActual === 'vegetacion' && !cultivo.fechaInicioFloracion && (
-                  <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200" data-testid="cultivo-iniciar-floracion-box">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-yellow-900">¿Cambiar a fase de floración?</h4>
-                        <p className="text-sm text-yellow-700">Marca cuando tus plantas comiencen a florecer</p>
-                      </div>
-                      <button
-                        onClick={handleIniciarFloracion}
-                        data-testid="cultivo-iniciar-floracion-boton"
-                        className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                      >
-                        Iniciar Floración
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {cultivo.fechaInicioFloracion && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200" data-testid="cultivo-inicio-fecha-floracion">
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">Inicio de floración:</span> {formatearFechaCorta(cultivo.fechaInicioFloracion)}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Objetivos y Condiciones */}
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Recomendaciones de IA */}
-                <div data-testid="cultivo-info-recomendaciones">
-                  <h3 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
-                    <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    Recomendaciones IA
-                  </h3>
-                  <div className="space-y-3">
-                    {cultivo.phObjetivo && (
-                      <div className="p-3 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-recomendacion-ph">
-                        <dt className="text-sm font-medium text-green-700">pH Objetivo</dt>
-                        <dd className="text-lg font-semibold text-green-900">{cultivo.phObjetivo}</dd>
-                      </div>
-                    )}
-                    {cultivo.ecObjetivo && (
-                      <div className="p-3 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-recomendacion-ec">
-                        <dt className="text-sm font-medium text-green-700">EC Objetivo (ppm)</dt>
-                        <dd className="text-lg font-semibold text-green-900">{cultivo.ecObjetivo}</dd>
-                      </div>
-                    )}
-                    {cultivo.aguaDiariaObjetivo && (
-                      <div className="p-3 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-recomendacion-agua">
-                        <dt className="text-sm font-medium text-green-700">Agua Diaria</dt>
-                        <dd className="text-lg font-semibold text-green-900">{cultivo.aguaDiariaObjetivo} L</dd>
-                      </div>
-                    )}
-                    {(!cultivo.phObjetivo && !cultivo.ecObjetivo) && (
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200" data-testid="cultivo-recomendacion-empty">
-                        <p className="text-sm text-gray-600 text-center">
-                          Consulta al chat de IA para obtener recomendaciones personalizadas
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Condiciones Ambientales */}
-                <div data-testid="cultivo-info-condiciones">
-                  <h3 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
-                    <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-                    </svg>
-                    Condiciones Ambientales
-                  </h3>
-                  <div className="space-y-3">
-                    {/* Fase de Vegetación */}
-                    {(cultivo.tempObjetivoVegetacion || cultivo.humedadObjetivoVegetacion) && (
-                      <div className="p-3 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-condiciones-vegetacion">
-                        <h4 className="text-sm font-medium text-green-800 mb-2">🌱 Vegetación</h4>
-                        <div className="space-y-1">
-                          {cultivo.tempObjetivoVegetacion && (
-                            <p className="text-sm text-green-700">
-                              <span className="font-medium">Temperatura:</span> {cultivo.tempObjetivoVegetacion}°C
-                            </p>
-                          )}
-                          {cultivo.humedadObjetivoVegetacion && (
-                            <p className="text-sm text-green-700">
-                              <span className="font-medium">Humedad:</span> {cultivo.humedadObjetivoVegetacion}%
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Fase de Floración */}
-                    {(cultivo.tempObjetivoFloracion || cultivo.humedadObjetivoFloracion) && (
-                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200" data-testid="cultivo-condiciones-floracion">
-                        <h4 className="text-sm font-medium text-purple-800 mb-2">🌸 Floración</h4>
-                        <div className="space-y-1">
-                          {cultivo.tempObjetivoFloracion && (
-                            <p className="text-sm text-purple-700">
-                              <span className="font-medium">Temperatura:</span> {cultivo.tempObjetivoFloracion}°C
-                            </p>
-                          )}
-                          {cultivo.humedadObjetivoFloracion && (
-                            <p className="text-sm text-purple-700">
-                              <span className="font-medium">Humedad:</span> {cultivo.humedadObjetivoFloracion}%
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {(!cultivo.tempObjetivoVegetacion && !cultivo.humedadObjetivoVegetacion &&
-                      !cultivo.tempObjetivoFloracion && !cultivo.humedadObjetivoFloracion) && (
-                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200" data-testid="cultivo-condiciones-empty">
-                        <p className="text-sm text-gray-600 text-center">
-                          No hay condiciones ambientales configuradas
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Notas */}
-            {cultivo.notas && (
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-notas">
+            {/* Información principal */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Información básica */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-info-basica">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Notas
+                  Información Básica
                 </h2>
-                <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-notas-cuerpo">
-                  <p className="text-gray-900 whitespace-pre-wrap">{cultivo.notas}</p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-sustrato">
+                    <dt className="text-sm font-medium text-gray-500">Sustrato</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.sustrato || 'No especificado'}</dd>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-genetica">
+                    <dt className="text-sm font-medium text-gray-500">Genética</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.genetica || 'No especificada'}</dd>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-fechaComienzo">
+                    <dt className="text-sm font-medium text-gray-500">Fecha de Comienzo</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.fechaComienzo ? formatearFechaCorta(cultivo.fechaComienzo) : 'No especificada'}</dd>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-estado">
+                    <dt className="text-sm font-medium text-gray-500">Estado</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.activo ? 'Activo' : 'Finalizado'}</dd>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Panel lateral con métricas */}
-          <div className="space-y-6" data-testid="cultivo-panel-lateral">
-            {/* Métricas calculadas */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-metricas-box">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Métricas
-              </h2>
-              <div className="space-y-4">
-                {metricas.diasDesdeInicio && (
-                  <div className="p-3 bg-green-50 rounded-lg" data-testid="cultivo-metricas-dias-inicio">
-                    <dt className="text-sm font-medium text-green-700">Días desde inicio</dt>
-                    <dd className="text-2xl font-bold text-green-900">{metricas.diasDesdeInicio}</dd>
+              {/* Especificaciones técnicas */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-info-tecnica">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  Especificaciones Técnicas
+                </h2>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-area">
+                    <dt className="text-sm font-medium text-gray-500">Área</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.metrosCuadrados ? `${cultivo.metrosCuadrados} m²` : 'No especificado'}</dd>
                   </div>
-                )}
-                {metricas.plantasPorM2 && (
-                  <div className="p-3 bg-blue-50 rounded-lg" data-testid="cultivo-metricas-plantas-m2">
-                    <dt className="text-sm font-medium text-blue-700">Plantas por m²</dt>
-                    <dd className="text-2xl font-bold text-blue-900">{metricas.plantasPorM2}</dd>
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-numero-plantas">
+                    <dt className="text-sm font-medium text-gray-500">Número de Plantas</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.numeroplantas || 'No especificado'}</dd>
                   </div>
-                )}
-                {metricas.wattsPorM2 && (
-                  <div className="p-3 bg-yellow-50 rounded-lg" data-testid="cultivo-metricas-watts-m2">
-                    <dt className="text-sm font-medium text-yellow-700">Watts por m²</dt>
-                    <dd className="text-2xl font-bold text-yellow-900">{metricas.wattsPorM2}</dd>
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-litros-maceta">
+                    <dt className="text-sm font-medium text-gray-500">Litros por Maceta</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.litrosMaceta ? `${cultivo.litrosMaceta} L` : 'No especificado'}</dd>
                   </div>
-                )}
-                {metricas.litrosTotales && (
-                  <div className="p-3 bg-purple-50 rounded-lg" data-testid="cultivo-metricas-litros-totales">
-                    <dt className="text-sm font-medium text-purple-700">Litros totales</dt>
-                    <dd className="text-2xl font-bold text-purple-900">{metricas.litrosTotales} L</dd>
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-potencia-lamparas">
+                    <dt className="text-sm font-medium text-gray-500">Potencia Lámparas</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.potenciaLamparas ? `${cultivo.potenciaLamparas} W` : 'No especificado'}</dd>
                   </div>
-                )}
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-creacion">
+                    <dt className="text-sm font-medium text-gray-500">Fecha Creación</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.fechaCreacion ? formatearFechaCorta(cultivo.fechaCreacion) : 'No disponible'}</dd>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-info-actualizacion">
+                    <dt className="text-sm font-medium text-gray-500">Última Actualización</dt>
+                    <dd className="text-lg text-gray-900">{cultivo.fechaActualizacion ? formatearFechaCorta(cultivo.fechaActualizacion) : 'No disponible'}</dd>
+                  </div>
+                </div>
               </div>
+
+              {/* Información Adicional del Cultivo */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-info-adicional">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <svg className="h-5 w-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Información Adicional
+                </h2>
+
+                {/* Estado del Cultivo */}
+                <div className="mb-6" data-testid="cultivo-estado-main">
+                  <h3 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Estado del Cultivo
+                  </h3>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200" data-testid="cultivo-estado-faseactual">
+                      <dt className="text-sm font-medium text-orange-700">Fase Actual</dt>
+                      <dd className="text-lg font-semibold text-orange-900 flex items-center gap-2">
+                        {metricas.faseActual === 'floracion' ? (
+                          <>
+                            <span>🌸</span>
+                            <span>Floración</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>🌱</span>
+                            <span>Vegetación</span>
+                          </>
+                        )}
+                      </dd>
+                    </div>
+
+                    {metricas.diasVegetacionActual !== undefined && (
+                      <div className="p-4 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-estado-dias-vegetacion">
+                        <dt className="text-sm font-medium text-green-700">Días Vegetación</dt>
+                        <dd className="text-lg font-semibold text-green-900">{metricas.diasVegetacionActual}</dd>
+                      </div>
+                    )}
+
+                    {metricas.diasFloracionActual !== undefined && metricas.diasFloracionActual > 0 && (
+                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200" data-testid="cultivo-estado-dias-floracion">
+                        <dt className="text-sm font-medium text-purple-700">Días Floración</dt>
+                        <dd className="text-lg font-semibold text-purple-900">{metricas.diasFloracionActual}</dd>
+                      </div>
+                    )}
+
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200" data-testid="cultivo-estado-semanaactual">
+                      <dt className="text-sm font-medium text-blue-700">Semana Actual</dt>
+                      <dd className="text-lg font-semibold text-blue-900">
+                        {metricas.faseActual === 'floracion' && metricas.semanaFloracion
+                          ? `Semana ${metricas.semanaFloracion} de Floración`
+                          : metricas.semanaVegetacion
+                            ? `Semana ${metricas.semanaVegetacion} de Vegetación`
+                            : 'N/A'
+                        }
+                      </dd>
+                    </div>
+                  </div>
+
+                  {/* Botón para cambiar a floración si está en vegetación */}
+                  {metricas.faseActual === 'vegetacion' && !cultivo.fechaInicioFloracion && (
+                    <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200" data-testid="cultivo-iniciar-floracion-box">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-yellow-900">¿Cambiar a fase de floración?</h4>
+                          <p className="text-sm text-yellow-700">Marca cuando tus plantas comiencen a florecer</p>
+                        </div>
+                        <button
+                          onClick={handleIniciarFloracion}
+                          data-testid="cultivo-iniciar-floracion-boton"
+                          className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                        >
+                          Iniciar Floración
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {cultivo.fechaInicioFloracion && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200" data-testid="cultivo-inicio-fecha-floracion">
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Inicio de floración:</span> {formatearFechaCorta(cultivo.fechaInicioFloracion)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Objetivos y Condiciones */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Recomendaciones de IA */}
+                  <div data-testid="cultivo-info-recomendaciones">
+                    <h3 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Recomendaciones IA
+                    </h3>
+                    <div className="space-y-3">
+                      {cultivo.phObjetivo && (
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-recomendacion-ph">
+                          <dt className="text-sm font-medium text-green-700">pH Objetivo</dt>
+                          <dd className="text-lg font-semibold text-green-900">{cultivo.phObjetivo}</dd>
+                        </div>
+                      )}
+                      {cultivo.ecObjetivo && (
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-recomendacion-ec">
+                          <dt className="text-sm font-medium text-green-700">EC Objetivo (ppm)</dt>
+                          <dd className="text-lg font-semibold text-green-900">{cultivo.ecObjetivo}</dd>
+                        </div>
+                      )}
+                      {cultivo.aguaDiariaObjetivo && (
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-recomendacion-agua">
+                          <dt className="text-sm font-medium text-green-700">Agua Diaria</dt>
+                          <dd className="text-lg font-semibold text-green-900">{cultivo.aguaDiariaObjetivo} L</dd>
+                        </div>
+                      )}
+                      {(!cultivo.phObjetivo && !cultivo.ecObjetivo) && (
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200" data-testid="cultivo-recomendacion-empty">
+                          <p className="text-sm text-gray-600 text-center">
+                            Consulta al chat de IA para obtener recomendaciones personalizadas
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Condiciones Ambientales */}
+                  <div data-testid="cultivo-info-condiciones">
+                    <h3 className="text-md font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                      </svg>
+                      Condiciones Ambientales
+                    </h3>
+                    <div className="space-y-3">
+                      {/* Fase de Vegetación */}
+                      {(cultivo.tempObjetivoVegetacion || cultivo.humedadObjetivoVegetacion) && (
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-200" data-testid="cultivo-condiciones-vegetacion">
+                          <h4 className="text-sm font-medium text-green-800 mb-2">🌱 Vegetación</h4>
+                          <div className="space-y-1">
+                            {cultivo.tempObjetivoVegetacion && (
+                              <p className="text-sm text-green-700">
+                                <span className="font-medium">Temperatura:</span> {cultivo.tempObjetivoVegetacion}°C
+                              </p>
+                            )}
+                            {cultivo.humedadObjetivoVegetacion && (
+                              <p className="text-sm text-green-700">
+                                <span className="font-medium">Humedad:</span> {cultivo.humedadObjetivoVegetacion}%
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Fase de Floración */}
+                      {(cultivo.tempObjetivoFloracion || cultivo.humedadObjetivoFloracion) && (
+                        <div className="p-3 bg-purple-50 rounded-lg border border-purple-200" data-testid="cultivo-condiciones-floracion">
+                          <h4 className="text-sm font-medium text-purple-800 mb-2">🌸 Floración</h4>
+                          <div className="space-y-1">
+                            {cultivo.tempObjetivoFloracion && (
+                              <p className="text-sm text-purple-700">
+                                <span className="font-medium">Temperatura:</span> {cultivo.tempObjetivoFloracion}°C
+                              </p>
+                            )}
+                            {cultivo.humedadObjetivoFloracion && (
+                              <p className="text-sm text-purple-700">
+                                <span className="font-medium">Humedad:</span> {cultivo.humedadObjetivoFloracion}%
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {(!cultivo.tempObjetivoVegetacion && !cultivo.humedadObjetivoVegetacion &&
+                        !cultivo.tempObjetivoFloracion && !cultivo.humedadObjetivoFloracion) && (
+                          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200" data-testid="cultivo-condiciones-empty">
+                            <p className="text-sm text-gray-600 text-center">
+                              No hay condiciones ambientales configuradas
+                            </p>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notas */}
+              {cultivo.notas && (
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-notas">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Notas
+                  </h2>
+                  <div className="p-4 bg-gray-50 rounded-lg" data-testid="cultivo-notas-cuerpo">
+                    <p className="text-gray-900 whitespace-pre-wrap">{cultivo.notas}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Acciones rápidas */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-acciones-rapidas-box">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h2>
-              <div className="space-y-3">
-                <button
-                  onClick={() => setEditing(true)}
-                  data-testid="cultivo-accion-editar"
-                  className="w-full flex items-center gap-2 px-4 py-3 text-left bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors duration-200"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            {/* Panel lateral con métricas */}
+            <div className="space-y-6" data-testid="cultivo-panel-lateral">
+              {/* Métricas calculadas */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-metricas-box">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
-                  Editar información
-                </button>
-                <button
-                  onClick={handleToggleStatus}
-                  data-testid="cultivo-accion-toggle-estado"
-                  className={`w-full flex items-center gap-2 px-4 py-3 text-left rounded-lg transition-colors duration-200 ${
-                    cultivo.activo 
-                      ? 'bg-yellow-50 hover:bg-yellow-100 text-yellow-700'
-                      : 'bg-green-50 hover:bg-green-100 text-green-700'
-                  }`}
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={cultivo.activo ? "M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" : "M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15a2 2 0 002-2V9a2 2 0 00-2-2h-1.172a1 1 0 01-.707-.293L10.707 4.293A1 1 0 0010 4H9a2 2 0 00-2 2v5z"} />
-                  </svg>
-                  {cultivo.activo ? 'Finalizar cultivo' : 'Reactivar cultivo'}
-                </button>
+                  Métricas
+                </h2>
+                <div className="space-y-4">
+                  {metricas.diasDesdeInicio && (
+                    <div className="p-3 bg-green-50 rounded-lg" data-testid="cultivo-metricas-dias-inicio">
+                      <dt className="text-sm font-medium text-green-700">Días desde inicio</dt>
+                      <dd className="text-2xl font-bold text-green-900">{metricas.diasDesdeInicio}</dd>
+                    </div>
+                  )}
+                  {metricas.plantasPorM2 && (
+                    <div className="p-3 bg-blue-50 rounded-lg" data-testid="cultivo-metricas-plantas-m2">
+                      <dt className="text-sm font-medium text-blue-700">Plantas por m²</dt>
+                      <dd className="text-2xl font-bold text-blue-900">{metricas.plantasPorM2}</dd>
+                    </div>
+                  )}
+                  {metricas.wattsPorM2 && (
+                    <div className="p-3 bg-yellow-50 rounded-lg" data-testid="cultivo-metricas-watts-m2">
+                      <dt className="text-sm font-medium text-yellow-700">Watts por m²</dt>
+                      <dd className="text-2xl font-bold text-yellow-900">{metricas.wattsPorM2}</dd>
+                    </div>
+                  )}
+                  {metricas.litrosTotales && (
+                    <div className="p-3 bg-purple-50 rounded-lg" data-testid="cultivo-metricas-litros-totales">
+                      <dt className="text-sm font-medium text-purple-700">Litros totales</dt>
+                      <dd className="text-2xl font-bold text-purple-900">{metricas.litrosTotales} L</dd>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Acciones rápidas */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-acciones-rapidas-box">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h2>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setEditing(true)}
+                    data-testid="cultivo-accion-editar"
+                    className="w-full flex items-center gap-2 px-4 py-3 text-left bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors duration-200"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Editar información
+                  </button>
+                  <button
+                    onClick={handleToggleStatus}
+                    data-testid="cultivo-accion-toggle-estado"
+                    className={`w-full flex items-center gap-2 px-4 py-3 text-left rounded-lg transition-colors duration-200 ${cultivo.activo
+                        ? 'bg-yellow-50 hover:bg-yellow-100 text-yellow-700'
+                        : 'bg-green-50 hover:bg-green-100 text-green-700'
+                      }`}
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={cultivo.activo ? "M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" : "M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15a2 2 0 002-2V9a2 2 0 00-2-2h-1.172a1 1 0 01-.707-.293L10.707 4.293A1 1 0 0010 4H9a2 2 0 00-2 2v5z"} />
+                    </svg>
+                    {cultivo.activo ? 'Finalizar cultivo' : 'Reactivar cultivo'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
         )}
 
         {/* Vista del Chat con IA */}
@@ -746,8 +738,8 @@ export default function CultivoDetailPage() {
         {/* Vista de Comentarios */}
         {vistaActiva === 'comentarios' && (
           <div className="max-w-4xl mx-auto" data-testid="cultivo-tabview-comentarios">
-            <ComentariosCultivo 
-              cultivoId={cultivo.id} 
+            <ComentariosCultivo
+              cultivoId={cultivo.id}
               nombreCultivo={cultivo.nombre}
             />
           </div>
