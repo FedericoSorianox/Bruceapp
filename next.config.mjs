@@ -1,5 +1,5 @@
 /**
- * Configuración de Next.js para la aplicación Bruce (ESM)
+ * Configuración de Next.js para la aplicación CanopIA (ESM)
  *
  * Migrado a ESM para evitar `require()` y cumplir con las reglas de lint.
  * Incluye configuración PWA y alias de paths.

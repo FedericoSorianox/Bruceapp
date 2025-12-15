@@ -10,12 +10,12 @@ import type { FilterQuery, Model } from 'mongoose';
 
 
 /**
- * GET /api/notas - Lista notas desde la base de datos específica del usuario
+ * GET /api/notas - Lista notas desde la base de datos compartida filtrando por usuario
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const GET = withUserDB(async (request: Request, userEmail: string) => {
   try {
-    // Obtener la conexión específica del usuario
+    // Obtener la conexión a la base de datos principal
     const connection = await connectToUserDB(userEmail);
 
     // Verificar si la conexión es válida (no es mock)
@@ -34,17 +34,21 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     const url = new URL(request.url);
     const searchQuery = url.searchParams.get('q');
     const category = url.searchParams.get('category');
-    const author = url.searchParams.get('author');
+    // const author = url.searchParams.get('author'); // Ya no permitimos filtrar por cualquier autor
     const priority = url.searchParams.get('priority');
     const sort = url.searchParams.get('_sort') || 'date';
     const order = url.searchParams.get('_order') || 'desc';
     const page = parseInt(url.searchParams.get('_page') || '1');
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
-    const query: FilterQuery<NotaDocument> = { activo: true };
+    // FILTRO DE SEGURIDAD: Solo notas del usuario
+    // Asumimos que el modelo Nota usa 'author' para el email del propietario
+    const query: FilterQuery<NotaDocument> = {
+      activo: true,
+      author: userEmail // 🔒 FILTRO DE SEGURIDAD
+    };
 
     if (category) query.category = category;
-    if (author) query.author = { $regex: author, $options: 'i' };
     if (priority) query.priority = priority;
 
     // Obtener el modelo específico para esta conexión
@@ -103,12 +107,12 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
 });
 
 /**
- * POST /api/notas - Crea nueva nota en la base de datos del usuario
+ * POST /api/notas - Crea nueva nota en la base de datos compartida
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const POST = withUserDB(async (request: Request, userEmail: string) => {
   try {
-    // Obtener la conexión específica del usuario
+    // Obtener la conexión a la base de datos principal
     const connection = await connectToUserDB(userEmail);
 
     // Verificar si la conexión es válida (no es mock)
@@ -125,7 +129,7 @@ export const POST = withUserDB(async (request: Request, userEmail: string) => {
       date: notaData.date || new Date().toISOString().split('T')[0],
       fechaCreacion: new Date().toISOString().split('T')[0],
       fechaActualizacion: new Date().toISOString().split('T')[0],
-      author: notaData.author || userEmail
+      author: userEmail // 🔒 Forzar autor al usuario autenticado
     };
 
     // Obtener el modelo específico para esta conexión

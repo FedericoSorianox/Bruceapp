@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Script para crear el usuario de prueba test@bruceapp.com
+ * Script para crear el usuario de prueba test@canopia.app
  */
 
 const mongoose = require('mongoose');
@@ -26,7 +26,7 @@ const Usuario = mongoose.model('Usuario', usuarioSchema);
 
 const connectDB = async () => {
     try {
-        const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/bruceapp';
+        const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/canopia';
         await mongoose.connect(uri);
         console.log('✅ Conectado a MongoDB');
     } catch (error) {
@@ -40,9 +40,9 @@ const createTestUser = async () => {
         await connectDB();
 
         // Verificar si el usuario ya existe
-        const existingUser = await Usuario.findOne({ email: 'test@bruceapp.com' });
+        const existingUser = await Usuario.findOne({ email: 'test@canopia.app' });
         if (existingUser) {
-            console.log('⚠️  El usuario test@bruceapp.com ya existe');
+            console.log('⚠️  El usuario test@canopia.app ya existe');
             return;
         }
 
@@ -50,7 +50,7 @@ const createTestUser = async () => {
         const hashedPassword = await bcrypt.hash('password123', 10);
 
         const testUser = new Usuario({
-            email: 'test@bruceapp.com',
+            email: 'test@canopia.app',
             password: hashedPassword,
             nombre: 'Usuario Test',
             role: 'usuario',
@@ -62,7 +62,7 @@ const createTestUser = async () => {
 
         await testUser.save();
         console.log('✅ Usuario de prueba creado exitosamente');
-        console.log('📧 Email: test@bruceapp.com');
+        console.log('📧 Email: test@canopia.app');
         console.log('🔐 Password: password123');
 
     } catch (error) {

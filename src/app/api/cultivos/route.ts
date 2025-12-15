@@ -40,7 +40,8 @@ import type { CultivoDocument } from '@/lib/models/Cultivo';
  */
 export const GET = withUserDB(async (request: Request, userEmail: string) => {
   try {
-    // Obtener la conexión específica del usuario
+    // Obtener la conexión a la base de datos principal
+    // El parámetro userEmail ya no determina la DB, pero lo mantenemos para compatibilidad de firma
     const connection = await connectToUserDB(userEmail);
 
     // Obtener parámetros de la URL
@@ -52,8 +53,10 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     const page = parseInt(url.searchParams.get('_page') || '1');
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
-    // Construir query de MongoDB con filtros base
-    const query: FilterQuery<CultivoDocument> = {};
+    // Construir query de MongoDB con filtros base Y filtro de usuario
+    const query: FilterQuery<CultivoDocument> = {
+      creadoPor: userEmail // 🔒 FILTRO DE SEGURIDAD: Solo cultivos del usuario
+    };
 
     // Aplicar filtro por estado activo
     if (activoFilter !== null) {
@@ -63,7 +66,7 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     // Obtener el modelo específico para esta conexión
     const CultivoModel = getCultivoModel(connection) as any;
 
-    // Todos los cultivos del usuario (ya estamos en su DB específica)
+    // Query con filtro de usuario aplicado
     let cultivosQuery;
 
     if (searchQuery) {
@@ -105,9 +108,25 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     });
 
   } catch (error) {
-    console.error('Error en GET /api/cultivos:', error);
+    console.error('❌ Error CRÍTICO en GET /api/cultivos:', error);
 
     if (error instanceof Error) {
+      console.error('Stack trace:', error.stack);
+      console.error('Mensaje:', error.message);
+      console.error('Nombre:', error.name);
+
+      // Manejar error de autenticación explícitamente
+      if (error.message === 'Token inválido o expirado' || error.message === 'Token de autenticación requerido') {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'No autorizado',
+            message: 'Tu sesión ha expirado o no es válida. Por favor inicia sesión nuevamente.'
+          },
+          { status: 401 }
+        );
+      }
+
       return NextResponse.json(
         {
           success: false,
@@ -167,7 +186,13 @@ export const POST = withUserDB(async (request: Request, userEmail: string) => {
     });
 
   } catch (error) {
-    console.error('Error en POST /api/cultivos:', error);
+    console.error('❌ Error CRÍTICO en POST /api/cultivos:', error);
+
+    if (error instanceof Error) {
+      console.error('Stack trace:', error.stack);
+      console.error('Mensaje:', error.message);
+      console.error('Nombre:', error.name);
+    }
 
     // Type guard para verificar si es un error de validación de Mongoose
     const isValidationError = (err: unknown): err is { name: string; errors: Record<string, { message: string }> } => {

@@ -46,8 +46,8 @@ const jetBrainsMono = JetBrains_Mono({
  */
 export const metadata: Metadata = {
   title: {
-    default: "Bruce - Agricultura Inteligente",
-    template: "%s | Bruce App",
+    default: "CanopIA - Agricultura Inteligente",
+    template: "%s | CanopIA",
   },
   description:
     "Plataforma integral para gestión de cultivos, notas agrícolas y optimización de producción con inteligencia artificial.",
@@ -59,21 +59,21 @@ export const metadata: Metadata = {
     "inteligencia artificial",
     "IoT",
   ],
-  authors: [{ name: "Bruce Team" }],
-  creator: "Bruce App",
+  authors: [{ name: "CanopIA Team" }],
+  creator: "CanopIA",
   openGraph: {
     type: "website",
     locale: "es_ES",
-    url: "https://bruce.app",
-    title: "Bruce - Agricultura Inteligente",
+    url: "https://canopia.app",
+    title: "CanopIA - Agricultura Inteligente",
     description: "Transforma tu agricultura con tecnología avanzada",
-    siteName: "Bruce App",
+    siteName: "CanopIA",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bruce - Agricultura Inteligente",
+    title: "CanopIA - Agricultura Inteligente",
     description: "Plataforma integral para gestión de cultivos con IA",
-    creator: "@bruceapp",
+    creator: "@canopia",
   },
   robots: {
     index: true,
@@ -91,7 +91,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: false, // Desactivado para usar el meta tag moderno
     statusBarStyle: "default",
-    title: "Bruce App",
+    title: "CanopIA",
   },
   icons: {
     icon: "/icon-192x192.png",

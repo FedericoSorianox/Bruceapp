@@ -1,135 +1,37 @@
 /**
  * API Route para Chat con IA especializada en Cannabis Medicinal
- * Integra con OpenAI GPT-4o Mini para análisis de texto e imágenes
+ * Integra con n8n para orquestar la lógica de IA y procesamiento de imágenes
  * 
- * Esta API actúa como un profesor especialista de la Universidad de Utah
- * en estudios científicos de cannabis medicinal, proporcionando consejos
- * expertos para maximizar la producción y calidad.
+ * Esta API actúa como un proxy hacia el workflow de n8n que maneja:
+ * - Análisis de contexto del cultivo
+ * - Procesamiento de imágenes (Cloudinary + Vision)
+ * - Generación de respuestas con LLM (OpenAI/Anthropic gestionado en n8n)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-import type { ChatCompletionMessageParam, ChatCompletionContentPart } from 'openai/resources/chat/completions';
-import type { PayloadOpenAI, ApiResponseChat, ContextoCultivo, ImagenPayload } from '@/types/chat';
+import type { PayloadOpenAI, ApiResponseChat } from '@/types/chat';
 
-// Inicializar cliente de OpenAI con manejo de errores
-// La API key debe estar configurada en las variables de entorno (.env.local)
-let openai: OpenAI | null = null;
-
-try {
-  if (process.env.OPENAI_API_KEY) {
-    openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  } else if (process.env.NODE_ENV === 'production') {
-    console.warn('⚠️ OPENAI_API_KEY no definida en producción - chat estará deshabilitado');
-  }
-} catch (error) {
-  console.error('❌ Error inicializando OpenAI:', error);
-  if (process.env.NODE_ENV !== 'production') {
-    throw error; // Solo fallar en desarrollo
-  }
-}
-
-// Modelos recomendados por OpenAI a septiembre 2025
-const MODELO_MULTIMODAL = 'gpt-4o-mini';
-const MODELO_TEXTO = 'gpt-4o-mini';
-
-/**
- * Construye el prompt del sistema que define el comportamiento de la IA
- * Este prompt instruye a la IA para actuar como un profesor especialista
- * @param contexto - Información completa del cultivo
- * @returns Prompt del sistema optimizado para OpenAI
- */
-function construirPromptSistema(contexto: ContextoCultivo): string {
-  return `Eres un profesor especialista en estudios científicos de cannabis medicinal de la Universidad de Utah, con más de 20 años de experiencia en cultivo interior y optimización de producción.
-
-CONTEXTO DEL CULTIVO ACTUAL:
-- Nombre: ${contexto.nombre}
-- Genética: ${contexto.genetica || 'No especificada'}
-- Sustrato: ${contexto.sustrato || 'No especificado'}
-- Área: ${contexto.metrosCuadrados || 'No especificada'} m²
-- Plantas: ${contexto.numeroplantas || 'No especificado'}
-- Macetas: ${contexto.litrosMaceta || 'No especificado'} L cada una
-- Potencia LED: ${contexto.potenciaLamparas || 'No especificada'} W
-- Días desde inicio: ${contexto.diasDesdeInicio || 'No calculado'}
-- Densidad: ${contexto.plantasPorM2 || 'No calculada'} plantas/m²
-- Watts/m²: ${contexto.wattsPorM2 || 'No calculado'}
-- Estado: ${contexto.activo ? 'Activo' : 'Finalizado'}
-- Notas del cultivo: ${contexto.notas || 'Sin notas'}
-
-INSTRUCCIONES:
-1. Analiza SIEMPRE el contexto específico de este cultivo antes de responder
-2. Proporciona consejos científicamente respaldados para maximizar producción y calidad
-3. Considera las variables ambientales, genética, y etapa del cultivo
-4. Si recibes imágenes, analiza detalladamente los síntomas visuales
-5. Sugiere soluciones prácticas y específicas para el setup actual
-6. Menciona rangos óptimos de pH, EC, temperatura, humedad cuando sea relevante
-7. Explica el razonamiento científico detrás de tus recomendaciones
-8. Adapta tus consejos al tamaño y configuración específica del cultivo
-9. Mantén un tono profesional pero accesible, como un mentor experimentado
-
-ESPECIALIDADES:
-- Diagnóstico visual de deficiencias nutricionales
-- Optimización de espectros lumínicos LED
-- Manejo integrado de plagas en interior
-- Maximización de cannabinoides y terpenos
-- Técnicas de entrenamiento de plantas (LST, SCROG, etc.)
-- Optimización de cosecha y curado
-- Análisis de densidad de tricomas
-
-Responde siempre en español y usa el contexto específico del cultivo para personalizar tus recomendaciones.`;
-}
-
-/**
- * Construye el prompt del usuario incluyendo el contexto y mensaje
- * @param mensaje - Mensaje del usuario
- * @param imagenes - Array de imágenes en base64 (opcional)
- * @returns Array de contenido para OpenAI
- */
-function construirMensajeUsuario(mensaje: string, imagenes?: ImagenPayload[]): ChatCompletionContentPart[] {
-  const contenido: ChatCompletionContentPart[] = [
-    {
-      type: 'text',
-      text: mensaje
-    }
-  ];
-
-  // Agregar imágenes si están presentes
-  if (imagenes && imagenes.length > 0) {
-    imagenes.forEach((imagen) => {
-      contenido.push({
-        type: 'image_url',
-        image_url: {
-          url: `data:${imagen.mimeType};base64,${imagen.base64}`,
-          detail: 'high' // Análisis detallado para mejor diagnóstico
-        }
-      });
-    });
-  }
-
-  return contenido;
-}
+// URL del Webhook de n8n definida en variables de entorno
+const N8N_WEBHOOK_URL = process.env.N8N_CHAT_WEBHOOK_URL;
 
 /**
  * Maneja peticiones POST al endpoint de chat
- * Procesa mensajes de texto e imágenes con OpenAI GPT-4o Mini
+ * Reenvía el payload al webhook de n8n y retorna la respuesta procesada
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verificar que OpenAI está inicializado correctamente
-    if (!openai) {
-      console.error('OpenAI client no está inicializado');
+    // 1. Verificar configuración
+    if (!N8N_WEBHOOK_URL) {
+      console.error('❌ N8N_CHAT_WEBHOOK_URL no definida en variables de entorno');
       return NextResponse.json<ApiResponseChat>({
         success: false,
-        error: 'Servicio de IA no disponible'
+        error: 'Servicio de IA no configurado correctamente (backend)'
       }, { status: 503 });
     }
 
-    // Parsear el body de la petición
+    // 2. Parsear y validar el body
     const payload: PayloadOpenAI = await request.json();
-    
-    // Validar datos requeridos
+
     if (!payload.mensaje || !payload.cultivoContext) {
       return NextResponse.json<ApiResponseChat>({
         success: false,
@@ -137,119 +39,47 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Construir mensajes para OpenAI
-    const mensajesOpenAI: ChatCompletionMessageParam[] = [
-      {
-        role: 'system',
-        content: construirPromptSistema(payload.cultivoContext)
-      }
-    ];
-
-    // Agregar historial reciente si existe (últimos 5 mensajes para contexto)
-    if (payload.historialReciente && payload.historialReciente.length > 0) {
-      const historialLimitado = payload.historialReciente.slice(-5);
-      
-      historialLimitado.forEach(msg => {
-        if (msg.tipo === 'user') {
-          const imagenesHistorial: ImagenPayload[] | undefined = msg.imagenes
-            ?.filter((img): img is typeof img & { base64: string } => Boolean(img.base64))
-            .map((img) => ({
-              base64: img.base64,
-              mimeType: img.mimeType,
-              nombre: img.name
-            }));
-
-          mensajesOpenAI.push({
-            role: 'user',
-            content: construirMensajeUsuario(msg.contenido, imagenesHistorial)
-          });
-        } else if (msg.tipo === 'assistant') {
-          mensajesOpenAI.push({
-            role: 'assistant',
-            content: msg.contenido
-          });
-        }
-      });
-    }
-
-    // Agregar mensaje actual del usuario
-    mensajesOpenAI.push({
-      role: 'user' as const,
-      content: construirMensajeUsuario(payload.mensaje, payload.imagenes)
+    // 3. Enviar a n8n
+    const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        mensaje: payload.mensaje,
+        contexto: payload.cultivoContext,
+        historial: payload.historialReciente || [],
+        imagenes: payload.imagenes || [],
+        timestamp: new Date().toISOString()
+      })
     });
 
-    const modeloSeleccionado = payload.imagenes && payload.imagenes.length > 0 ? MODELO_MULTIMODAL : MODELO_TEXTO;
-
-    console.log('Enviando petición a OpenAI...');
-    console.log('Modelo a usar:', modeloSeleccionado);
-
-    // Verificación adicional de seguridad
-    if (!openai) {
-      throw new Error('OpenAI client no disponible');
+    if (!n8nResponse.ok) {
+      throw new Error(`Error en n8n: ${n8nResponse.status} ${n8nResponse.statusText}`);
     }
 
-    // Llamar a OpenAI
-    const completion = await openai.chat.completions.create({
-      model: modeloSeleccionado,
-      messages: mensajesOpenAI,
-      max_tokens: 1500, // Limite razonable para respuestas detalladas
-      temperature: 0.7, // Balance entre creatividad y precisión
-      top_p: 0.9,       // Enfoque en respuestas de alta probabilidad
-    });
+    // 4. Procesar respuesta de n8n
+    const n8nData = await n8nResponse.json();
 
-    // Extraer la respuesta
-    const respuestaIA = completion.choices[0]?.message?.content;
-    
-    if (!respuestaIA) {
-      throw new Error('OpenAI no retornó una respuesta válida');
-    }
+    // Se espera que n8n retorne { response: string, tokens?: object }
+    // Adaptar según la estructura real que definas en n8n
+    const respuestaIA = n8nData.output || n8nData.response || n8nData.text || "No se recibió respuesta del orquestador.";
 
-    console.log('Respuesta exitosa de OpenAI');
-    console.log('Tokens usados:', completion.usage);
+    console.log('✅ Respuesta recibida de n8n');
 
-    // Retornar respuesta exitosa
     return NextResponse.json<ApiResponseChat>({
       success: true,
       data: respuestaIA,
-      message: 'Respuesta generada exitosamente',
-      tokens: completion.usage ? {
-        prompt: completion.usage.prompt_tokens,
-        completion: completion.usage.completion_tokens,
-        total: completion.usage.total_tokens
-      } : undefined
+      message: 'Respuesta generada vía n8n',
+      tokens: n8nData.tokens // Opcional, si n8n lo devuelve
     });
 
   } catch (error) {
-    console.error('Error en API de chat:', error);
-    
-    // Manejar errores específicos de OpenAI
-    if (error instanceof Error) {
-      if (error.message.includes('rate limit')) {
-        return NextResponse.json<ApiResponseChat>({
-          success: false,
-          error: 'Límite de peticiones excedido. Intenta nuevamente en unos minutos.'
-        }, { status: 429 });
-      }
-      
-      if (error.message.includes('insufficient_quota')) {
-        return NextResponse.json<ApiResponseChat>({
-          success: false,
-          error: 'Cuota de OpenAI agotada. Contacta al administrador.'
-        }, { status: 402 });
-      }
-      
-      if (error.message.includes('invalid_api_key')) {
-        return NextResponse.json<ApiResponseChat>({
-          success: false,
-          error: 'API key de OpenAI inválida.'
-        }, { status: 401 });
-      }
-    }
+    console.error('❌ Error en API de chat (Proxy n8n):', error);
 
-    // Error genérico
     return NextResponse.json<ApiResponseChat>({
       success: false,
-      error: 'Error interno del servidor. Intenta nuevamente.',
+      error: 'Error al comunicarse con el servicio de inteligencia artificial.',
       message: error instanceof Error ? error.message : 'Error desconocido'
     }, { status: 500 });
   }
@@ -261,8 +91,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     success: true,
-    message: 'Servicio de chat con IA activo',
-    timestamp: new Date().toISOString(),
-    hasApiKey: !!process.env.OPENAI_API_KEY
+    message: 'Servicio de chat (Proxy n8n) activo',
+    configured: !!process.env.N8N_CHAT_WEBHOOK_URL
   });
 }

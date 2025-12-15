@@ -15,150 +15,98 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto bg-gray-900 text-white" data-testid="main-footer">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+    <footer className="mt-auto bg-gray-900 text-gray-400 border-t border-gray-800" data-testid="main-footer">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-4 lg:gap-8">
           {/* Sección de Brand/Logo */}
-          <div className="col-span-1 md:col-span-2" data-testid="footer-brand">
-            <div className="mb-4 flex items-center">
-              <span className="text-2xl font-bold text-green-400" data-testid="footer-logo">
-                🌱 Bruce
+          <div className="col-span-1 lg:col-span-2 space-y-4" data-testid="footer-brand">
+            <div className="flex items-center">
+              <span className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent" data-testid="footer-logo">
+                🌱 CanopIA
               </span>
             </div>
-            <p className="max-w-md text-sm leading-relaxed text-gray-300">
-              Tu compañero digital para el cultivo inteligente. Gestiona tus
-              cultivos, toma notas detalladas y optimiza tu producción agrícola
-              con tecnología moderna.
+            <p className="max-w-xs text-sm leading-relaxed text-gray-400">
+              Plataforma integral de inteligencia agrícola. Optimizamos tu producción con datos precisos y tecnología de vanguardia.
             </p>
+            <div className="flex space-x-4 pt-2">
+              {/* Redes Sociales (Placeholder icons) */}
+              {['twitter', 'github', 'linkedin'].map((social) => (
+                <a key={social} href="#" className="text-gray-500 hover:text-green-400 transition-colors">
+                  <span className="sr-only">{social}</span>
+                  <div className="h-6 w-6 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700">
+                    <span className="text-xs">🔗</span>
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Sección de Navegación */}
           <div data-testid="footer-navigation">
-            <h3 className="mb-4 text-lg font-semibold text-green-400">
-              Navegación
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-200">
+              Producto
             </h3>
-            <nav>
-              <ul className="space-y-3">
-                <li>
+            <ul className="space-y-3">
+              {[
+                { label: 'Inicio', href: '/' },
+                { label: 'Cultivo', href: '/cultivo' },
+                { label: 'Notas', href: '/notas' },
+                { label: 'Blog', href: '/blog' } // Future proofing
+              ].map((link) => (
+                <li key={link.label}>
                   <Link
-                    href="/"
-                    data-testid="footer-link-home"
-                    className="text-sm text-gray-300 transition-colors duration-200 hover:text-green-400"
-                    aria-label="Ir a página principal"
+                    href={link.href}
+                    className="text-sm hover:text-green-400 transition-colors duration-200"
                   >
-                    Inicio
+                    {link.label}
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href="/cultivo"
-                    data-testid="footer-link-cultivo"
-                    className="text-sm text-gray-300 transition-colors duration-200 hover:text-green-400"
-                    aria-label="Ir a sección de cultivos"
-                  >
-                    Cultivo
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/notas"
-                    data-testid="footer-link-notas"
-                    className="text-sm text-gray-300 transition-colors duration-200 hover:text-green-400"
-                    aria-label="Ir a sección de notas"
-                  >
-                    Notas
-                  </Link>
-                </li>
-              </ul>
-            </nav>
+              ))}
+            </ul>
           </div>
 
           {/* Sección de Contacto/Información */}
           <div data-testid="footer-contact">
-            <h3 className="mb-4 text-lg font-semibold text-green-400">
-              Contacto
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-200">
+              Soporte
             </h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center text-gray-300">
-                <svg
-                  className="mr-2 h-4 w-4 text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
+            <ul className="space-y-3">
+              <li>
+                <a href="#" className="text-sm hover:text-green-400 transition-colors">Centro de Ayuda</a>
+              </li>
+              <li>
+                <a href="#" className="text-sm hover:text-green-400 transition-colors">Estado del Servicio</a>
+              </li>
+              <li className="pt-2">
                 <a
-                  href="mailto:contacto@bruce.app"
-                  data-testid="footer-email"
-                  className="transition-colors duration-200 hover:text-green-400"
-                  aria-label="Enviar email a contacto@bruce.app"
+                  href="mailto:contacto@canopia.app"
+                  className="flex items-center text-sm text-green-400 hover:text-green-300 transition-colors group"
                 >
-                  contacto@bruce.app
+                  <span className="mr-2 group-hover:translate-x-1 transition-transform">✉️</span>
+                  contacto@canopia.app
                 </a>
-              </div>
-
-              <div className="flex items-center text-gray-300">
-                <svg
-                  className="mr-2 h-4 w-4 text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9m0 9a9 9 0 01-9-9m9 0a9 9 0 00-9 9"
-                  />
-                </svg>
-                <span>Agricultura Inteligente</span>
-              </div>
-            </div>
+              </li>
+            </ul>
           </div>
         </div>
 
         {/* Línea divisoria */}
-        <div className="mt-8 border-t border-gray-700 pt-8">
-          <div className="flex flex-col items-center justify-between sm:flex-row">
-            {/* Copyright */}
-            <div className="text-sm text-gray-400" data-testid="footer-copyright">
-              © {currentYear} Bruce App. Todos los derechos reservados.
-            </div>
+        <div className="mt-12 border-t border-gray-800 pt-8">
+          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <p className="text-xs text-gray-500">
+              © {currentYear} CanopIA Inc. Todos los derechos reservados.
+            </p>
 
-            {/* Links legales/adicionales */}
-            <div className="mt-4 flex space-x-6 sm:mt-0" data-testid="footer-legal-links">
-              <a
-                href="/privacidad"
-                data-testid="footer-link-privacy"
-                className="text-sm text-gray-400 transition-colors duration-200 hover:text-green-400"
-                aria-label="Ver política de privacidad"
-              >
+            <div className="flex space-x-6">
+              <Link href="/privacidad" className="text-xs text-gray-500 hover:text-green-400 transition-colors">
                 Privacidad
-              </a>
-              <a
-                href="/terminos"
-                data-testid="footer-link-terms"
-                className="text-sm text-gray-400 transition-colors duration-200 hover:text-green-400"
-                aria-label="Ver términos de servicio"
-              >
+              </Link>
+              <Link href="/terminos" className="text-xs text-gray-500 hover:text-green-400 transition-colors">
                 Términos
-              </a>
-              <a
-                href="/ayuda"
-                data-testid="footer-link-help"
-                className="text-sm text-gray-400 transition-colors duration-200 hover:text-green-400"
-                aria-label="Obtener ayuda"
-              >
-                Ayuda
-              </a>
+              </Link>
+              <Link href="/cookies" className="text-xs text-gray-500 hover:text-green-400 transition-colors">
+                Cookies
+              </Link>
             </div>
           </div>
         </div>

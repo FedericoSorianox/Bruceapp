@@ -30,7 +30,7 @@ const Features = () => {
       id: "smart-monitoring",
       icon: (
         <svg
-          className="h-8 w-8"
+          className="h-7 w-7"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -56,7 +56,7 @@ const Features = () => {
       id: "notes-management",
       icon: (
         <svg
-          className="h-8 w-8"
+          className="h-7 w-7"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -83,7 +83,7 @@ const Features = () => {
       id: "ai-insights",
       icon: (
         <svg
-          className="h-8 w-8"
+          className="h-7 w-7"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -110,7 +110,7 @@ const Features = () => {
       id: "crop-planning",
       icon: (
         <svg
-          className="h-8 w-8"
+          className="h-7 w-7"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -133,7 +133,7 @@ const Features = () => {
       id: "weather-integration",
       icon: (
         <svg
-          className="h-8 w-8"
+          className="h-7 w-7"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -160,7 +160,7 @@ const Features = () => {
       id: "production-analytics",
       icon: (
         <svg
-          className="h-8 w-8"
+          className="h-7 w-7"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -187,26 +187,26 @@ const Features = () => {
 
   return (
     <section
-      className="bg-white py-20"
+      className="relative py-24"
       aria-labelledby="features-heading"
       role="main"
       data-testid="features-section"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header de la sección */}
-        <div className="mb-16 text-center">
+        <div className="mb-20 text-center max-w-3xl mx-auto">
           <h2
             id="features-heading"
             data-testid="features-title"
-            className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl"
+            className="mb-6 text-4xl font-extrabold text-gray-900 sm:text-5xl"
           >
             Funcionalidades{" "}
-            <span className="bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
               Avanzadas
             </span>
           </h2>
-          <p className="mx-auto max-w-3xl text-xl text-gray-700" data-testid="features-description">
-            Descubre todas las herramientas que Bruce pone a tu disposición para
+          <p className="text-xl text-gray-600 font-light" data-testid="features-description">
+            Descubre todas las herramientas que CanopIA pone a tu disposición para
             revolucionar la manera en que gestionas tus cultivos.
           </p>
         </div>
@@ -217,31 +217,31 @@ const Features = () => {
             <article
               key={feature.id}
               data-testid={`feature-${feature.id}`}
-              className="group rounded-xl border border-gray-200 bg-white p-6 transition-all duration-300 hover:border-green-200 hover:shadow-lg focus-within:ring-2 focus-within:ring-green-500 focus-within:ring-offset-2"
+              className="group rounded-2xl border border-white/60 bg-white/70 backdrop-blur-md p-8 shadow-sm transition-all duration-300 hover:shadow-xl hover:bg-white/90 hover:-translate-y-1 hover:border-green-100"
             >
               {/* Icon container */}
-              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 text-green-600 transition-all duration-300 group-hover:scale-110 group-hover:bg-green-200">
+              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-100 to-emerald-50 text-green-600 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-inner">
                 {feature.icon}
               </div>
 
               {/* Content */}
-              <h3 className="mb-3 text-xl font-semibold text-gray-900">
+              <h3 className="mb-4 text-2xl font-bold text-gray-900 group-hover:text-green-700 transition-colors">
                 {feature.title}
               </h3>
 
-              <p className="mb-4 leading-relaxed text-gray-600">
+              <p className="mb-6 leading-relaxed text-gray-600">
                 {feature.description}
               </p>
 
-              {/* Benefits list - mejoramos estructura semántica */}
-              <ul className="space-y-2" role="list">
+              {/* Benefits list */}
+              <ul className="space-y-3" role="list">
                 {feature.benefits.map((benefit, index) => (
                   <li
                     key={index}
-                    className="flex items-center text-sm text-gray-700"
+                    className="flex items-center text-sm font-medium text-gray-700"
                   >
                     <svg
-                      className="mr-2 h-4 w-4 flex-shrink-0 text-green-500"
+                      className="mr-3 h-5 w-5 flex-shrink-0 text-green-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -263,17 +263,17 @@ const Features = () => {
         </div>
 
         {/* Call-to-action al final de features */}
-        <div className="mt-16 text-center">
-          <p className="mb-6 text-gray-700 font-medium" data-testid="features-cta-text">
+        <div className="mt-20 text-center">
+          <p className="mb-8 text-xl text-gray-700 font-medium" data-testid="features-cta-text">
             ¿Listo para experimentar todas estas funcionalidades?
           </p>
           <a
             href="/cultivo"
             data-testid="features-explore-button"
-            className="inline-flex items-center rounded-lg border border-transparent bg-green-600 px-6 py-3 text-base font-medium text-white transition-all duration-200 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none min-h-[44px]"
+            className="inline-flex items-center rounded-xl bg-gray-900 px-8 py-4 text-lg font-bold text-white transition-all duration-300 hover:bg-black hover:scale-105 shadow-lg"
             aria-label="Explorar funcionalidades de cultivo"
           >
-            <span className="mr-2" aria-hidden="true">🚀</span>
+            <span className="mr-3" aria-hidden="true">🚀</span>
             Explorar Funcionalidades
           </a>
         </div>

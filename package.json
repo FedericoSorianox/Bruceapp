@@ -1,6 +1,6 @@
 {
-  "_comentario": "Package.json de Bruce App - Plataforma de Gestión Agrícola Inteligente. Framework: Next.js 14 con TypeScript, Tailwind CSS y JSON Server para API mock.",
-  "name": "bruceapp",
+  "_comentario": "Package.json de CanopIA - Plataforma de Gestión Agrícola Inteligente. Framework: Next.js 14 con TypeScript, Tailwind CSS y JSON Server para API mock.",
+  "name": "canopia",
   "version": "0.1.0",
   "private": true,
   "_scripts_comentario": "Scripts disponibles para desarrollo, construcción y mantenimiento del proyecto",

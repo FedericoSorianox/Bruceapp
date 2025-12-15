@@ -8,12 +8,12 @@ Ve a tu repositorio en GitHub > Settings > Secrets and variables > Actions > New
 
 ### Secrets requeridos:
 
-1. **TEST_USER_EMAIL**: Email del usuario de test (ej: `test@bruceapp.com`)
+1. **TEST_USER_EMAIL**: Email del usuario de test (ej: `test@canopia.app`)
 2. **TEST_USER_PASSWORD**: Contraseña del usuario de test (ej: `password123`)
-3. **ADMIN_USER_EMAIL**: Email del usuario admin de test (ej: `admin@bruceapp.com`)
+3. **ADMIN_USER_EMAIL**: Email del usuario admin de test (ej: `admin@canopia.app`)
 4. **ADMIN_USER_PASSWORD**: Contraseña del usuario admin de test (ej: `admin123`)
-5. **MONGODB_URI**: URI de conexión a MongoDB para testing (ej: `mongodb://localhost:27017/bruceapp_test`)
-6. **JWT_SECRET**: Clave secreta para JWT (ej: `bruce-app-test-secret-key-2024`)
+5. **MONGODB_URI**: URI de conexión a MongoDB para testing (ej: `mongodb://localhost:27017/canopia_test`)
+6. **JWT_SECRET**: Clave secreta para JWT (ej: `canopia-test-secret-key-2024`)
 7. **RENDER_DEPLOY_HOOK_URL**: URL del webhook de Render para deploy automático
 
 ## Mejoras implementadas:

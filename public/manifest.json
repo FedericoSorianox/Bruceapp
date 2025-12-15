@@ -1,6 +1,6 @@
 {
-  "name": "Bruce - Agricultura Inteligente",
-  "short_name": "Bruce App",
+  "name": "CanopIA - Agricultura Inteligente",
+  "short_name": "CanopIA",
   "description": "Plataforma integral para gestión de cultivos, notas agrícolas y optimización de producción con inteligencia artificial",
   "start_url": "/",
   "display": "standalone",
@@ -9,7 +9,11 @@
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "es-ES",
-  "categories": ["productivity", "business", "lifestyle"],
+  "categories": [
+    "productivity",
+    "business",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "/icon-192x192.png",

@@ -1,6 +1,6 @@
-# BruceApp - Plataforma de Gestión Agrícola Inteligente
+# CanopIA - Plataforma de Gestión Agrícola Inteligente
 
-BruceApp es una aplicación full-stack desarrollada con Next.js 14, TypeScript y Tailwind CSS para la gestión inteligente de cultivos y tareas agrícolas. Incluye integración con IA (OpenAI) para asistencia inteligente en la gestión agrícola.
+CanopIA es una aplicación full-stack desarrollada con Next.js 14, TypeScript y Tailwind CSS para la gestión inteligente de cultivos y tareas agrícolas. Incluye integración con IA (OpenAI) para asistencia inteligente en la gestión agrícola.
 
 ## 🚀 Características Principales
 
@@ -36,8 +36,8 @@ BruceApp es una aplicación full-stack desarrollada con Next.js 14, TypeScript y
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/FedericoSorianox/Bruceapp.git
-cd Bruceapp
+git clone https://github.com/FedericoSorianox/CanopIA.git
+cd CanopIA
 
 # Instalar dependencias
 npm install
@@ -132,8 +132,8 @@ Render es una plataforma de cloud que permite desplegar aplicaciones Node.js de 
 
    **Web Service 1 - API (JSON Server):**
    - En el dashboard de Render, haz clic en "New +" → "Web Service"
-   - Conecta tu repositorio GitHub: `https://github.com/FedericoSorianox/Bruceapp`
-   - **Nombre**: `bruceapp-api`
+   - Conecta tu repositorio GitHub: `https://github.com/FedericoSorianox/CanopIA`
+   - **Nombre**: `canopia-api`
    - **Runtime**: Node.js
    - **Build Command**: `echo "Installing json-server dependency"`
    - **Start Command**: `npx json-server --watch db.json --port $PORT --host 0.0.0.0`
@@ -142,7 +142,7 @@ Render es una plataforma de cloud que permite desplegar aplicaciones Node.js de 
 
    **Web Service 2 - Frontend (Next.js):**
    - Crea un segundo web service con el mismo repositorio
-   - **Nombre**: `bruceapp-frontend`
+   - **Nombre**: `canopia-frontend`
    - **Runtime**: Node.js
    - **Build Command**: `npm run build`
    - **Start Command**: `npm run start`
@@ -155,20 +155,20 @@ Render es una plataforma de cloud que permite desplegar aplicaciones Node.js de 
 3. **Configurar variables de entorno**:
    En cada servicio, configura estas variables en el panel de Render:
 
-   **Para bruceapp-frontend:**
+   **Para canopia-frontend:**
    - `OPENAI_API_KEY`: Tu clave de OpenAI para el chat IA (como secreto)
    - `JWT_SECRET`: Secret seguro para autenticación (como secreto)
    - `NODE_ENV`: production
    - `NEXT_PUBLIC_API_URL`: URL del servicio API desplegado (se actualiza manualmente)
 
-   **Para bruceapp-api:**
+   **Para canopia-api:**
    - `NODE_ENV`: production
 
 4. **Deploy**:
    - Render construirá e desplegará automáticamente ambos servicios
    - Una vez completado, tendrás URLs como:
-     - Frontend: `https://bruceapp-frontend.onrender.com`
-     - API: `https://bruceapp-api.onrender.com`
+     - Frontend: `https://canopia-frontend.onrender.com`
+     - API: `https://canopia-api.onrender.com`
 
 5. **Configuración de la URL del API**:
    - ⚠️ **IMPORTANTE**: Después de que ambos servicios estén desplegados, necesitas actualizar la variable `NEXT_PUBLIC_API_URL` en el servicio frontend
@@ -185,7 +185,7 @@ Los archivos `render.yaml` y `render-api.yaml` sirven como **referencia** para c
 
 **Pasos detallados:**
 1. Crear el servicio API primero usando la configuración de `render-api.yaml`
-2. Una vez desplegado, copia su URL (ej: `https://bruceapp-api-abc123.onrender.com`)
+2. Una vez desplegado, copia su URL (ej: `https://canopia-api-abc123.onrender.com`)
 3. Crear el servicio frontend usando la configuración de `render.yaml`
 4. En el servicio frontend, configura la variable `NEXT_PUBLIC_API_URL` con la URL del API
 5. Configura los secretos `OPENAI_API_KEY` y `JWT_SECRET` en el servicio frontend
@@ -216,7 +216,7 @@ npm run server
 ## 📁 Estructura del Proyecto
 
 ```
-bruceapp/
+canopia/
 ├── src/
 │   ├── app/                 # Next.js App Router
 │   │   ├── api/            # API Routes

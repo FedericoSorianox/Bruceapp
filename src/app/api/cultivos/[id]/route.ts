@@ -16,11 +16,12 @@ import { withUserDB, getCultivoModel, connectToUserDB } from '@/lib/mongodb';
 /**
  * GET /api/cultivos/[id]
  *
- * Obtiene un cultivo específico por su ID desde la base de datos del usuario
+ * Obtiene un cultivo específico por su ID desde la base de datos global
+ * Verifica que el cultivo pertenezca al usuario solicitante
  */
 export const GET = withUserDB(async (request, userEmail) => {
   try {
-    // Obtener la conexión específica del usuario
+    // Obtener la conexión a la base de datos principal
     const connection = await connectToUserDB(userEmail);
 
     // Extraer ID desde la URL
@@ -42,15 +43,18 @@ export const GET = withUserDB(async (request, userEmail) => {
     // Obtener el modelo específico para esta conexión
     const CultivoModel = getCultivoModel(connection) as any;
 
-    // Buscar el cultivo por ID en la DB del usuario
-    const cultivo = await CultivoModel.findById(id).lean();
+    // Buscar el cultivo por ID Y por creador (seguridad)
+    const cultivo = await CultivoModel.findOne({
+      _id: id,
+      creadoPor: userEmail // 🔒 FILTRO DE SEGURIDAD
+    }).lean();
 
     if (!cultivo) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Cultivo no encontrado',
-          message: `No se encontró el cultivo con ID: ${id}`
+          error: 'Cultivo no encontrado o no autorizado',
+          message: `No se encontró el cultivo o no tienes permisos para verlo`
         },
         { status: 404 }
       );
@@ -81,25 +85,22 @@ export const GET = withUserDB(async (request, userEmail) => {
 /**
  * PATCH /api/cultivos/[id]
  *
- * Actualiza un cultivo existente parcialmente en la base de datos del usuario
+ * Actualiza un cultivo existente verificando la propiedad del usuario
  */
 export const PATCH = withUserDB(async (request, userEmail) => {
   try {
-    console.log('🔍 PATCH /api/cultivos/[id] - Iniciando actualización...');
-    console.log('👤 Usuario:', userEmail);
+    // console.log('🔍 PATCH /api/cultivos/[id] - Iniciando actualización...');
+    // console.log('👤 Usuario:', userEmail);
 
-    // Obtener la conexión específica del usuario
+    // Obtener la conexión a la base de datos principal
     const connection = await connectToUserDB(userEmail);
-    console.log('🔗 Conexión DB obtenida:', connection.readyState);
 
     // Extraer ID desde la URL
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
-    console.log('🆔 ID del cultivo:', id);
 
     // Validar que se proporcione un ID
     if (!id) {
-      console.error('❌ Error: ID de cultivo no proporcionado');
       return NextResponse.json(
         {
           success: false,
@@ -112,7 +113,6 @@ export const PATCH = withUserDB(async (request, userEmail) => {
 
     // Validar formato del ID
     if (!/^[a-f\d]{24}$/i.test(id)) {
-      console.error('❌ Error: ID de cultivo inválido:', id);
       return NextResponse.json(
         {
           success: false,
@@ -125,23 +125,9 @@ export const PATCH = withUserDB(async (request, userEmail) => {
 
     // Leer datos del request
     const updates = await request.json();
-    console.log('📝 Datos a actualizar:', Object.keys(updates));
 
     // Obtener el modelo específico para esta conexión
     const CultivoModel = getCultivoModel(connection) as any;
-
-    // Validar que el modelo se haya obtenido correctamente
-    if (!CultivoModel) {
-      console.error('❌ Error: No se pudo obtener el modelo Cultivo');
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Error de configuración',
-          message: 'No se pudo inicializar el modelo de cultivo'
-        },
-        { status: 500 }
-      );
-    }
 
     // Agregar auditoría automáticamente
     const updatesConAuditoria = {
@@ -150,11 +136,9 @@ export const PATCH = withUserDB(async (request, userEmail) => {
       editadoPor: userEmail
     };
 
-    console.log('🔄 Ejecutando findByIdAndUpdate...');
-
-    // Actualizar el cultivo en MongoDB
-    const cultivoActualizado = await CultivoModel.findByIdAndUpdate(
-      id,
+    // Actualizar el cultivo en MongoDB SOLO si pertenece al usuario
+    const cultivoActualizado = await CultivoModel.findOneAndUpdate(
+      { _id: id, creadoPor: userEmail }, // 🔒 FILTRO DE SEGURIDAD
       updatesConAuditoria,
       {
         new: true,
@@ -163,18 +147,15 @@ export const PATCH = withUserDB(async (request, userEmail) => {
     ).lean();
 
     if (!cultivoActualizado) {
-      console.error('❌ Error: Cultivo no encontrado con ID:', id);
       return NextResponse.json(
         {
           success: false,
-          error: 'Cultivo no encontrado',
-          message: `No se encontró el cultivo con ID: ${id}`
+          error: 'Cultivo no encontrado o no autorizado',
+          message: `No se encontró el cultivo o no tienes permisos para modificarlo`
         },
         { status: 404 }
       );
     }
-
-    console.log('✅ Cultivo actualizado exitosamente:', cultivoActualizado._id);
 
     // Devolver el cultivo actualizado
     return NextResponse.json({
@@ -188,15 +169,6 @@ export const PATCH = withUserDB(async (request, userEmail) => {
 
   } catch (error) {
     console.error('💥 Error en PATCH /api/cultivos/[id]:', error);
-    
-    // Log detallado del error
-    if (error instanceof Error) {
-      console.error('📋 Detalles del error:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
-    }
 
     return NextResponse.json(
       {
@@ -213,11 +185,11 @@ export const PATCH = withUserDB(async (request, userEmail) => {
 /**
  * DELETE /api/cultivos/[id]
  *
- * Elimina un cultivo existente de la base de datos del usuario
+ * Elimina un cultivo existente verificando la propiedad del usuario
  */
 export const DELETE = withUserDB(async (request, userEmail) => {
   try {
-    // Obtener la conexión específica del usuario
+    // Obtener la conexión a la base de datos principal
     const connection = await connectToUserDB(userEmail);
 
     // Extraer ID desde la URL
@@ -239,15 +211,18 @@ export const DELETE = withUserDB(async (request, userEmail) => {
     // Obtener el modelo específico para esta conexión
     const CultivoModel = getCultivoModel(connection) as any;
 
-    // Buscar y eliminar el cultivo
-    const cultivoEliminado = await CultivoModel.findByIdAndDelete(id).lean();
+    // Buscar y eliminar el cultivo SOLO si pertenece al usuario
+    const cultivoEliminado = await CultivoModel.findOneAndDelete({
+      _id: id,
+      creadoPor: userEmail // 🔒 FILTRO DE SEGURIDAD
+    }).lean();
 
     if (!cultivoEliminado) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Cultivo no encontrado',
-          message: `No se encontró el cultivo con ID: ${id}`
+          error: 'Cultivo no encontrado o no autorizado',
+          message: `No se encontró el cultivo o no tienes permisos para eliminarlo`
         },
         { status: 404 }
       );

@@ -1,0 +1,1428 @@
+
+> canopia@0.1.0 dev
+> next dev
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+  ▲ Next.js 14.2.33
+  - Local:        http://localhost:3000
+  - Environments: .env.local, .env
+
+ ✓ Starting...
+> [PWA] PWA support is disabled
+> [PWA] PWA support is disabled
+ ✓ Ready in 1695ms
+ ✓ Compiled /src/middleware in 133ms (73 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos in 266ms (143 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔓 MODO DEBUG: Usando token de bypass
+🚀 Estableciendo nueva conexión a DB: canopia_test...
+✅ Modelos registrados en instancia específica de Mongoose
+✅ Conexión a DB canopia_test establecida exitosamente
+📍 Base de datos: canopia_test
+🌐 Host: localhost:27017
+✅ Modelos registrados en instancia específica de Mongoose
+🔄 Reutilizando conexión existente a DB: canopia_test
+ POST /api/cultivos 200 in 480ms
+ ✓ Compiled in 60ms (73 modules)
+ ✓ Compiled in 68ms (143 modules)
+ ✓ Compiled in 35ms (143 modules)
+ ✓ Compiled in 8ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ○ Compiling /cultivo ...
+ ✓ Compiled /cultivo in 1614ms (598 modules)
+ GET /cultivo 200 in 1856ms
+ ✓ Compiled /_not-found in 274ms (569 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 152ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos in 80ms (406 modules)
+ ✓ Compiled (416 modules)
+ POST /api/verify-token 200 in 168ms
+ POST /api/verify-token 200 in 169ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+❌ withUserDB: Error validando JWT: JsonWebTokenError: invalid signature
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:171:19)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:470:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:473:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/cultivos?_sort=nombre&_order=asc 401 in 182ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+❌ withUserDB: Error validando JWT: JsonWebTokenError: invalid signature
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:171:19)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:470:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:473:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/cultivos?_sort=nombre&_order=asc 401 in 18ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo 200 in 67ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 38ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+❌ withUserDB: Error validando JWT: JsonWebTokenError: invalid signature
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:171:19)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:470:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:473:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/cultivos?_sort=nombre&_order=asc 401 in 6ms
+ POST /api/verify-token 200 in 10ms
+ POST /api/verify-token 200 in 10ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+❌ withUserDB: Error validando JWT: JsonWebTokenError: invalid signature
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:171:19)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:470:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:473:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/cultivos?_sort=nombre&_order=asc 401 in 4ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+❌ withUserDB: Error validando JWT: JsonWebTokenError: invalid signature
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:171:19)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:470:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:473:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ POST /api/cultivos 401 in 14ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /login in 234ms (692 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+❌ withUserDB: Error validando JWT: JsonWebTokenError: invalid signature
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:171:19)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:470:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:473:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/cultivos?_sort=nombre&_order=asc 401 in 267ms
+ ✓ Compiled /api/login in 84ms (422 modules)
+🔐 Login request recibido
+🚀 Estableciendo nueva conexión global a MongoDB...
+✅ Conexión global a MongoDB establecida exitosamente
+📍 Base de datos: canopia
+🌐 Host: localhost:27017
+📧 Login attempt para: test@canopia.app | Redirect URL: /cultivo
+✅ Token JWT generado exitosamente
+🔄 Preparando respuesta con redirectTo: /cultivo
+🍪 Cookie establecida con opciones: {
+  httpOnly: true,
+  secure: false,
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 604800
+}
+ POST /api/login 200 in 175ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo 200 in 47ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 33ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+❌ withUserDB: Error validando JWT: JsonWebTokenError: invalid signature
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:171:19)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:470:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:473:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/cultivos?_sort=nombre&_order=asc 401 in 13ms
+ POST /api/verify-token 200 in 19ms
+ POST /api/verify-token 200 in 19ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+❌ withUserDB: Error validando JWT: JsonWebTokenError: invalid signature
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:171:19)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:470:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:473:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/cultivos?_sort=nombre&_order=asc 401 in 4ms
+ ✓ Compiled in 161ms (302 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo 200 in 151ms
+ ✓ Compiled /_not-found in 182ms (575 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 231ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/verify-token in 138ms (418 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 0ms (420 modules)
+ ✓ Compiled in 0ms (420 modules)
+ ✓ Compiled in 1ms (420 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 301ms
+ POST /api/verify-token 200 in 340ms
+ POST /api/verify-token 200 in 340ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 86ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 10ms
+ GET /api/cultivos 200 in 117ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /cultivo/[id] in 402ms (740 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos/[id] in 57ms (447 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 133ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 10ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 471ms
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 474ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/comentarios in 69ms (449 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/comentarios?cultivoId=693e9c0de7204463a3f30eca&_sort=fecha&_order=desc 200 in 107ms
+ GET /api/comentarios?cultivoId=693e9c0de7204463a3f30eca&_sort=fecha&_order=desc 200 in 113ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/tareas in 73ms (451 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/tareas?cultivoId=693e9c0de7204463a3f30eca&_sort=fechaProgramada&_order=asc 200 in 113ms
+ GET /api/tareas?cultivoId=693e9c0de7204463a3f30eca&_sort=fechaProgramada&_order=asc 200 in 117ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Conectando a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión a DB establecida, readyState: 1
+✅ Modelos registrados en instancia específica de Mongoose
+✅ withUserDB: Mongoose instance conectada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/tareas 200 in 38ms
+ GET /api/tareas 200 in 41ms
+ ✓ Compiled in 364ms (307 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 85ms (327 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo/693e9c0de7204463a3f30eca 200 in 179ms
+ ✓ Compiled /_not-found in 283ms (637 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 344ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos/[id] in 113ms (443 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 1ms (447 modules)
+ ✓ Compiled in 0ms (447 modules)
+ ✓ Compiled in 0ms (447 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 363ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 0ms (447 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ POST /api/verify-token 200 in 436ms
+ POST /api/verify-token 200 in 436ms
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 445ms
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 448ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 0ms (447 modules)
+ ✓ Compiled in 1ms (447 modules)
+ ✓ Compiled in 0ms (447 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 275ms
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 169ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 0ms (447 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 228ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 129ms
+ ✓ Compiled in 205ms (307 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 552ms (634 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 241ms (634 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos in 140ms (442 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 203ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 8ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 22ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos/[id] in 55ms (444 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 140ms
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 147ms
+ GET /api/cultivos 200 in 130ms
+ ✓ Compiled / in 283ms (627 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos in 54ms (448 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 108ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 28ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /notas in 163ms (754 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/notas in 104ms (457 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/notas?_sort=date&_order=desc 200 in 146ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 22ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 17ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos/[id] in 135ms (459 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 239ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 243ms
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 243ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 13ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/comentarios in 63ms (461 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /api/comentarios?cultivoId=693e9c0de7204463a3f30eca&_sort=fecha&_order=desc 200 in 99ms
+ GET /api/comentarios?cultivoId=693e9c0de7204463a3f30eca&_sort=fecha&_order=desc 200 in 100ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/tareas in 55ms (463 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /api/tareas?cultivoId=693e9c0de7204463a3f30eca&_sort=fechaProgramada&_order=asc 200 in 83ms
+ GET /api/tareas?cultivoId=693e9c0de7204463a3f30eca&_sort=fechaProgramada&_order=asc 200 in 113ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/tareas 200 in 18ms
+ GET /api/tareas 200 in 20ms
+ ✓ Compiled in 470ms (647 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 109ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 129ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 145ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 383ms (647 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled / in 189ms (340 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo 200 in 82ms
+ ✓ Compiled /_not-found in 228ms (642 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 273ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/verify-token in 141ms (456 modules)
+ ✓ Compiled (458 modules)
+ POST /api/verify-token 200 in 234ms
+ POST /api/verify-token 200 in 233ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 254ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 11ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 8ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos/[id] in 60ms (460 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 142ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 149ms
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 150ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 11ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/comentarios in 63ms (462 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/comentarios?cultivoId=693e9c0de7204463a3f30eca&_sort=fecha&_order=desc 200 in 95ms
+ GET /api/comentarios?cultivoId=693e9c0de7204463a3f30eca&_sort=fecha&_order=desc 200 in 95ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/tareas in 70ms (464 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/tareas?cultivoId=693e9c0de7204463a3f30eca&_sort=fechaProgramada&_order=asc 200 in 97ms
+ GET /api/tareas?cultivoId=693e9c0de7204463a3f30eca&_sort=fechaProgramada&_order=asc 200 in 98ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/tareas 200 in 11ms
+ GET /api/tareas 200 in 12ms
+ ✓ Compiled in 388ms (653 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 226ms (653 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 205ms (653 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 163ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 121ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 195ms (653 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/login in 201ms (455 modules)
+🔐 Login request recibido
+🔄 Reutilizando conexión global a MongoDB
+📧 Login attempt para: test@canopia.app | Redirect URL: /cultivo
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+✅ Token JWT generado exitosamente
+🔄 Preparando respuesta con redirectTo: /cultivo
+🍪 Cookie establecida con opciones: {
+  httpOnly: true,
+  secure: false,
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 604800
+}
+ POST /api/login 200 in 363ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo 200 in 64ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/verify-token in 42ms (457 modules)
+ ✓ Compiled (459 modules)
+ POST /api/verify-token 200 in 110ms
+ POST /api/verify-token 200 in 110ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 129ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 9ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos 200 in 6ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos/[id] in 139ms (461 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 219ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 225ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔑 withUserDB: Token encontrado, validando...
+✅ withUserDB: Token válido para usuario: test@canopia.app
+🔗 withUserDB: Asegurando conexión a DB del usuario...
+🔄 Reutilizando conexión existente a DB: canopia_test
+✅ withUserDB: Conexión asegurada, ejecutando handler...
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 13ms
+ GET /api/cultivos 200 in 16ms
+ ✓ Compiled in 81ms (461 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/tareas in 147ms (455 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /api/tareas?cultivoId=693e9c0de7204463a3f30eca&_sort=fechaProgramada&_order=asc 200 in 212ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/tareas 200 in 53ms
+ GET /api/tareas?cultivoId=693e9c0de7204463a3f30eca&_sort=fechaProgramada&_order=asc 200 in 55ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/tareas 200 in 22ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/comentarios in 50ms (457 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/comentarios?cultivoId=693e9c0de7204463a3f30eca&_sort=fecha&_order=desc 200 in 81ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/comentarios?cultivoId=693e9c0de7204463a3f30eca&_sort=fecha&_order=desc 200 in 42ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo/693e9c0de7204463a3f30eca 200 in 93ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos/[id] in 107ms (455 modules)
+ ✓ Compiled (459 modules)
+ POST /api/verify-token 200 in 213ms
+ POST /api/verify-token 200 in 213ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 236ms
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 235ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 32ms
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 41ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔍 withUserDB: Iniciando validación de autenticación...
+🔄 Reutilizando conexión existente a DB: canopia_test
+🔄 Reutilizando conexión existente a DB: canopia_test
+ GET /api/cultivos/693e9c0de7204463a3f30eca 200 in 11ms
+ GET /api/cultivos 200 in 12ms
+ ✓ Compiled in 178ms (340 modules)
+ ✓ Compiled in 165ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 161ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 108ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 101ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 144ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled in 91ms (313 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo/693e9c0de7204463a3f30eca 200 in 112ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos/[id] in 161ms (447 modules)
+ ✓ Compiled (459 modules)
+ POST /api/verify-token 200 in 477ms
+ POST /api/verify-token 200 in 477ms
+🔍 withUserDB: Iniciando validación de autenticación...
+🚀 Estableciendo nueva conexión a DB Principal: canopia_main...
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 501ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+✅ Conexión a DB Principal canopia_main establecida exitosamente
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /api/cultivos/693e9c0de7204463a3f30eca 404 in 539ms
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 53ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos/693e9c0de7204463a3f30eca 404 in 32ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 39ms
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos/693e9c0de7204463a3f30eca 404 in 50ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 11ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 8ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 27ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 16ms
+ ✓ Compiled in 237ms (313 modules)

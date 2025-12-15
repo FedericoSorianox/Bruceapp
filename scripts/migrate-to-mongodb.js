@@ -25,7 +25,7 @@ require('dotenv').config({ path: '.env.local' });
 // Importar modelos (necesitamos simular la estructura aquí)
 const connectDB = async () => {
   try {
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/bruceapp';
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/canopia';
     await mongoose.connect(uri);
     console.log('✅ Conectado a MongoDB para migración');
   } catch (error) {
@@ -56,7 +56,7 @@ async function migrarDatos() {
 
   // Leer datos de db.json
   const database = readDatabase();
-  
+
   // Estadísticas de migración
   const stats = {
     cultivos: 0,
@@ -77,7 +77,7 @@ async function migrarDatos() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer fake-admin@bruce.app' // Token de admin para migración
+              'Authorization': 'Bearer fake-admin@canopia.app' // Token de admin para migración
             },
             body: JSON.stringify({
               ...cultivo,
@@ -111,7 +111,7 @@ async function migrarDatos() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer fake-admin@bruce.app'
+              'Authorization': 'Bearer fake-admin@canopia.app'
             },
             body: JSON.stringify({
               ...tarea,
@@ -220,7 +220,7 @@ async function migrarDatos() {
   console.log(`✅ Notas migradas: ${stats.notas}`);
   console.log(`✅ Comentarios migrados: ${stats.comentarios}`);
   console.log(`✅ Total de registros: ${stats.cultivos + stats.tareas + stats.notas + stats.comentarios}`);
-  
+
   if (stats.errores.length > 0) {
     console.log(`\n❌ Errores encontrados: ${stats.errores.length}`);
     stats.errores.forEach((error, index) => {

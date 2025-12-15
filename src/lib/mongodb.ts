@@ -13,6 +13,7 @@
  */
 
 import mongoose from 'mongoose';
+import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import Cultivo from '@/lib/models/Cultivo';
 import Tarea from '@/lib/models/Tarea';
@@ -40,40 +41,20 @@ if (!cached) {
 }
 
 /**
- * Genera el nombre de la base de datos para un admin específico
- * @param adminEmail - Email del admin
- * @returns Nombre de la base de datos
+ * Genera el nombre de la base de datos global
+ * @returns Nombre de la base de datos principal
  */
-export function getDatabaseName(adminEmail: string): string {
-  // Extraer solo la parte antes del @ y normalizar
-  const localPart = adminEmail.split('@')[0];
-
-  // Normalizar: convertir a minúsculas y reemplazar caracteres especiales
-  const normalized = localPart.toLowerCase()
-    .replace(/[^a-z0-9]/g, '_')  // Reemplazar caracteres no alfanuméricos con _
-    .replace(/_{2,}/g, '_')      // Evitar múltiples _ consecutivos
-    .replace(/^_|_$/g, '');      // Remover _ al inicio y final
-
-  // MongoDB limita nombres de BD a 38 bytes, agregar prefijo conservador
-  const dbName = `bruce_${normalized}`;
-
-  // Si aún es muy largo, truncar pero mantener unicidad
-  if (dbName.length > 38) {
-    // Tomar primeros 30 caracteres + timestamp de 7 dígitos para unicidad
-    const timestamp = Date.now().toString().slice(-7);
-    return `bruce_${normalized.substring(0, 23)}_${timestamp}`;
-  }
-
-  return dbName;
+export function getDatabaseName(_adminEmail?: string): string {
+  // Retornar siempre el nombre de la base de datos principal
+  return 'canopia_main';
 }
 
 /**
  * Registra todos los modelos de la aplicación en una instancia de Mongoose
- * Necesario para multi-database donde cada DB tiene su propia instancia de Mongoose
  * @param mongooseInstance - Instancia de Mongoose donde registrar los modelos
  */
 export function registerModels(mongooseInstance: mongoose.Mongoose): void {
-  // Registrar cada modelo en la instancia específica (no global)
+  // Registrar cada modelo en la instancia específica
   if (!mongooseInstance.models.Cultivo) {
     mongooseInstance.model('Cultivo', Cultivo.schema);
   }
@@ -90,39 +71,30 @@ export function registerModels(mongooseInstance: mongoose.Mongoose): void {
     mongooseInstance.model('Usuario', Usuario.schema);
   }
 
-  console.log('✅ Modelos registrados en instancia específica de Mongoose');
+  // console.log('✅ Modelos registrados en instancia de Mongoose');
 }
 
 /**
- * Crea un esquema específico para una conexión con colección única
- * @param baseSchema - Esquema base
- * @param collectionName - Nombre de la colección
- * @param connection - Conexión de MongoDB
- * @returns Modelo específico para esta conexión
+ * Crea un esquema específico para conexión (Wrapper para compatibilidad)
+ * En la nueva arquitectura de BD única, esto solo devuelve el modelo estándar
  */
 function createModelForConnection<T extends mongoose.Document = mongoose.Document>(
   baseSchema: mongoose.Schema<T>,
   collectionName: string,
   connection: mongoose.Connection
 ): mongoose.Model<T> {
-  const modelName = `${collectionName}_${connection.name}`;
-  if (connection.models[modelName]) {
-    return connection.models[modelName] as mongoose.Model<T>;
+  // Simplemente devolver el modelo asociado a la conexión
+  // Si ya existe, devolverlo
+  if (connection.models[collectionName]) {
+    return connection.models[collectionName] as mongoose.Model<T>;
   }
 
-  // Crear una copia del esquema para evitar modificar el original
-  const schemaCopy = baseSchema.clone();
-
-  // Usar el nombre de colección estándar (cada usuario tiene su propia DB, no necesitamos subcolecciones)
-  schemaCopy.set('collection', collectionName.toLowerCase());
-
-  return connection.model<T>(modelName, schemaCopy);
+  // Si no, crearlo
+  return connection.model<T>(collectionName, baseSchema);
 }
 
 /**
  * Obtiene el modelo Cultivo para una conexión específica
- * @param connection - Conexión de MongoDB
- * @returns Modelo Cultivo específico para esta conexión
  */
 export function getCultivoModel(connection: mongoose.Connection) {
   return createModelForConnection(Cultivo.schema, 'Cultivo', connection);
@@ -130,8 +102,6 @@ export function getCultivoModel(connection: mongoose.Connection) {
 
 /**
  * Obtiene el modelo Tarea para una conexión específica
- * @param connection - Conexión de MongoDB
- * @returns Modelo Tarea específico para esta conexión
  */
 export function getTareaModel(connection: mongoose.Connection) {
   return createModelForConnection(Tarea.schema, 'Tarea', connection);
@@ -139,8 +109,6 @@ export function getTareaModel(connection: mongoose.Connection) {
 
 /**
  * Obtiene el modelo Nota para una conexión específica
- * @param connection - Conexión de MongoDB
- * @returns Modelo Nota específico para esta conexión
  */
 export function getNotaModel(connection: mongoose.Connection) {
   return createModelForConnection(Nota.schema, 'Nota', connection);
@@ -148,8 +116,6 @@ export function getNotaModel(connection: mongoose.Connection) {
 
 /**
  * Obtiene el modelo Comentario para una conexión específica
- * @param connection - Conexión de MongoDB
- * @returns Modelo Comentario específico para esta conexión
  */
 export function getComentarioModel(connection: mongoose.Connection) {
   return createModelForConnection(Comentario.schema, 'Comentario', connection);
@@ -157,19 +123,14 @@ export function getComentarioModel(connection: mongoose.Connection) {
 
 /**
  * Obtiene el modelo Usuario para una conexión específica
- * @param connection - Conexión de MongoDB
- * @returns Modelo Usuario específico para esta conexión
  */
 export function getUsuarioModel(connection: mongoose.Connection) {
   return createModelForConnection(Usuario.schema, 'Usuario', connection);
 }
 
 /**
- * Establece conexión a la base de datos específica de un admin
- *
- * @param adminEmail - Email del admin para determinar la base de datos
- * @returns {Promise<mongoose.Connection>} - Conexión activa a la DB del admin
- * @throws {Error} - Si no se puede conectar a la base de datos
+ * Establece conexión a la base de datos principal
+ * Mantiene la firma (adminEmail) por compatibilidad pero conecta a la DB global
  */
 export async function connectToUserDB(adminEmail: string): Promise<mongoose.Connection> {
   // Asegurar que cached esté inicializado
@@ -180,60 +141,61 @@ export async function connectToUserDB(adminEmail: string): Promise<mongoose.Conn
     };
   }
 
-  const dbName = getDatabaseName(adminEmail);
+  // Usar siempre la DB principal
+  const dbName = getDatabaseName();
   const cacheKey = `db_${dbName}`;
 
   // Si ya existe una conexión activa para esta DB, retornarla
   const cachedConnection = cached.connections.get(cacheKey);
   if (cachedConnection && cachedConnection.conn) {
-    console.log(`🔄 Reutilizando conexión existente a DB: ${dbName}`);
+    // console.log(`🔄 Reutilizando conexión existente a DB Principal: ${dbName}`);
     return cachedConnection.conn;
   }
 
   // Verificar que existe la URL de conexión base
   if (!process.env.MONGODB_URI) {
-    // En producción, devolver conexión mock para evitar fallos en build
     if (process.env.NODE_ENV === 'production') {
       console.warn('⚠️ MONGODB_URI no definida en producción - funciones de DB estarán limitadas');
       return { readyState: 99 } as mongoose.Connection;
     }
     throw new Error(
       '❌ MONGODB_URI no está definida en las variables de entorno.\n' +
-      'Crea un archivo .env.local con: MONGODB_URI=mongodb://localhost:27017/bruceapp'
+      'Crea un archivo .env.local con: MONGODB_URI=mongodb://localhost:27017/canopia'
     );
   }
 
-  // Crear URI específica para la base de datos del admin
+  // Crear URI específica para la base de datos principal
+  // Reemplazar el nombre de la DB en la URI base con el nombre fijo
   const baseUri = process.env.MONGODB_URI.replace(/\/[^/]*$/, `/${dbName}`);
 
   // Si no hay promesa de conexión para esta DB, crear una nueva
   if (!cachedConnection || !cachedConnection.promise) {
-    console.log(`🚀 Estableciendo nueva conexión a DB: ${dbName}...`);
+    console.log(`🚀 Estableciendo nueva conexión a DB Principal: ${dbName}...`);
 
-    // Configuración de opciones de Mongoose para producción
+    // Configuración de opciones de Mongoose
     const opts = {
-      bufferCommands: false,           // Desactivar buffer de comandos en serverless
-      maxPoolSize: 5,                  // Máximo 5 conexiones por DB (más conservador)
-      serverSelectionTimeoutMS: 5000,  // Timeout de selección de servidor: 5s
-      socketTimeoutMS: 45000,          // Timeout de socket: 45s
-      family: 4,                       // Usar IPv4 preferentemente
-      retryWrites: true,               // Reintentar escrituras automáticamente
-      w: 1,                           // Confirmación de escritura
+      bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family: 4,
+      retryWrites: true,
+      w: 1,
     };
 
-    // Crear nueva instancia de Mongoose para esta DB
+    // Crear nueva instancia de Mongoose para aislar modelos si fuera necesario,
+    // aunque en single-db podríamos usar el mongoose global. 
+    // Mantenemos instancia separada para consistencia con el código existente.
     const mongooseInstance = new mongoose.Mongoose();
 
-    // Registrar todos los modelos en la nueva instancia
+    // Registrar todos los modelos
     registerModels(mongooseInstance);
 
     const promise = mongooseInstance.connect(baseUri, opts)
       .then(() => {
-        console.log(`✅ Conexión a DB ${dbName} establecida exitosamente`);
-        console.log(`📍 Base de datos: ${mongooseInstance.connection.name}`);
-        console.log(`🌐 Host: ${mongooseInstance.connection.host}:${mongooseInstance.connection.port}`);
+        console.log(`✅ Conexión a DB Principal ${dbName} establecida exitosamente`);
 
-        // Configurar listeners para eventos de conexión
+        // Listeners
         mongooseInstance.connection.on('connected', () => {
           console.log(`🔗 Conectado a DB: ${dbName}`);
         });
@@ -242,15 +204,10 @@ export async function connectToUserDB(adminEmail: string): Promise<mongoose.Conn
           console.error(`❌ Error de conexión DB ${dbName}:`, err);
         });
 
-        mongooseInstance.connection.on('disconnected', () => {
-          console.log(`🔌 Desconectado de DB: ${dbName}`);
-        });
-
         return mongooseInstance.connection;
       })
       .catch((error) => {
         console.error(`💥 Error al conectar a DB ${dbName}:`, error);
-        // Reset de la promesa en caso de error
         const connCache = cached?.connections.get(cacheKey);
         if (connCache) {
           connCache.promise = null;
@@ -266,7 +223,6 @@ export async function connectToUserDB(adminEmail: string): Promise<mongoose.Conn
   }
 
   try {
-    // Esperar a que se resuelva la promesa de conexión
     const connCache = cached.connections.get(cacheKey);
     if (!connCache || !connCache.promise) {
       throw new Error(`Error interno: conexión no encontrada para ${cacheKey}`);
@@ -274,7 +230,6 @@ export async function connectToUserDB(adminEmail: string): Promise<mongoose.Conn
     connCache.conn = await connCache.promise;
     return connCache.conn;
   } catch (error) {
-    // Reset en caso de error
     const connCache = cached.connections.get(cacheKey);
     if (connCache) {
       connCache.promise = null;
@@ -311,7 +266,7 @@ async function connectDB(): Promise<mongoose.Connection> {
     }
     throw new Error(
       '❌ MONGODB_URI no está definida en las variables de entorno.\n' +
-      'Crea un archivo .env.local con: MONGODB_URI=mongodb://localhost:27017/bruceapp'
+      'Crea un archivo .env.local con: MONGODB_URI=mongodb://localhost:27017/canopia'
     );
   }
 
@@ -512,12 +467,12 @@ function getConnectionStatusForConn(connection: mongoose.Connection): string {
  * @returns Handler con verificación de conexión y usuario
  */
 export function withUserDB<T = Response>(
-  handler: (req: Request, userEmail: string, mongooseInstance?: mongoose.Mongoose, context?: unknown) => Promise<T>
+  handler: (req: Request, userEmail: string, context?: unknown) => Promise<T>
 ) {
   return async (req: Request, context?: unknown): Promise<T> => {
     try {
       console.log('🔍 withUserDB: Iniciando validación de autenticación...');
-      
+
       // 🔍 MEJORADO: Extraer token de Authorization header, cookies O header del middleware
       let token = req.headers.get('authorization')?.replace('Bearer ', '') || null;
 
@@ -542,16 +497,16 @@ export function withUserDB<T = Response>(
       }
 
       if (!token) {
-        console.error('❌ withUserDB: No se encontró token de autenticación');
+        // console.error('❌ withUserDB: No se encontró token de autenticación');
         throw new Error('Token de autenticación requerido');
       }
 
-      console.log('🔑 withUserDB: Token encontrado, validando...');
+      // console.log('🔑 withUserDB: Token encontrado, validando...');
 
       // Verificar token JWT
       const JWT_SECRET = process.env.JWT_SECRET || 'bruce-app-development-secret-key-2024';
       let decoded: { email: string; role: string };
-      
+
       try {
         decoded = jwt.verify(token, JWT_SECRET) as { email: string; role: string };
       } catch (jwtError) {
@@ -564,48 +519,43 @@ export function withUserDB<T = Response>(
         throw new Error('Token inválido - email faltante');
       }
 
-      console.log('✅ withUserDB: Token válido para usuario:', decoded.email);
+      // console.log('✅ withUserDB: Token válido para usuario:', decoded.email);
 
-      // Conectar a la DB del usuario
-      console.log('🔗 withUserDB: Conectando a DB del usuario...');
+      // Conectar a la DB del usuario (solo para asegurar que existe y está conectado)
+      // La conexión se cachea internamente, así que esto es rápido si ya está conectada
+      // console.log('🔗 withUserDB: Asegurando conexión a DB del usuario...');
       const userConnection = await connectToUserDB(decoded.email);
-      
+
       if (userConnection.readyState === 99) {
         console.error('❌ withUserDB: DB no disponible (readyState: 99)');
         throw new Error('Base de datos no disponible temporalmente');
       }
 
-      console.log('✅ withUserDB: Conexión a DB establecida, readyState:', userConnection.readyState);
+      // console.log('✅ withUserDB: Conexión asegurada, ejecutando handler...');
 
-      // Crear nueva instancia de Mongoose y registrar modelos en ella
-      const mongooseInstance = new mongoose.Mongoose();
-      registerModels(mongooseInstance);
-
-      // Conectar la instancia a la conexión del usuario
-      // Si la conexión ya está establecida (readyState === 1), no necesitamos reconectar
-      // Si no está establecida, usar el nombre de la base de datos
-      const dbName = getDatabaseName(decoded.email);
-      const mongoUri = process.env.MONGODB_URI?.replace(/\/[^/]*$/, `/${dbName}`) || `mongodb://localhost:27017/${dbName}`;
-      
-      if (userConnection.readyState !== 1) {
-        await mongooseInstance.connect(mongoUri);
-      }
-
-      console.log('✅ withUserDB: Mongoose instance conectada, ejecutando handler...');
-
-      return await handler(req, decoded.email, mongooseInstance, context);
+      // Ejecutar handler entregando solo request y email.
+      // El handler puede llamar a connectToUserDB(email) nuevamente para obtener la conexión
+      // de manera síncrona/rápida gracias al cache.
+      return await handler(req, decoded.email, context);
     } catch (error) {
       console.error('💥 withUserDB: Error en middleware:', error);
-      
-      // Log detallado del error
-      if (error instanceof Error) {
-        console.error('📋 withUserDB - Detalles del error:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
+
+      // Manejo específico de errores de autenticación
+      if (error instanceof Error && (
+        error.message === 'Token de autenticación requerido' ||
+        error.message === 'Token inválido o expirado' ||
+        error.message === 'Token inválido - email faltante'
+      )) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'No autorizado',
+            message: 'Tu sesión ha expirado o no es válida. Por favor inicia sesión nuevamente.'
+          },
+          { status: 401 }
+        ) as unknown as T;
       }
-      
+
       throw error;
     }
   };

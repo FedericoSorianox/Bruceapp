@@ -86,7 +86,7 @@ type ComentarioFixture = {
 };
 
 // Tipo genérico para cualquier fixture con _id opcional
-type FixtureWithOptionalId = { _id?: string; [key: string]: unknown };
+type FixtureWithOptionalId = { _id?: string;[key: string]: unknown };
 
 /**
  * Datos de usuario que se insertan antes de cada test
@@ -94,7 +94,7 @@ type FixtureWithOptionalId = { _id?: string; [key: string]: unknown };
 export const userFixtures: UsuarioFixture[] = [
   {
     _id: 'test-user-1',
-    email: 'test@bruceapp.com',
+    email: 'test@canopia.app',
     password: '$2b$10$hashedPassword123', // Password hasheado para 'password123'
     name: 'Usuario Test',
     role: 'user',
@@ -104,7 +104,7 @@ export const userFixtures: UsuarioFixture[] = [
   },
   {
     _id: 'admin-user-1',
-    email: 'admin@bruceapp.com',
+    email: 'admin@canopia.app',
     password: '$2b$10$hashedAdminPassword123', // Password hasheado para 'admin123'
     name: 'Admin Test',
     role: 'admin',

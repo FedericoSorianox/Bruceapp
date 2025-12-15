@@ -65,11 +65,11 @@ function puedeEditarRecursos(user: { email: string; role: 'admin' | 'user' } | n
 }
 
 /**
- * GET /api/tareas - Lista tareas desde la base de datos específica del usuario
+ * GET /api/tareas - Lista tareas desde la base de datos compartida filtrando por usuario
  */
 export const GET = withUserDB(async (request: Request, userEmail: string) => {
   try {
-    // Obtener la conexión específica del usuario
+    // Obtener la conexión a la base de datos principal
     const connection = await connectToUserDB(userEmail);
 
     const url = new URL(request.url);
@@ -81,8 +81,11 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     const page = parseInt(url.searchParams.get('_page') || '1');
     const limit = parseInt(url.searchParams.get('_limit') || '50');
 
-    // Construir query de MongoDB con filtros base
-    let query: any = {};
+    // Construir query de MongoDB con filtros base Y filtro de usuario
+    let query: any = {
+      creadoPor: userEmail // 🔒 FILTRO DE SEGURIDAD
+    };
+
     if (cultivoId) query.cultivoId = cultivoId;
     if (tipo) query.tipo = tipo;
     if (estado) query.estado = estado;
@@ -95,7 +98,7 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     // Obtener el modelo específico para esta conexión
     const TareaModel = getTareaModel(connection) as Model<TareaDocument>;
 
-    // Ejecutar consulta con paginación (ya estamos en la DB del usuario)
+    // Ejecutar consulta con paginación
     const tareas = await TareaModel.find(query)
       .sort({ fechaProgramada: 1, horaProgramada: 1 })
       .skip((page - 1) * limit)
@@ -122,11 +125,11 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
 });
 
 /**
- * POST /api/tareas - Crea nueva tarea en la base de datos del usuario
+ * POST /api/tareas - Crea nueva tarea en la base de datos compartida
  */
 export const POST = withUserDB(async (request: Request, userEmail: string) => {
   try {
-    // Obtener la conexión específica del usuario
+    // Obtener la conexión a la base de datos principal
     const connection = await connectToUserDB(userEmail);
 
     // Leer datos y agregar auditoría
@@ -135,7 +138,7 @@ export const POST = withUserDB(async (request: Request, userEmail: string) => {
       ...tareaData,
       fechaCreacion: new Date().toISOString().split('T')[0],
       fechaActualizacion: new Date().toISOString().split('T')[0],
-      creadoPor: userEmail,
+      creadoPor: userEmail, // 🔒 Se asigna al usuario actual
       recordatorioEnviado: false
     };
 

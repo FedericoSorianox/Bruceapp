@@ -19,7 +19,7 @@ require('dotenv').config({ path: '.env.local' });
 
 const connectDB = async () => {
   try {
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/bruceapp';
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/canopia';
     await mongoose.connect(uri);
     console.log('✅ Conectado a MongoDB para inicialización');
   } catch (error) {
@@ -42,7 +42,7 @@ const cultivosEjemplo = [
     activo: true,
     notas: "Cultivo experimental con sistema hidropónico NFT. Excelente desarrollo inicial.",
     fechaCreacion: "2024-01-15",
-    creadoPor: "admin@bruce.app"
+    creadoPor: "admin@canopia.app"
   },
   {
     nombre: "Lechugas Variedades Mixtas",
@@ -56,7 +56,7 @@ const cultivosEjemplo = [
     activo: true,
     notas: "Rotación de lechugas para cosecha continua cada 3 semanas.",
     fechaCreacion: "2024-02-01",
-    creadoPor: "admin@bruce.app"
+    creadoPor: "admin@canopia.app"
   },
   {
     nombre: "Albahaca Aromática",
@@ -70,7 +70,7 @@ const cultivosEjemplo = [
     activo: true,
     notas: "Cultivo de hierbas aromáticas para uso culinario y comercial.",
     fechaCreacion: "2024-02-10",
-    creadoPor: "admin@bruce.app",
+    creadoPor: "admin@canopia.app",
     fechaInicioFloracion: "2024-03-01"
   }
 ];
@@ -94,7 +94,7 @@ const tareasEjemplo = [
     recordatorioActivado: true,
     minutosRecordatorio: 15,
     recordatorioEnviado: false,
-    creadoPor: "admin@bruce.app"
+    creadoPor: "admin@canopia.app"
   },
   {
     cultivoId: "", // Se asignará dinámicamente
@@ -113,7 +113,7 @@ const tareasEjemplo = [
     frecuencia: "semanal",
     recordatorioActivado: false,
     recordatorioEnviado: false,
-    creadoPor: "admin@bruce.app",
+    creadoPor: "admin@canopia.app",
     notas: "Aplicado según concentración recomendada. Plantas respondieron bien."
   }
 ];
@@ -146,7 +146,7 @@ const notasEjemplo = [
     category: "investigacion",
     tags: ["germinacion", "protocolo", "semillas", "optimizacion"],
     date: "2024-03-10",
-    author: "admin@bruce.app",
+    author: "admin@canopia.app",
     priority: "alta",
     hasImages: false,
     cropArea: "Área de Propagación"
@@ -170,7 +170,7 @@ Revisión diaria durante una semana para evaluar efectividad del tratamiento.`,
     category: "plagas",
     tags: ["afidos", "lechugas", "control-biologico", "observacion"],
     date: "2024-03-12",
-    author: "admin@bruce.app",
+    author: "admin@canopia.app",
     priority: "media",
     hasImages: false,
     cropArea: "Lechugas - Sector Norte"
@@ -202,7 +202,7 @@ Resultados excelentes en productividad y calidad de fruto.`,
     category: "nutricion",
     tags: ["hidroponia", "tomates", "nutrientes", "receta", "nft"],
     date: "2024-03-08",
-    author: "admin@bruce.app",
+    author: "admin@canopia.app",
     priority: "alta",
     hasImages: false,
     cropArea: "Tomates Hidropónicos"
@@ -226,14 +226,14 @@ async function crearDatosEjemplo() {
     // === CREAR CULTIVOS ===
     console.log('📊 Creando cultivos de ejemplo...');
     const cultivosCreados = [];
-    
+
     for (const cultivo of cultivosEjemplo) {
       try {
         const response = await fetch('http://localhost:3000/api/cultivos', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer fake-admin@bruce.app'
+            'Authorization': 'Bearer fake-admin@canopia.app'
           },
           body: JSON.stringify(cultivo)
         });
@@ -264,7 +264,7 @@ async function crearDatosEjemplo() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer fake-admin@bruce.app'
+              'Authorization': 'Bearer fake-admin@canopia.app'
             },
             body: JSON.stringify(tarea)
           });
@@ -320,7 +320,7 @@ async function crearDatosEjemplo() {
   console.log(`✅ Tareas creadas: ${stats.tareas}`);
   console.log(`✅ Notas creadas: ${stats.notas}`);
   console.log(`✅ Total de registros: ${stats.cultivos + stats.tareas + stats.notas}`);
-  
+
   if (stats.errores.length > 0) {
     console.log(`\n❌ Errores encontrados: ${stats.errores.length}`);
     stats.errores.forEach((error, index) => {

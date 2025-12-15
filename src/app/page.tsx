@@ -12,9 +12,9 @@ import CTA from "./components/CTA";
  * Optimizada para SEO y conversión
  */
 export const metadata: Metadata = {
-  title: "Bruce - Agricultura Inteligente | Plataforma de Gestión de Cultivos",
+  title: "CanopIA - Agricultura Inteligente | Plataforma de Gestión de Cultivos",
   description:
-    "Transforma tu agricultura con Bruce. Plataforma integral para gestión de cultivos, notas agrícolas y optimización de producción con inteligencia artificial y IoT.",
+    "Transforma tu agricultura con CanopIA. Plataforma integral para gestión de cultivos, notas agrícolas y optimización de producción con inteligencia artificial y IoT.",
   keywords: [
     "agricultura inteligente",
     "gestión cultivos",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     "monitoreo cultivos",
   ],
   openGraph: {
-    title: "Bruce - Agricultura Inteligente",
+    title: "CanopIA - Agricultura Inteligente",
     description:
       "La plataforma más avanzada para la gestión moderna de cultivos",
     type: "website",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Página Principal - Homepage de Bruce App
+ * Página Principal - Homepage de CanopIA
  *
  * Arquitectura de componentes:
  * - Hero: Sección de bienvenida e impacto inicial
@@ -46,29 +46,38 @@ export const metadata: Metadata = {
  */
 const HomePage = () => {
   return (
-    <div className="min-h-screen" data-testid="home-page">
-      {/* 
-        Hero Section - Primera impresión
-        Objetivo: Captar atención y comunicar valor propuesto
-        Técnicas: Gradient backgrounds, social proof, CTAs prominentes
-      */}
-      <Hero />
+    <div className="min-h-screen relative overflow-hidden bg-slate-50" data-testid="home-page">
+      {/* Background Ambience */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-green-200/20 blur-[120px]" />
+        <div className="absolute top-[40%] -left-[10%] w-[50%] h-[50%] rounded-full bg-emerald-100/30 blur-[100px]" />
+        <div className="absolute -bottom-[10%] right-[20%] w-[40%] h-[40%] rounded-full bg-blue-100/20 blur-[100px]" />
+      </div>
 
-      {/* 
-        Features Section - Demostración de valor
-        Objetivo: Explicar características y beneficios específicos
-        Técnicas: Grid responsive, iconografía clara, beneficios tangibles
-      */}
-      <Features />
-{/* blog agregado para prueba*/}
-     {/* <Blog /> */}
-      {/* 
-        CTA Section - Conversión final
-        Objetivo: Motivar acción con elementos de urgencia y confianza
-        Técnicas: Social proof, risk reduction, multiple CTAs
-      */}
-      <CTA />
-     {/* <Contador /> Boton de contador agregado para prueba*/ }
+      <div className="relative z-10">
+        {/* 
+          Hero Section - Primera impresión
+          Objetivo: Captar atención y comunicar valor propuesto
+          Técnicas: Gradient backgrounds, social proof, CTAs prominentes
+        */}
+        <Hero />
+
+        {/* 
+          Features Section - Demostración de valor
+          Objetivo: Explicar características y beneficios específicos
+          Técnicas: Grid responsive, iconografía clara, beneficios tangibles
+        */}
+        <Features />
+        {/* blog agregado para prueba*/}
+        {/* <Blog /> */}
+        {/* 
+          CTA Section - Conversión final
+          Objetivo: Motivar acción con elementos de urgencia y confianza
+          Técnicas: Social proof, risk reduction, multiple CTAs
+        */}
+        <CTA />
+        {/* <Contador /> Boton de contador agregado para prueba*/}
+      </div>
     </div>
   );
 };

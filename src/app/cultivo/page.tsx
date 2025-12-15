@@ -73,491 +73,374 @@ const CultivoPage = React.memo(() => {
 
   return (
     <RequireAuth>
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-100" data-testid="cultivo-page">
-        <div className="mx-auto max-w-7xl p-8 space-y-8" data-testid="cultivo-main-wrapper">
-          {/* Hero Section */}
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl shadow-xl p-8 text-white" data-testid="cultivo-hero">
-            <div className="text-center" data-testid="cultivo-hero-center">
+      <main className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-green-100 via-slate-50 to-emerald-50 relative overflow-hidden" data-testid="cultivo-page">
+        {/* Ambient Background Blobs */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+          <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-green-200/30 blur-[100px]" />
+          <div className="absolute top-[20%] -left-[10%] w-[40%] h-[40%] rounded-full bg-emerald-200/20 blur-[100px]" />
+        </div>
+
+        <div className="mx-auto max-w-7xl p-6 sm:p-8 space-y-10 relative z-10" data-testid="cultivo-main-wrapper">
+          {/* Hero Section - Premium Glass */}
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl" data-testid="cultivo-hero">
+            <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-700 opacity-90" />
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+
+            <div className="relative z-10 p-6 sm:p-14 text-center">
               <div
-                className="mb-6 inline-flex items-center rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm"
+                className="mb-8 inline-flex items-center rounded-full bg-white/10 px-5 py-2 text-sm font-medium text-white backdrop-blur-md border border-white/20 shadow-lg"
                 data-testid="cultivo-hero-badge"
               >
-                <span className="mr-2" data-testid="cultivo-hero-badge-emoji">🌱</span>
+                <span className="mr-2 text-lg">✨</span>
                 Gestión Inteligente de Cultivos
               </div>
 
-              <h1 className="mb-6 text-4xl font-bold sm:text-5xl" data-testid="cultivo-page-title">
-                Tu Dashboard de
-                <br />
-                <span className="text-green-200" data-testid="cultivo-page-title-highlight">Cultivos Inteligentes</span>
+              <h1 className="mb-6 text-3xl font-bold sm:text-6xl tracking-tight text-white drop-shadow-sm" data-testid="cultivo-page-title">
+                Tu Dashboard de <br />
+                <span className="text-green-50 bg-clip-text text-transparent bg-gradient-to-r from-white to-green-100">
+                  Cultivos Inteligentes
+                </span>
               </h1>
 
-              <p className="mx-auto mb-8 max-w-3xl text-xl text-green-100" data-testid="cultivo-hero-desc">
-                Monitorea, planifica y optimiza todos tus cultivos desde una sola plataforma.
+              <p className="mx-auto mb-10 max-w-2xl text-lg sm:text-xl text-green-50 font-light leading-relaxed">
+                Monitorea, planifica y optimiza tu producción agrícola con el poder de la inteligencia artificial.
               </p>
 
-              {/* Estadísticas rápidas */}
+              {/* Estadísticas rápidas - Floating Cards */}
               {estadisticas && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8" data-testid="cultivo-hero-stats">
-                  <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm" data-testid="cultivo-hero-stat-total">
-                    <div className="text-2xl font-bold" data-testid="cultivo-hero-stat-total-n">{estadisticas.total}</div>
-                    <div className="text-sm text-green-200" data-testid="cultivo-hero-stat-total-label">Total Cultivos</div>
-                  </div>
-                  <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm" data-testid="cultivo-hero-stat-activos">
-                    <div className="text-2xl font-bold" data-testid="cultivo-hero-stat-activos-n">{estadisticas.activos}</div>
-                    <div className="text-sm text-green-200" data-testid="cultivo-hero-stat-activos-label">Activos</div>
-                  </div>
-                  <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm" data-testid="cultivo-hero-stat-m2">
-                    <div className="text-2xl font-bold" data-testid="cultivo-hero-stat-m2-n">{estadisticas.totalMetrosCuadrados.toFixed(1)}</div>
-                    <div className="text-sm text-green-200" data-testid="cultivo-hero-stat-m2-label">m² Totales</div>
-                  </div>
-                  <div className="bg-white/20 rounded-lg p-4 backdrop-blur-sm" data-testid="cultivo-hero-stat-plantas">
-                    <div className="text-2xl font-bold" data-testid="cultivo-hero-stat-plantas-n">{estadisticas.totalPlantas}</div>
-                    <div className="text-sm text-green-200" data-testid="cultivo-hero-stat-plantas-label">Plantas</div>
-                  </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-12 max-w-4xl mx-auto">
+                  {[
+                    { label: 'Total Cultivos', value: estadisticas.total, icon: '📊' },
+                    { label: 'Activos', value: estadisticas.activos, icon: '🟢' },
+                    { label: 'Metros Cuadrados', value: `${estadisticas.totalMetrosCuadrados.toFixed(1)} m²`, icon: '📐' },
+                    { label: 'Total Plantas', value: estadisticas.totalPlantas, icon: '🌱' }
+                  ].map((stat, idx) => (
+                    <div key={`step-stat-${idx}`} className="group bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                      <div className="text-2xl sm:text-3xl font-bold text-white mb-1 group-hover:scale-110 transition-transform origin-left inline-block">
+                        {stat.value}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-medium text-green-100 uppercase tracking-wider flex items-center justify-between">
+                        {stat.label}
+                        <span className="opacity-50">{stat.icon}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Pestañas de navegación */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20" data-testid="cultivo-tabs-container">
-            <div className="flex border-b border-gray-200" data-testid="cultivo-tabs-bar">
-              <button
-                onClick={() => setPestanaActiva('cultivos')}
-                data-testid="cultivo-tab-cultivos"
-                className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-                  pestanaActiva === 'cultivos'
-                    ? 'text-green-600 border-b-2 border-green-600 bg-green-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <span className="mr-2" data-testid="cultivo-tab-cultivos-emoji">🌱</span>
-                Cultivos
-              </button>
-              <button
-                onClick={() => setPestanaActiva('planificacion')}
-                data-testid="cultivo-tab-planificacion"
-                className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-                  pestanaActiva === 'planificacion'
-                    ? 'text-green-600 border-b-2 border-green-600 bg-green-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <span className="mr-2" data-testid="cultivo-tab-planificacion-emoji">📅</span>
-                Planificación
-              </button>
-            </div>
-
-            {/* Contenido de pestañas */}
-            {pestanaActiva === 'cultivos' && (
-              <>
-                {/* Barra de herramientas para cultivos */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6" data-testid="cultivo-toolbar">
-                  <div className="flex flex-wrap items-center gap-4" data-testid="cultivo-toolbar-inner">
-                    {/* Búsqueda */}
-                    <form onSubmit={handleSearch} className="flex gap-3" data-testid="cultivo-search-form">
-                      <div className="relative" data-testid="cultivo-search-input-wrapper">
-                        <input
-                          value={search}
-                          onChange={(e) => setSearch(e.target.value)}
-                          placeholder="Buscar cultivos..."
-                          className="pl-4 pr-10 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 outline-none transition-all duration-200 bg-white/50 backdrop-blur-sm"
-                          data-testid="cultivo-search-input"
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3" data-testid="cultivo-search-icon-wrapper">
-                          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-testid="cultivo-search-icon">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                          </svg>
-                        </div>
-                      </div>
-                      <button
-                        type="submit"
-                        data-testid="cultivo-search-button"
-                        className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 focus:ring-4 focus:ring-green-200"
-                      >
-                        Buscar
-                      </button>
-                    </form>
-
-                    {/* Controles */}
-                    <div className="flex gap-3 ml-auto" data-testid="cultivo-list-controls">
-                      <select
-                        value={filtroActivo}
-                        onChange={(e) => handleFiltroChange(e.target.value as 'todos' | 'activos' | 'inactivos')}
-                        className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200 focus:ring-4 focus:ring-gray-200"
-                        data-testid="cultivo-filtro-select"
-                      >
-                        <option value="todos" data-testid="cultivo-filtro-select-todos">Todos</option>
-                        <option value="activos" data-testid="cultivo-filtro-select-activos">Activos</option>
-                        <option value="inactivos" data-testid="cultivo-filtro-select-inactivos">Finalizados</option>
-                      </select>
-
-                      <button
-                        onClick={toggleOrder}
-                        className="flex items-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200 focus:ring-4 focus:ring-gray-200"
-                        data-testid="cultivo-order-toggle"
-                      >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-testid="cultivo-order-toggle-icon">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                        </svg>
-                        Orden: {order.toUpperCase()}
-                      </button>
-
-                      {canCreateCultivo() && (
-                        <button
-                          onClick={() => { setCreating(true); setEditing(null); }}
-                          data-testid="cultivo-new-button"
-                          className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 focus:ring-4 focus:ring-green-200"
-                        >
-                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-testid="cultivo-new-button-icon">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                          Nuevo Cultivo
-                        </button>
-                      )}
-                      {!canCreateCultivo() && (
-                        <div className="px-4 py-3 text-sm text-gray-500 bg-gray-100 rounded-xl" data-testid="cultivo-new-disabled-message">
-                          <span className="font-medium">Solo administradores</span> pueden crear cultivos
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Formulario de creación/edición */}
-                {(creating || editing) && (
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-8" data-testid="cultivo-form-wrapper">
-                    <div className="flex items-center gap-3 mb-6" data-testid="cultivo-form-header">
-                      <div
-                        className={`p-3 rounded-xl ${creating ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}
-                        data-testid={`cultivo-form-icon-${creating ? 'crear' : 'editar'}`}
-                      >
-                        {creating ? (
-                          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-testid="cultivo-form-plus-icon">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                        ) : (
-                          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-testid="cultivo-form-edit-icon">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-900" data-testid="cultivo-form-title">
-                          {creating ? 'Crear nuevo cultivo' : `Editar cultivo: ${editing?.nombre}`}
-                        </h3>
-                        <p className="text-gray-600 text-sm" data-testid="cultivo-form-desc">
-                          {creating ? 'Complete los campos para crear un nuevo cultivo' : 'Modifique los campos que desea actualizar'}
-                        </p>
-                      </div>
-                    </div>
-                    <CultivoForm
-                      initial={editing || undefined}
-                      onSubmit={async (payload) => {
-                        if (creating) {
-                          await create(payload);
-                          setCreating(false);
-                        } else if (editing) {
-                          await update(editing.id, payload);
-                          setEditing(null);
-                        }
-                      }}
-                      onCancel={() => {
-                        setCreating(false);
-                        setEditing(null);
-                      }}
-                      submitLabel={creating ? "Crear cultivo" : "Actualizar cultivo"}
-                      data-testid="cultivo-form"
-                    />
-                  </div>
-                )}
-
-                {/* Lista de cultivos */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden" data-testid="cultivo-list">
-                  {loading && (
-                    <div className="p-12 text-center" data-testid="cultivo-list-loading">
-                      <div className="inline-flex items-center gap-3">
-                        <div className="animate-spin rounded-full h-8 w-8 border-4 border-green-200 border-t-green-600" data-testid="cultivo-list-loading-spinner"></div>
-                        <span className="text-lg font-medium text-gray-600">Cargando cultivos...</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {error && (
-                    <div className="p-8 text-center" data-testid="cultivo-list-error">
-                      <div className="inline-flex items-center gap-3 p-4 bg-red-50 rounded-xl border border-red-200">
-                        <svg className="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-testid="cultivo-list-error-icon">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-red-700 font-medium" data-testid="cultivo-list-error-text">Error: {error}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {!loading && !error && (
-                    <>
-                      {cultivos.length === 0 ? (
-                        <div className="p-12 text-center" data-testid="cultivo-list-empty">
-                          <div className="flex flex-col items-center gap-4">
-                            <svg className="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-testid="cultivo-list-empty-icon">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            <div>
-                              <span className="text-gray-500 font-medium text-lg" data-testid="cultivo-list-empty-label">No hay cultivos para mostrar</span>
-                              <p className="text-gray-400 text-sm mt-1" data-testid="cultivo-list-empty-desc">Comience creando su primer cultivo para gestionar su producción</p>
-                            </div>
-                            {canCreateCultivo() && (
-                              <button
-                                onClick={() => setCreating(true)}
-                                className="mt-4 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-                                data-testid="cultivo-list-createfirst-button"
-                              >
-                                Crear mi primer cultivo
-                              </button>
-                            )}
-                            {!canCreateCultivo() && (
-                              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg" data-testid="cultivo-list-empty-adminonly">
-                                <p className="text-yellow-800 text-sm">
-                                  <span className="font-medium">Nota:</span> Solo los administradores pueden crear nuevos cultivos.
-                                  Tu rol actual: <span className="font-medium" data-testid="cultivo-list-empty-rol">{user?.role}</span>
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="grid gap-6 p-6 md:grid-cols-2 lg:grid-cols-3" data-testid="cultivo-cards-list">
-                          {cultivos.map((cultivo) => (
-                            <div
-                              key={cultivo.id}
-                              data-testid={`cultivo-card-${cultivo.id}`}
-                              className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200"
-                            >
-                              {/* Header */}
-                              <div className="p-4 border-b border-gray-100" data-testid={`cultivo-card-header-${cultivo.id}`}>
-                                <div className="flex items-center justify-between">
-                                  <h3 className="font-semibold text-gray-900 text-lg truncate" data-testid={`cultivo-card-nombre-${cultivo.id}`}>{cultivo.nombre}</h3>
-                                  <span
-                                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      cultivo.activo
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }`}
-                                    data-testid={`cultivo-card-estado-${cultivo.id}`}
-                                  >
-                                    {cultivo.activo ? 'Activo' : 'Finalizado'}
-                                  </span>
-                                </div>
-                                {cultivo.genetica && (
-                                  <p className="text-sm text-gray-600 mt-1" data-testid={`cultivo-card-genetica-${cultivo.id}`}>{cultivo.genetica}</p>
-                                )}
-                              </div>
-
-                              {/* Content */}
-                              <div className="p-4 space-y-3" data-testid={`cultivo-card-content-${cultivo.id}`}>
-                                {cultivo.metrosCuadrados && (
-                                  <div className="flex items-center gap-2 text-sm" data-testid={`cultivo-card-m2-${cultivo.id}`}>
-                                    <span className="text-gray-500">📐</span>
-                                    <span>{cultivo.metrosCuadrados} m²</span>
-                                  </div>
-                                )}
-                                {cultivo.numeroplantas && (
-                                  <div className="flex items-center gap-2 text-sm" data-testid={`cultivo-card-plantas-${cultivo.id}`}>
-                                    <span className="text-gray-500">🌱</span>
-                                    <span>{cultivo.numeroplantas} plantas</span>
-                                  </div>
-                                )}
-                                {cultivo.fechaComienzo && (
-                                  <div className="flex items-center gap-2 text-sm" data-testid={`cultivo-card-inicio-${cultivo.id}`}>
-                                    <span className="text-gray-500">📅</span>
-                                    <span>Inicio: {cultivo.fechaComienzo}</span>
-                                  </div>
-                                )}
-                                {cultivo.sustrato && (
-                                  <div className="flex items-center gap-2 text-sm" data-testid={`cultivo-card-sustrato-${cultivo.id}`}>
-                                    <span className="text-gray-500">🏺</span>
-                                    <span className="truncate">{cultivo.sustrato}</span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Actions */}
-                              <div className="p-4 border-t border-gray-100 flex gap-2" data-testid={`cultivo-card-actions-${cultivo.id}`}>
-                                <Link
-                                  href={`/cultivo/${cultivo.id}`}
-                                  className="flex-1 text-center px-3 py-2 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors duration-200"
-                                  data-testid={`cultivo-card-verdetalles-${cultivo.id}`}
-                                >
-                                  Ver detalles
-                                </Link>
-                                <button
-                                  onClick={() => { setEditing(cultivo); setCreating(false); }}
-                                  className="px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200"
-                                  data-testid={`cultivo-card-editar-${cultivo.id}`}
-                                >
-                                  Editar
-                                </button>
-                                {canCreateCultivo() && ( // Solo admins pueden eliminar cultivos
-                                  <button
-                                    onClick={async () => {
-                                      const ok = confirm(`¿Está seguro de que desea eliminar el cultivo "${cultivo.nombre}"?`);
-                                      if (ok) await remove(cultivo.id);
-                                    }}
-                                    className="px-3 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200"
-                                    data-testid={`cultivo-card-eliminar-${cultivo.id}`}
-                                  >
-                                    Eliminar
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Pestaña de Planificación */}
-            {pestanaActiva === 'planificacion' && (
-              <div className="space-y-8" data-testid="cultivo-planificacion-wrapper">
-                {/* Calendario de tareas */}
-                <CalendarioCultivos
-                  onTareaClick={(tarea) => {
-                    setTareaSeleccionada(tarea);
-                  }}
-                  data-testid="cultivo-calendario"
-                />
-
-                {/* Gestión de tareas */}
-                <GestionTareasCultivo
-                  onTareaClick={(tarea) => {
-                    console.log('Tarea seleccionada:', tarea);
-                    // Aquí podrías abrir un modal con detalles de la tarea
-                  }}
-                  data-testid="cultivo-gestion-tareas"
-                />
-              </div>
-            )}
-
+          {/* Pestañas de navegación - Glass Pill Style */}
+          <div className="flex justify-center mb-8" data-testid="cultivo-tabs-container">
+            <div className="bg-white/60 p-1 sm:p-1.5 rounded-full shadow-lg backdrop-blur-md border border-white/40 inline-flex">
+              {[
+                { id: 'cultivos', label: 'Mis Cultivos', icon: '🌿' },
+                { id: 'planificacion', label: 'Planificación', icon: '📅' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setPestanaActiva(tab.id as 'cultivos' | 'planificacion')}
+                  className={`
+                    flex items-center gap-2 px-5 py-2 sm:px-8 sm:py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300
+                    ${pestanaActiva === tab.id
+                      ? 'bg-green-600 text-white shadow-md transform scale-100'
+                      : 'text-gray-600 hover:text-green-700 hover:bg-green-50/50'
+                    }
+                  `}
+                >
+                  <span className="text-base sm:text-lg">{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Modal de detalles de tarea */}
-          {tareaSeleccionada && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" data-testid="cultivo-tarea-modal-backdrop">
-              <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" data-testid="cultivo-tarea-modal">
-                <div className="p-6" data-testid="cultivo-tarea-modal-content">
-                  <div className="flex items-center justify-between mb-6" data-testid="cultivo-tarea-modal-header">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900" data-testid="cultivo-tarea-modal-title">
-                        Detalles de la Tarea
-                      </h3>
-                      <p className="text-gray-600 text-sm" data-testid="cultivo-tarea-modal-subtitle">
-                        Información completa de la tarea seleccionada
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setTareaSeleccionada(null)}
-                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                      data-testid="cultivo-tarea-modal-close"
-                    >
-                      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-testid="cultivo-tarea-modal-close-icon">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          {/* Contenido Dinámico */}
+          <div className="relative min-h-[400px]">
+            {pestanaActiva === 'cultivos' ? (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+                {/* Barra de Herramientas */}
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-white/70 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-white/50">
+                  <form onSubmit={handleSearch} className="relative w-full lg:w-96 group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400 group-focus-within:text-green-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
-                    </button>
+                    </div>
+                    <input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Buscar por nombre..."
+                      className="block w-full pl-11 pr-4 py-3 bg-white/50 border-0 rounded-xl text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500/50 focus:bg-white transition-all shadow-inner"
+                    />
+                  </form>
+
+                  <div className="flex items-center gap-3 w-full lg:w-auto">
+                    <div className="flex bg-white/50 p-1 rounded-xl shadow-inner border border-white/50 flex-1 lg:flex-none">
+                      {['todos', 'activos', 'inactivos'].map((filter) => (
+                        <button
+                          key={filter}
+                          onClick={() => handleFiltroChange(filter as 'todos' | 'activos' | 'inactivos')}
+                          className={`
+                              px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all flex-1 text-center
+                              ${filtroActivo === filter
+                              ? 'bg-white text-green-700 shadow-sm'
+                              : 'text-gray-500 hover:text-gray-700'
+                            }
+                            `}
+                        >
+                          {filter}
+                        </button>
+                      ))}
+                    </div>
+
+                    {canCreateCultivo() && (
+                      <button
+                        onClick={() => { setCreating(true); setEditing(null); }}
+                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-xl shadow-lg shadow-green-600/20 transition-all hover:-translate-y-0.5"
+                      >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span className="whitespace-nowrap">Nuevo Cultivo</span>
+                      </button>
+                    )}
                   </div>
+                </div>
 
-                  <div className="border rounded-lg p-4 mb-6 bg-gray-50" data-testid="cultivo-tarea-modal-body">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2" data-testid="cultivo-tarea-modal-fields-row">
-                          <h4 className="text-lg font-semibold text-gray-900" data-testid="cultivo-tarea-modal-titulo">{tareaSeleccionada.titulo}</h4>
-                          <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 border border-green-300" data-testid="cultivo-tarea-modal-tipo">
-                            {tareaSeleccionada.tipo}
-                          </span>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${tareaSeleccionada.prioridad === 'alta' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'}`}
-                            data-testid="cultivo-tarea-modal-prioridad"
-                          >
-                            {tareaSeleccionada.prioridad}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 mb-3" data-testid="cultivo-tarea-modal-estado-wrap">
-                          <span
-                            className={`text-sm font-medium ${tareaSeleccionada.estado === 'completada' ? 'text-green-600' : 'text-yellow-600'}`}
-                            data-testid="cultivo-tarea-modal-estado"
-                          >
-                            {tareaSeleccionada.estado}
-                          </span>
-                        </div>
-
-                        {tareaSeleccionada.descripcion && (
-                          <p className="text-gray-600 mb-3" data-testid="cultivo-tarea-modal-desc">{tareaSeleccionada.descripcion}</p>
-                        )}
-
-                        <div className="grid gap-2 text-sm text-gray-600" data-testid="cultivo-tarea-modal-info-grid">
-                          <div className="flex items-center gap-2" data-testid="cultivo-tarea-modal-fecha-programada-wrap">
-                            <span>📅 Fecha programada:</span>
-                            <span className="font-medium" data-testid="cultivo-tarea-modal-fecha-programada">{new Date(tareaSeleccionada.fechaProgramada).toLocaleDateString()}</span>
-                          </div>
-
-                          {tareaSeleccionada.horaProgramada && (
-                            <div className="flex items-center gap-2" data-testid="cultivo-tarea-modal-hora-programada-wrap">
-                              <span>🕐 Hora programada:</span>
-                              <span className="font-medium" data-testid="cultivo-tarea-modal-hora-programada">{tareaSeleccionada.horaProgramada}</span>
+                {/* Lista de Cultivos */}
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center p-20 space-y-4">
+                    <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+                    <p className="text-gray-500 font-medium animate-pulse">Cargando tus cultivos...</p>
+                  </div>
+                ) : error ? (
+                  <div className="rounded-2xl bg-red-50 p-6 border border-red-100 flex items-center gap-4 text-red-800">
+                    <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                      <h3 className="font-bold">Error al cargar</h3>
+                      <p className="text-sm opacity-80">{error}</p>
+                    </div>
+                  </div>
+                ) : cultivos.length === 0 ? (
+                  <div className="text-center py-20 bg-white/40 backdrop-blur-md rounded-3xl border border-dashed border-gray-300">
+                    <div className="bg-green-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <span className="text-4xl">🌱</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Aún no hay cultivos</h3>
+                    <p className="text-gray-500 max-w-md mx-auto mb-8">
+                      Comienza tu viaje agrícola creando tu primer espacio de cultivo. Podrás monitorear cada detalle.
+                    </p>
+                    {canCreateCultivo() && (
+                      <button
+                        onClick={() => setCreating(true)}
+                        className="px-8 py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-colors"
+                      >
+                        Crear Primer Cultivo
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {cultivos.map((cultivo) => (
+                      <div
+                        key={cultivo.id}
+                        className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+                      >
+                        <div className="flex justify-between items-start mb-6">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-green-700 transition-colors">
+                                {cultivo.nombre}
+                              </h3>
+                              {cultivo.activo && <span className="relative flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                              </span>}
                             </div>
-                          )}
-
-                          {tareaSeleccionada.duracionEstimada && (
-                            <div className="flex items-center gap-2" data-testid="cultivo-tarea-modal-duracion-estimada-wrap">
-                              <span>⏱️ Duración estimada:</span>
-                              <span className="font-medium" data-testid="cultivo-tarea-modal-duracion-estimada">{tareaSeleccionada.duracionEstimada} minutos</span>
-                            </div>
-                          )}
-
-                          <div className="flex items-center gap-2" data-testid="cultivo-tarea-modal-es-recurrente-wrap">
-                            <span>🔄 Es recurrente:</span>
-                            <span className="font-medium" data-testid="cultivo-tarea-modal-es-recurrente">{tareaSeleccionada.esRecurrente ? 'Sí' : 'No'}</span>
+                            <p className="text-sm font-medium text-gray-500">{cultivo.genetica || 'Sin genética especificada'}</p>
                           </div>
+                          <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${cultivo.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                            {cultivo.activo ? 'Activo' : 'Finalizado'}
+                          </span>
+                        </div>
 
-                          <div className="flex items-center gap-2" data-testid="cultivo-tarea-modal-recordatorio-wrap">
-                            <span>🔔 Recordatorio activado:</span>
-                            <span className="font-medium" data-testid="cultivo-tarea-modal-recordatorio">{tareaSeleccionada.recordatorioActivado ? 'Sí' : 'No'}</span>
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                          <div className="bg-gray-50 p-3 rounded-xl">
+                            <div className="text-xs text-gray-400 mb-1">Plantas</div>
+                            <div className="font-semibold text-gray-700 flex items-center gap-1">
+                              <span>🌱</span> {cultivo.numeroplantas || 0}
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-3 rounded-xl">
+                            <div className="text-xs text-gray-400 mb-1">Superficie</div>
+                            <div className="font-semibold text-gray-700 flex items-center gap-1">
+                              <span>📐</span> {cultivo.metrosCuadrados || 0} m²
+                            </div>
                           </div>
                         </div>
+
+                        <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                          <Link
+                            href={`/cultivo/${cultivo.id}`}
+                            className="flex-1 text-center py-2.5 rounded-lg bg-green-50 text-green-700 font-semibold text-sm hover:bg-green-100 transition-colors"
+                          >
+                            Ver Tablero
+                          </Link>
+                          <button
+                            onClick={() => { setEditing(cultivo); setCreating(false); }}
+                            className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Editar"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+                          {canCreateCultivo() && (
+                            <button
+                              onClick={async () => {
+                                const ok = confirm(`¿Eliminar ${cultivo.nombre}?`);
+                                if (ok) await remove(cultivo.id);
+                              }}
+                              className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Eliminar"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Modal de Creación/Edición en Slide-over o similar podía ser mejor, pero mantenemos inline por simplicidad pero mejorado */}
+                {(creating || editing) && (
+                  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
+                      <div className="p-8">
+                        <div className="flex justify-between items-center mb-6">
+                          <h2 className="text-2xl font-bold text-gray-900">
+                            {creating ? 'Nuevo Espacio de Cultivo' : 'Editar Cultivo'}
+                          </h2>
+                          <button
+                            onClick={() => { setCreating(false); setEditing(null); }}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                          >
+                            <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        <CultivoForm
+                          initial={editing || undefined}
+                          onSubmit={async (payload) => {
+                            if (creating) {
+                              await create(payload);
+                              setCreating(false);
+                            } else if (editing) {
+                              await update(editing.id, payload);
+                              setEditing(null);
+                            }
+                          }}
+                          onCancel={() => {
+                            setCreating(false);
+                            setEditing(null);
+                          }}
+                          submitLabel={creating ? "Crear Espacio" : "Guardar Cambios"}
+                        />
                       </div>
                     </div>
                   </div>
+                )}
 
-                  <div className="flex gap-3 pt-4 border-t border-gray-200" data-testid="cultivo-tarea-modal-actions">
-                    <button
-                      onClick={() => {
-                        // Aquí podrías implementar la edición de la tarea
-                        console.log('Editar tarea:', tareaSeleccionada);
-                      }}
-                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
-                      data-testid="cultivo-tarea-modal-editar"
-                    >
-                      Editar Tarea
-                    </button>
-                    <button
-                      onClick={() => setTareaSeleccionada(null)}
-                      className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                      data-testid="cultivo-tarea-modal-cerrar"
-                    >
-                      Cerrar
-                    </button>
+              </div>
+            ) : (
+              <div className="bg-white/60 backdrop-blur-md rounded-3xl p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-xl border border-white/50">
+                <div className="space-y-8">
+                  <CalendarioCultivos
+                    onTareaClick={(tarea) => setTareaSeleccionada(tarea)}
+                  />
+                  <GestionTareasCultivo
+                    onTareaClick={(tarea) => { /* TODO: Implementar detalle de tarea desde gestión */ }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Modal de detalles de tarea (Estilo Glass) */}
+        {tareaSeleccionada && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+            <div className="bg-white/90 backdrop-blur-xl rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
+              <div className="p-8">
+                {/* Header Modal */}
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">Detalles de Tarea</h3>
+                    <p className="text-gray-500">Información completa de la actividad</p>
                   </div>
+                  <button
+                    onClick={() => setTareaSeleccionada(null)}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Body Modal */}
+                <div className="bg-white/50 rounded-2xl p-6 mb-8 border border-gray-100 shadow-inner">
+                  <div className="flex flex-col gap-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xl font-bold text-gray-800">{tareaSeleccionada.titulo}</h4>
+                      <span className={`px-3 py-1 text-sm font-semibold rounded-full 
+                          ${tareaSeleccionada.prioridad === 'alta' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                        {tareaSeleccionada.prioridad}
+                      </span>
+                    </div>
+
+                    <p className="text-gray-600 leading-relaxed text-lg">{tareaSeleccionada.descripcion || 'Sin descripción detallada.'}</p>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <span>📅</span> {new Date(tareaSeleccionada.fechaProgramada).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>⏱️</span> {tareaSeleccionada.duracionEstimada ? `${tareaSeleccionada.duracionEstimada} min` : 'N/A'}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>🔄</span> {tareaSeleccionada.esRecurrente ? 'Recurrente' : 'Única'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => console.log('Editar')}
+                    className="flex-1 bg-gray-900 hover:bg-black text-white font-bold py-4 rounded-xl transition-all hover:shadow-lg"
+                  >
+                    Editar Tarea
+                  </button>
+                  <button
+                    onClick={() => setTareaSeleccionada(null)}
+                    className="px-8 py-4 border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all"
+                  >
+                    Cerrar
+                  </button>
                 </div>
               </div>
             </div>
-          )}
-        </main>
+          </div>
+        )}
+      </main>
     </RequireAuth>
   );
 });
