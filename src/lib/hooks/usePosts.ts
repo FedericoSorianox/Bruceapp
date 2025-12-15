@@ -8,7 +8,7 @@
 // - useState y useEffect: hooks de React para manejar estado y efectos secundarios
 // - Note: tipo de datos que viene del backend (de la página de notas)
 import { useState, useEffect } from 'react';
-import { Note } from '../../app/notas/page';
+import { Nota as Note } from '@/types/cultivo';
 
 // PASO 2: Definición de tipos
 // Interface que representa cómo queremos mostrar un post en el frontend
