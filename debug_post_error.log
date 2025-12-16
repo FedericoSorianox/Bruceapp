@@ -1569,3 +1569,327 @@
  ✓ Compiled in 2.4s (308 modules)
  ✓ Compiled in 284ms (308 modules)
  ✓ Compiled in 2.4s (641 modules)
+ ○ Compiling /api/chat ...
+ ✓ Compiled /api/chat in 747ms (361 modules)
+❌ Error en API de chat (Proxy n8n): Error: Error en n8n: 404 Not Found
+    at POST (webpack-internal:///(rsc)/./src/app/api/chat/route.ts:52:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/chat 500 in 1783ms
+ GET / 200 in 113ms
+ ✓ Compiled /api/verify-token in 278ms (440 modules)
+🚨 Error verificando token: Token malformado TokenExpiredError: jwt expired
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:190:21)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at POST (webpack-internal:///(rsc)/./src/app/api/verify-token/route.ts:55:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  expiredAt: 2025-12-16T10:00:24.000Z
+}
+🚨 Error verificando token: Token malformado TokenExpiredError: jwt expired
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:190:21)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at POST (webpack-internal:///(rsc)/./src/app/api/verify-token/route.ts:55:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  expiredAt: 2025-12-16T10:00:24.000Z
+}
+ POST /api/verify-token 401 in 316ms
+ POST /api/verify-token 401 in 317ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 638ms (737 modules)
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 418ms
+ GET /login 404 in 22ms
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 22ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos in 260ms (747 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+❌ withUserDB: Error validando JWT: TokenExpiredError: jwt expired
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:190:21)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:432:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53) {
+  expiredAt: 2025-12-16T10:02:03.000Z
+}
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:435:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/cultivos?_sort=nombre&_order=asc 401 in 301ms
+ GET /login?next=%2Fcultivo 404 in 29ms
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 27ms
+ GET /login 404 in 23ms
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 23ms
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 43ms
+ GET / 200 in 45ms
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 28ms
+ GET /login 404 in 27ms
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 26ms
+ ○ Compiling /laboratorio/simulador ...
+ ✓ Compiled /laboratorio/simulador in 735ms (633 modules)
+ GET /laboratorio/simulador 200 in 815ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos in 51ms (452 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+❌ withUserDB: Error validando JWT: TokenExpiredError: jwt expired
+    at eval (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:190:21)
+    at getSecret (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (webpack-internal:///(rsc)/./node_modules/jsonwebtoken/verify.js:101:10)
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:432:79)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53) {
+  expiredAt: 2025-12-16T10:02:03.000Z
+}
+💥 withUserDB: Error en middleware: Error: Token inválido o expirado
+    at eval (webpack-internal:///(rsc)/./src/lib/mongodb.ts:435:23)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/cultivos?_sort=nombre&_order=asc 401 in 150ms
+ ✓ Compiled /_not-found in 107ms (751 modules)
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 178ms
+ ✓ Compiled /api/login in 79ms (455 modules)
+🔐 Login request recibido
+🔄 Reutilizando conexión global a MongoDB
+📧 Login attempt para: test@canopia.app | Redirect URL: /laboratorio/simulador
+✅ Token JWT generado exitosamente
+🔄 Preparando respuesta con redirectTo: /laboratorio/simulador
+🍪 Cookie establecida con opciones: {
+  httpOnly: true,
+  secure: false,
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 604800
+}
+ POST /api/login 200 in 171ms
+ GET /laboratorio/simulador 200 in 34ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 56ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/verify-token in 123ms (457 modules)
+ POST /api/verify-token 200 in 210ms
+ POST /api/verify-token 200 in 210ms
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 133ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 9ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 6ms
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 43ms
+ ✓ Compiled /api/chat in 227ms (361 modules)
+❌ Error en API de chat (Proxy n8n): SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5738:19)
+    at successSteps (node:internal/deps/undici/undici:5719:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4609:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async consumeBody (node:internal/deps/undici/undici:5728:7)
+    at async POST (webpack-internal:///(rsc)/./src/app/api/chat/route.ts:55:25)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57228
+    at async eT.execute (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46851)
+    at async eT.handle (/Users/fede/Bruce/bruceapp/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58760)
+    at async doRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1366:42)
+    at async cacheEntry.responseCache.get.routeKind (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1588:28)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1496:28)
+    at async DevServer.renderPageComponent (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1924:24)
+    at async DevServer.renderToResponseImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/base-server.js:818:17)
+    at async /Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/Users/fede/Bruce/bruceapp/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:179:21)
+    at async handleRequest (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:359:24)
+    at async requestHandlerImpl (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/router-server.js:383:13)
+    at async Server.requestListener (/Users/fede/Bruce/bruceapp/node_modules/next/dist/server/lib/start-server.js:141:13)
+ POST /api/chat 500 in 6610ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /cultivo in 115ms (337 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /api/cultivos in 83ms (452 modules)
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 205ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 9ms
+ ✓ Compiled /laboratorio in 211ms (754 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 32ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 10ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos?_sort=nombre&_order=asc 200 in 17ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+🔍 withUserDB: Iniciando validación de autenticación...
+ GET /api/cultivos 200 in 11ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ ✓ Compiled /_not-found in 95ms (753 modules)
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo/693fdca79af48dec4f934f1c 404 in 57ms
+ ✓ Compiled /api/verify-token in 107ms (455 modules)
+ POST /api/verify-token 200 in 131ms
+ POST /api/verify-token 200 in 131ms
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 42ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 20ms
+ GET /cultivo/693fdca79af48dec4f934f1c 404 in 31ms
+⚠️ TEMPORAL: Bypass completo del middleware para detener loop
+ GET /cultivo/693fdca79af48dec4f934f1c 404 in 32ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 24ms
+ POST /api/verify-token 200 in 15ms
+ POST /api/verify-token 200 in 15ms
+ GET /_next/static/PTuVg9e5-1i3MtgOeHE3U/_buildManifest.js 404 in 32ms
