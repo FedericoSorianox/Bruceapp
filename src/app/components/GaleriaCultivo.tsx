@@ -9,6 +9,7 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import type { Cultivo, ImagenCultivo } from '@/types/cultivo';
+import imageCompression from 'browser-image-compression';
 import { subirImagenGaleria } from '../../lib/services/galeria';
 import { formatearFechaCorta } from '@/lib/utils/date';
 
@@ -123,18 +124,37 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
         continue;
       }
 
+      let fileToUpload = file;
+
+      // Comprimir imagen
+      try {
+        const options = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          initialQuality: 0.8,
+        };
+        
+        // Solo intentar comprimir si es imagen y mayor a 1MB
+        if (file.size > 1024 * 1024) {
+          fileToUpload = await imageCompression(file, options);
+        }
+      } catch (err) {
+        console.error('Error al comprimir imagen, usando original:', err);
+      }
+
       // Validar tamaño (máximo 10MB)
-      if (file.size > 10 * 1024 * 1024) {
+      if (fileToUpload.size > 10 * 1024 * 1024) {
         setError(`${file.name} es demasiado grande (máximo 10MB)`);
         continue;
       }
 
       // Crear preview
-      const preview = await convertirArchivoABase64(file);
+      const preview = await convertirArchivoABase64(fileToUpload);
 
       archivosValidos.push({
         id: `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        file,
+        file: fileToUpload,
         preview,
         progreso: 0,
       });
