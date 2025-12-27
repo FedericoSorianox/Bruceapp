@@ -14,11 +14,11 @@
  */
 
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import type { 
-  MensajeChat, 
-  TipoMensaje, 
+import type {
+  MensajeChat,
+  TipoMensaje,
   TipoContenido,
-  ImagenMensaje 
+  ImagenMensaje
 } from '@/types/chat';
 
 // Extender el tipo base con las propiedades de Mongoose Document
@@ -42,7 +42,7 @@ const ImagenMensajeSchema = new Schema<ImagenMensaje>({
     type: String,
     required: [true, 'La URL de la imagen es obligatoria'],
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return /^(https?:\/\/|\/|data:image\/)/.test(v);
       },
       message: 'La URL de la imagen no es válida'
@@ -51,7 +51,7 @@ const ImagenMensajeSchema = new Schema<ImagenMensaje>({
   base64: {
     type: String,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^[A-Za-z0-9+/]*={0,2}$/.test(v);
       },
       message: 'El formato base64 no es válido'
@@ -61,7 +61,7 @@ const ImagenMensajeSchema = new Schema<ImagenMensaje>({
     type: String,
     required: [true, 'El tipo MIME es obligatorio'],
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return /^image\//.test(v);
       },
       message: 'El tipo MIME debe ser de imagen'
@@ -120,7 +120,7 @@ const MensajeChatSchema = new Schema<MensajeChatDocument>({
     type: [ImagenMensajeSchema],
     default: [],
     validate: {
-      validator: function(v: ImagenMensaje[]) {
+      validator: function (v: ImagenMensaje[]) {
         return v.length <= 5; // Máximo 5 imágenes por mensaje
       },
       message: 'No se pueden enviar más de 5 imágenes por mensaje'
@@ -133,7 +133,7 @@ const MensajeChatSchema = new Schema<MensajeChatDocument>({
     required: true,
     default: () => new Date().toISOString(),
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(v);
       },
       message: 'El timestamp debe estar en formato ISO string'
@@ -203,7 +203,7 @@ const MensajeChatSchema = new Schema<MensajeChatDocument>({
     type: String,
     trim: true,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
       message: 'El email del usuario no es válido'
@@ -212,7 +212,7 @@ const MensajeChatSchema = new Schema<MensajeChatDocument>({
   ipAddress: {
     type: String,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         // Validar IPv4 o IPv6
         return !v || /^(\d{1,3}\.){3}\d{1,3}$/.test(v) || /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/.test(v);
       },
@@ -235,13 +235,17 @@ const MensajeChatSchema = new Schema<MensajeChatDocument>({
   // Opciones del schema
   timestamps: false, // Manejamos fechas manualmente
   collection: 'mensajes_chat', // Nombre explícito de la colección
-  toJSON: { 
+  toJSON: {
     virtuals: true,
-    transform: function(doc, ret) {
+    transform: function (doc, ret) {
       ret.id = ret._id.toString(); // Mapear _id a id para compatibilidad
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any)._id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).__v;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).activo;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).ipAddress; // No exponer IP en respuestas
       return ret;
     }
@@ -252,25 +256,25 @@ const MensajeChatSchema = new Schema<MensajeChatDocument>({
 // ===== MÉTODOS VIRTUALES =====
 
 // Verificar si tiene imágenes
-MensajeChatSchema.virtual('tieneImagenes').get(function() {
+MensajeChatSchema.virtual('tieneImagenes').get(function () {
   return this.imagenes && this.imagenes.length > 0;
 });
 
 // Obtener número de imágenes
-MensajeChatSchema.virtual('numeroImagenes').get(function() {
+MensajeChatSchema.virtual('numeroImagenes').get(function () {
   return this.imagenes ? this.imagenes.length : 0;
 });
 
 // Calcular tiempo transcurrido desde el mensaje
-MensajeChatSchema.virtual('tiempoTranscurrido').get(function() {
+MensajeChatSchema.virtual('tiempoTranscurrido').get(function () {
   const ahora = new Date();
   const fechaMensaje = new Date(this.timestamp);
   const diff = ahora.getTime() - fechaMensaje.getTime();
-  
+
   const minutos = Math.floor(diff / (1000 * 60));
   const horas = Math.floor(minutos / 60);
   const dias = Math.floor(horas / 24);
-  
+
   if (dias > 0) return `${dias} día${dias > 1 ? 's' : ''}`;
   if (horas > 0) return `${horas} hora${horas > 1 ? 's' : ''}`;
   if (minutos > 0) return `${minutos} minuto${minutos > 1 ? 's' : ''}`;
@@ -278,27 +282,27 @@ MensajeChatSchema.virtual('tiempoTranscurrido').get(function() {
 });
 
 // Verificar si es un mensaje reciente (última hora)
-MensajeChatSchema.virtual('esReciente').get(function() {
+MensajeChatSchema.virtual('esReciente').get(function () {
   const hace1h = new Date();
   hace1h.setHours(hace1h.getHours() - 1);
   return new Date(this.timestamp) >= hace1h;
 });
 
 // Obtener resumen del contenido
-MensajeChatSchema.virtual('resumen').get(function() {
+MensajeChatSchema.virtual('resumen').get(function () {
   if (!this.contenido) return '';
-  return this.contenido.length > 150 
+  return this.contenido.length > 150
     ? this.contenido.substring(0, 150) + '...'
     : this.contenido;
 });
 
 // Verificar si es respuesta de IA
-MensajeChatSchema.virtual('esRespuestaIA').get(function() {
+MensajeChatSchema.virtual('esRespuestaIA').get(function () {
   return this.tipo === 'assistant';
 });
 
 // Verificar si tiene métricas de tokens
-MensajeChatSchema.virtual('tieneMetricasTokens').get(function() {
+MensajeChatSchema.virtual('tieneMetricasTokens').get(function () {
   return this.tokensUsados && this.tokensUsados.total > 0;
 });
 
@@ -314,11 +318,11 @@ MensajeChatSchema.index({ contenido: 'text' }); // Búsqueda full-text en conten
 // ===== MIDDLEWARE =====
 
 // Pre-save: Actualizar tipo de contenido basado en imágenes
-MensajeChatSchema.pre('save', function(next) {
+MensajeChatSchema.pre('save', function (next) {
   if (this.isModified('imagenes') || this.isModified('contenido')) {
     const tieneImagenes = this.imagenes && this.imagenes.length > 0;
     const tieneTexto = this.contenido && this.contenido.trim().length > 0;
-    
+
     if (tieneImagenes && tieneTexto) {
       this.tipoContenido = 'mixed';
     } else if (tieneImagenes) {
@@ -331,7 +335,7 @@ MensajeChatSchema.pre('save', function(next) {
 });
 
 // Pre-save: Marcar como no procesando si hay error
-MensajeChatSchema.pre('save', function(next) {
+MensajeChatSchema.pre('save', function (next) {
   if (this.isModified('error') && this.error) {
     this.procesando = false;
   }
@@ -339,7 +343,7 @@ MensajeChatSchema.pre('save', function(next) {
 });
 
 // Pre-save: Calcular total de tokens automáticamente
-MensajeChatSchema.pre('save', function(next) {
+MensajeChatSchema.pre('save', function (next) {
   if (this.tokensUsados && (this.isModified('tokensUsados.prompt') || this.isModified('tokensUsados.completion'))) {
     this.tokensUsados.total = (this.tokensUsados.prompt || 0) + (this.tokensUsados.completion || 0);
   }
@@ -349,17 +353,17 @@ MensajeChatSchema.pre('save', function(next) {
 // ===== MÉTODOS ESTÁTICOS =====
 
 // Obtener historial de chat por cultivo
-MensajeChatSchema.statics.findHistorialByCultivo = function(cultivoId: string, limite: number = 50) {
-  return this.find({ 
-    cultivoId, 
-    activo: true 
+MensajeChatSchema.statics.findHistorialByCultivo = function (cultivoId: string, limite: number = 50) {
+  return this.find({
+    cultivoId,
+    activo: true
   })
-  .sort({ timestamp: -1 })
-  .limit(limite);
+    .sort({ timestamp: -1 })
+    .limit(limite);
 };
 
 // Obtener conversación específica (mensaje y respuestas)
-MensajeChatSchema.statics.findConversacion = function(mensajeId: string) {
+MensajeChatSchema.statics.findConversacion = function (mensajeId: string) {
   return this.find({
     $or: [
       { _id: mensajeId },
@@ -370,29 +374,31 @@ MensajeChatSchema.statics.findConversacion = function(mensajeId: string) {
 };
 
 // Buscar mensajes en procesamiento
-MensajeChatSchema.statics.findEnProcesamiento = function() {
-  return this.find({ 
+MensajeChatSchema.statics.findEnProcesamiento = function () {
+  return this.find({
     procesando: true,
-    activo: true 
+    activo: true
   }).sort({ timestamp: 1 });
 };
 
 // Buscar mensajes con errores
-MensajeChatSchema.statics.findConErrores = function(cultivoId?: string) {
-  const query: any = { 
+MensajeChatSchema.statics.findConErrores = function (cultivoId?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const query: any = {
     error: { $exists: true, $ne: null },
-    activo: true 
+    activo: true
   };
   if (cultivoId) query.cultivoId = cultivoId;
-  
+
   return this.find(query).sort({ timestamp: -1 });
 };
 
 // Obtener estadísticas de uso
-MensajeChatSchema.statics.getStats = async function(cultivoId?: string) {
+MensajeChatSchema.statics.getStats = async function (cultivoId?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const match: any = { activo: true };
   if (cultivoId) match.cultivoId = cultivoId;
-  
+
   const stats = await this.aggregate([
     { $match: match },
     {
@@ -408,7 +414,7 @@ MensajeChatSchema.statics.getStats = async function(cultivoId?: string) {
       }
     }
   ]);
-  
+
   const result = stats[0] || {
     totalMensajes: 0,
     mensajesUsuario: 0,
@@ -418,7 +424,7 @@ MensajeChatSchema.statics.getStats = async function(cultivoId?: string) {
     conErrores: 0,
     totalTokens: 0
   };
-  
+
   // Obtener actividad por días
   const actividadStats = await this.aggregate([
     { $match: match },
@@ -432,43 +438,45 @@ MensajeChatSchema.statics.getStats = async function(cultivoId?: string) {
     { $sort: { _id: -1 } },
     { $limit: 30 } // Últimos 30 días
   ]);
-  
+
   result.actividadReciente = actividadStats;
-  
+
   return result;
 };
 
 // Buscar mensajes por contenido
-MensajeChatSchema.statics.search = function(query: string, cultivoId?: string) {
+MensajeChatSchema.statics.search = function (query: string, cultivoId?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const searchQuery: any = {
     $text: { $search: query },
     activo: true
   };
   if (cultivoId) searchQuery.cultivoId = cultivoId;
-  
+
   return this.find(searchQuery, {
     score: { $meta: 'textScore' }
-  }).sort({ 
+  }).sort({
     score: { $meta: 'textScore' },
-    timestamp: -1 
+    timestamp: -1
   });
 };
 
 // Obtener mensajes destacados
-MensajeChatSchema.statics.findDestacados = function(cultivoId?: string) {
+MensajeChatSchema.statics.findDestacados = function (cultivoId?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: any = { destacado: true, activo: true };
   if (cultivoId) query.cultivoId = cultivoId;
-  
+
   return this.find(query).sort({ timestamp: -1 });
 };
 
 // Limpiar mensajes antiguos (más de X días)
-MensajeChatSchema.statics.limpiarAntiguos = async function(diasAntiguedad: number = 90) {
+MensajeChatSchema.statics.limpiarAntiguos = async function (diasAntiguedad: number = 90) {
   const fechaLimite = new Date();
   fechaLimite.setDate(fechaLimite.getDate() - diasAntiguedad);
-  
+
   return this.updateMany(
-    { 
+    {
       timestamp: { $lt: fechaLimite.toISOString() },
       destacado: { $ne: true } // No eliminar mensajes destacados
     },
@@ -479,57 +487,57 @@ MensajeChatSchema.statics.limpiarAntiguos = async function(diasAntiguedad: numbe
 // ===== MÉTODOS DE INSTANCIA =====
 
 // Marcar mensaje como procesando
-MensajeChatSchema.methods.marcarProcesando = function() {
+MensajeChatSchema.methods.marcarProcesando = function () {
   this.procesando = true;
   this.error = undefined;
   return this.save();
 };
 
 // Marcar mensaje como completado
-MensajeChatSchema.methods.marcarCompletado = function() {
+MensajeChatSchema.methods.marcarCompletado = function () {
   this.procesando = false;
   this.error = undefined;
   return this.save();
 };
 
 // Marcar mensaje con error
-MensajeChatSchema.methods.marcarError = function(mensajeError: string) {
+MensajeChatSchema.methods.marcarError = function (mensajeError: string) {
   this.procesando = false;
   this.error = mensajeError;
   return this.save();
 };
 
 // Destacar mensaje
-MensajeChatSchema.methods.destacar = function() {
+MensajeChatSchema.methods.destacar = function () {
   this.destacado = true;
   return this.save();
 };
 
 // Quitar destacado
-MensajeChatSchema.methods.quitarDestacado = function() {
+MensajeChatSchema.methods.quitarDestacado = function () {
   this.destacado = false;
   return this.save();
 };
 
 // Calificar respuesta de IA
-MensajeChatSchema.methods.calificar = function(puntuacion: number, comentario?: string) {
+MensajeChatSchema.methods.calificar = function (puntuacion: number, comentario?: string) {
   if (this.tipo !== 'assistant') {
     throw new Error('Solo se pueden calificar respuestas de IA');
   }
-  
+
   this.calificacion = Math.max(1, Math.min(5, puntuacion));
   if (comentario) this.feedback = comentario;
   return this.save();
 };
 
 // Archivar mensaje
-MensajeChatSchema.methods.archivar = function() {
+MensajeChatSchema.methods.archivar = function () {
   this.activo = false;
   return this.save();
 };
 
 // Restaurar mensaje archivado
-MensajeChatSchema.methods.restaurar = function() {
+MensajeChatSchema.methods.restaurar = function () {
   this.activo = true;
   return this.save();
 };
@@ -537,7 +545,7 @@ MensajeChatSchema.methods.restaurar = function() {
 // ===== VALIDACIONES PERSONALIZADAS =====
 
 // Validar que los mensajes assistant tengan respuestaA
-MensajeChatSchema.path('tipo').validate(function(value: TipoMensaje) {
+MensajeChatSchema.path('tipo').validate(function (value: TipoMensaje) {
   if (value === 'assistant' && !this.respuestaA) {
     // Los mensajes de IA deben ser respuesta a algo
     return false;
@@ -546,7 +554,8 @@ MensajeChatSchema.path('tipo').validate(function(value: TipoMensaje) {
 }, 'Los mensajes de IA deben ser respuesta a un mensaje de usuario');
 
 // Validar que los tokens solo estén en mensajes assistant
-MensajeChatSchema.path('tokensUsados').validate(function(value: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+MensajeChatSchema.path('tokensUsados').validate(function (value: any) {
   if (value && this.tipo !== 'assistant') {
     return false;
   }
@@ -554,7 +563,7 @@ MensajeChatSchema.path('tokensUsados').validate(function(value: any) {
 }, 'Solo los mensajes de IA pueden tener métricas de tokens');
 
 // Validar calificación solo en mensajes assistant
-MensajeChatSchema.path('calificacion').validate(function(value: number) {
+MensajeChatSchema.path('calificacion').validate(function (value: number) {
   if (value && this.tipo !== 'assistant') {
     return false;
   }

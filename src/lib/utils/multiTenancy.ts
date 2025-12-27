@@ -48,6 +48,7 @@ export async function getUsuariosCreadosPor(adminEmail: string): Promise<string[
  * @param user - Usuario validado con email y role
  * @returns Objeto de filtro para MongoDB
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function construirFiltroUsuario(user: UsuarioValidado): Promise<any> {
   if (user.role === 'admin') {
     // Admin ve sus datos y los de usuarios que creó

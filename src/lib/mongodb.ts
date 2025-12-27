@@ -132,6 +132,7 @@ export function getUsuarioModel(connection: mongoose.Connection) {
  * Establece conexión a la base de datos principal
  * Mantiene la firma (adminEmail) por compatibilidad pero conecta a la DB global
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function connectToUserDB(adminEmail: string): Promise<mongoose.Connection> {
   // Asegurar que cached esté inicializado
   if (!cached) {

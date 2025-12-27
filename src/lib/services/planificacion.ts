@@ -12,16 +12,12 @@
 import type {
   TareaCultivo,
   TareaCreacion,
-  TareaActualizacion,
   ListaTareasParams,
   ApiResponsePlanificacion,
   EstadisticasPlanificacion,
   EventoCalendario,
   VistaCalendarioMensual,
-  RecordatorioTarea,
-  TipoTarea,
   EstadoTarea,
-  PrioridadTarea
 } from '@/types/planificacion';
 // Nota: No usar hooks de React en servicios. Los datos de auth deben ser pasados por parámetro.
 
@@ -76,6 +72,7 @@ function calcularProximaFecha(fechaBase: string, frecuencia: string, intervalo: 
 /**
  * Genera tareas recurrentes para un período de tiempo
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function generarTareasRecurrentes(tarea: TareaCultivo, fechaFin: string): TareaCultivo[] {
   const tareas: TareaCultivo[] = [];
   let fechaActual = tarea.fechaProgramada;
@@ -348,6 +345,7 @@ export function generarVistaCalendarioMensual(
   tareas: TareaCultivo[] = []
 ): VistaCalendarioMensual {
   const fecha = new Date(anio, mes - 1, 1);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dias: any[] = [];
 
   // Agregar días del mes anterior si es necesario
@@ -418,7 +416,7 @@ export async function getEstadisticasPlanificacion(cultivoId?: string, token?: s
     const hoy = new Date();
     const unaSemanaDesdeHoy = new Date(hoy.getTime() + 7 * 24 * 60 * 60 * 1000);
     const hoyString = hoy.toISOString().split('T')[0];
-    const unaSemanaString = unaSemanaDesdeHoy.toISOString().split('T')[0];
+    // const unaSemanaString = unaSemanaDesdeHoy.toISOString().split('T')[0];
 
     // Filtrar tareas del período actual
     tareas = tareas.filter(tarea => {

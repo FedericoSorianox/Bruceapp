@@ -64,7 +64,7 @@ const NotaSchema = new Schema<NotaDocument>({
     enum: {
       values: [
         'general',
-        'cultivo', 
+        'cultivo',
         'nutricion',
         'plagas',
         'riego',
@@ -84,7 +84,7 @@ const NotaSchema = new Schema<NotaDocument>({
     type: [String],
     default: [],
     validate: {
-      validator: function(v: string[]) {
+      validator: function (v: string[]) {
         return v.length <= 10; // Máximo 10 etiquetas
       },
       message: 'No se pueden tener más de 10 etiquetas por nota'
@@ -98,7 +98,7 @@ const NotaSchema = new Schema<NotaDocument>({
     required: true,
     default: () => new Date().toISOString().split('T')[0],
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return /^\d{4}-\d{2}-\d{2}$/.test(v);
       },
       message: 'La fecha debe estar en formato YYYY-MM-DD'
@@ -110,7 +110,7 @@ const NotaSchema = new Schema<NotaDocument>({
     trim: true,
     maxlength: [100, 'El autor no puede exceder 100 caracteres'],
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || v.length >= 2;
       },
       message: 'El autor debe ser un email válido o un nombre de al menos 2 caracteres'
@@ -158,7 +158,7 @@ const NotaSchema = new Schema<NotaDocument>({
     type: String,
     trim: true,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
       message: 'El email del creador no es válido'
@@ -168,7 +168,7 @@ const NotaSchema = new Schema<NotaDocument>({
     type: String,
     trim: true,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
       message: 'El email del editor no es válido'
@@ -190,17 +190,25 @@ const NotaSchema = new Schema<NotaDocument>({
   // Opciones del schema
   timestamps: false, // Manejamos fechas manualmente
   collection: 'notas', // Nombre explícito de la colección
-  toJSON: { 
+  toJSON: {
     virtuals: true,
-    transform: function(doc, ret) {
+    transform: function (doc, ret) {
       ret.id = ret._id.toString(); // Mapear _id a id para compatibilidad
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any)._id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).__v;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).fechaCreacion; // Usar 'date' en lugar de fechaCreacion para compatibilidad
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).fechaActualizacion;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).activo;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).destacado;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).creadoPor;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).editadoPor;
       return ret;
     }
@@ -211,27 +219,27 @@ const NotaSchema = new Schema<NotaDocument>({
 // ===== MÉTODOS VIRTUALES =====
 
 // Número de caracteres del contenido
-NotaSchema.virtual('caracteresContenido').get(function() {
+NotaSchema.virtual('caracteresContenido').get(function () {
   return this.content ? this.content.length : 0;
 });
 
 // Tiempo estimado de lectura (200 palabras por minuto)
-NotaSchema.virtual('tiempoLectura').get(function() {
+NotaSchema.virtual('tiempoLectura').get(function () {
   if (!this.content) return 0;
   const palabras = this.content.split(/\s+/).length;
   return Math.ceil(palabras / 200); // minutos
 });
 
 // Resumen del contenido (primeras 150 caracteres)
-NotaSchema.virtual('resumen').get(function() {
+NotaSchema.virtual('resumen').get(function () {
   if (!this.content) return '';
-  return this.content.length > 150 
+  return this.content.length > 150
     ? this.content.substring(0, 150) + '...'
     : this.content;
 });
 
 // Verificar si es una nota reciente (últimos 7 días)
-NotaSchema.virtual('esReciente').get(function() {
+NotaSchema.virtual('esReciente').get(function () {
   if (!this.date) return false;
   const fechaNota = new Date(this.date);
   const hace7Dias = new Date();
@@ -250,7 +258,7 @@ NotaSchema.index({ title: 'text', content: 'text', tags: 'text' }); // Búsqueda
 // ===== MIDDLEWARE =====
 
 // Pre-save: Actualizar fecha de modificación
-NotaSchema.pre('save', function(next) {
+NotaSchema.pre('save', function (next) {
   if (this.isModified() && !this.isNew) {
     this.fechaActualizacion = new Date().toISOString().split('T')[0];
   }
@@ -258,7 +266,7 @@ NotaSchema.pre('save', function(next) {
 });
 
 // Pre-save: Limpiar y normalizar etiquetas
-NotaSchema.pre('save', function(next) {
+NotaSchema.pre('save', function (next) {
   if (this.isModified('tags') && this.tags) {
     this.tags = this.tags
       .map(tag => tag.toLowerCase().trim())
@@ -269,7 +277,7 @@ NotaSchema.pre('save', function(next) {
 });
 
 // Pre-save: Detectar automáticamente si tiene imágenes en el contenido
-NotaSchema.pre('save', function(next) {
+NotaSchema.pre('save', function (next) {
   if (this.isModified('content')) {
     // Buscar patrones de imágenes en el contenido (URLs, base64, etc.)
     const imagePatterns = [
@@ -278,7 +286,7 @@ NotaSchema.pre('save', function(next) {
       /data:image\//gi, // Base64 images
       /https?:\/\/.*\.(jpg|jpeg|png|gif|bmp|webp)/gi // Image URLs
     ];
-    
+
     this.hasImages = imagePatterns.some(pattern => pattern.test(this.content));
   }
   next();
@@ -287,60 +295,61 @@ NotaSchema.pre('save', function(next) {
 // ===== MÉTODOS ESTÁTICOS =====
 
 // Buscar notas por término de búsqueda
-NotaSchema.statics.search = function(query: string, options: any = {}) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+NotaSchema.statics.search = function (query: string, options: any = {}) {
   const searchQuery = {
     $text: { $search: query },
     activa: true,
     ...options
   };
-  
+
   return this.find(searchQuery, {
     score: { $meta: 'textScore' }
-  }).sort({ 
+  }).sort({
     score: { $meta: 'textScore' },
-    date: -1 
+    date: -1
   });
 };
 
 // Obtener notas por categoría
-NotaSchema.statics.findByCategory = function(category: string) {
-  return this.find({ 
-    category, 
-    activa: true 
+NotaSchema.statics.findByCategory = function (category: string) {
+  return this.find({
+    category,
+    activa: true
   }).sort({ date: -1 });
 };
 
 // Obtener notas por etiquetas
-NotaSchema.statics.findByTags = function(tags: string | string[]) {
+NotaSchema.statics.findByTags = function (tags: string | string[]) {
   const tagArray = Array.isArray(tags) ? tags : [tags];
-  return this.find({ 
+  return this.find({
     tags: { $in: tagArray },
-    activa: true 
+    activa: true
   }).sort({ date: -1 });
 };
 
 // Obtener notas destacadas
-NotaSchema.statics.findDestacadas = function() {
-  return this.find({ 
+NotaSchema.statics.findDestacadas = function () {
+  return this.find({
     destacada: true,
-    activa: true 
+    activa: true
   }).sort({ date: -1 });
 };
 
 // Obtener notas recientes
-NotaSchema.statics.findRecientes = function(dias: number = 7) {
+NotaSchema.statics.findRecientes = function (dias: number = 7) {
   const fechaLimite = new Date();
   fechaLimite.setDate(fechaLimite.getDate() - dias);
   const fechaLimiteStr = fechaLimite.toISOString().split('T')[0];
-  
-  return this.find({ 
+
+  return this.find({
     date: { $gte: fechaLimiteStr },
-    activa: true 
+    activa: true
   }).sort({ date: -1 });
 };
 
 // Obtener estadísticas de notas
-NotaSchema.statics.getStats = async function() {
+NotaSchema.statics.getStats = async function () {
   const stats = await this.aggregate([
     { $match: { activa: true } },
     {
@@ -366,7 +375,7 @@ NotaSchema.statics.getStats = async function() {
             in: {
               $mergeObjects: [
                 '$$value',
-                { 
+                {
                   $arrayToObject: [
                     [{ k: '$$this.categoria', v: { $add: [{ $ifNull: [{ $getField: { field: '$$this.categoria', input: '$$value' } }, 0] }, 1] } }]
                   ]
@@ -378,14 +387,14 @@ NotaSchema.statics.getStats = async function() {
       }
     }
   ]);
-  
+
   const result = stats[0] || {
     total: 0,
     conImagenes: 0,
     destacadas: 0,
     categorias: {}
   };
-  
+
   // Obtener también las etiquetas más utilizadas
   const tagsStats = await this.aggregate([
     { $match: { activa: true } },
@@ -394,53 +403,53 @@ NotaSchema.statics.getStats = async function() {
     { $sort: { count: -1 } },
     { $limit: 10 }
   ]);
-  
+
   result.etiquetasPopulares = tagsStats.map(tag => ({
     etiqueta: tag._id,
     uso: tag.count
   }));
-  
+
   return result;
 };
 
 // Obtener todas las categorías en uso
-NotaSchema.statics.getCategorias = function() {
+NotaSchema.statics.getCategorias = function () {
   return this.distinct('category', { activa: true });
 };
 
 // Obtener todas las etiquetas en uso
-NotaSchema.statics.getEtiquetas = function() {
+NotaSchema.statics.getEtiquetas = function () {
   return this.distinct('tags', { activa: true });
 };
 
 // ===== MÉTODOS DE INSTANCIA =====
 
 // Marcar nota como destacada
-NotaSchema.methods.destacar = function() {
+NotaSchema.methods.destacar = function () {
   this.destacada = true;
   return this.save();
 };
 
 // Quitar destacado de la nota
-NotaSchema.methods.quitarDestacado = function() {
+NotaSchema.methods.quitarDestacado = function () {
   this.destacada = false;
   return this.save();
 };
 
 // Archivar nota (marcar como inactiva)
-NotaSchema.methods.archivar = function() {
+NotaSchema.methods.archivar = function () {
   this.activa = false;
   return this.save();
 };
 
 // Restaurar nota archivada
-NotaSchema.methods.restaurar = function() {
+NotaSchema.methods.restaurar = function () {
   this.activa = true;
   return this.save();
 };
 
 // Agregar etiqueta
-NotaSchema.methods.agregarEtiqueta = function(etiqueta: string) {
+NotaSchema.methods.agregarEtiqueta = function (etiqueta: string) {
   const tag = etiqueta.toLowerCase().trim();
   if (tag && !this.tags.includes(tag) && this.tags.length < 10) {
     this.tags.push(tag);
@@ -450,7 +459,7 @@ NotaSchema.methods.agregarEtiqueta = function(etiqueta: string) {
 };
 
 // Quitar etiqueta
-NotaSchema.methods.quitarEtiqueta = function(this: NotaDocument, etiqueta: string) {
+NotaSchema.methods.quitarEtiqueta = function (this: NotaDocument, etiqueta: string) {
   const tag = etiqueta.toLowerCase().trim();
   this.tags = (this.tags || []).filter((t: string) => t !== tag);
   return this.save();
@@ -459,7 +468,7 @@ NotaSchema.methods.quitarEtiqueta = function(this: NotaDocument, etiqueta: strin
 // ===== VALIDACIONES PERSONALIZADAS =====
 
 // Validar que las etiquetas no contengan caracteres especiales
-NotaSchema.path('tags').validate(function(tags: string[]) {
+NotaSchema.path('tags').validate(function (tags: string[]) {
   if (!tags) return true;
   return tags.every(tag => /^[a-zA-Z0-9\s\-_]+$/.test(tag));
 }, 'Las etiquetas solo pueden contener letras, números, espacios, guiones y guiones bajos');

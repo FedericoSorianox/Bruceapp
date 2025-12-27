@@ -13,12 +13,12 @@
  */
 
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import type { 
-  TareaCultivo, 
-  TipoTarea, 
-  EstadoTarea, 
-  PrioridadTarea, 
-  FrecuenciaRepeticion 
+import type {
+  TareaCultivo,
+  TipoTarea,
+  EstadoTarea,
+  PrioridadTarea,
+  FrecuenciaRepeticion
 } from '@/types/planificacion';
 
 // Extender el tipo base con las propiedades de Mongoose Document
@@ -85,7 +85,7 @@ const TareaSchema = new Schema<TareaDocument>({
     type: String,
     required: [true, 'La fecha programada es obligatoria'],
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return /^\d{4}-\d{2}-\d{2}$/.test(v);
       },
       message: 'La fecha debe estar en formato YYYY-MM-DD'
@@ -95,7 +95,7 @@ const TareaSchema = new Schema<TareaDocument>({
   horaProgramada: {
     type: String,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
       },
       message: 'La hora debe estar en formato HH:MM (24 horas)'
@@ -117,7 +117,7 @@ const TareaSchema = new Schema<TareaDocument>({
   fechaCompletada: {
     type: String,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^\d{4}-\d{2}-\d{2}$/.test(v);
       },
       message: 'La fecha debe estar en formato YYYY-MM-DD'
@@ -140,7 +140,7 @@ const TareaSchema = new Schema<TareaDocument>({
     type: String,
     trim: true,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
       message: 'El email del creador no es válido'
@@ -150,7 +150,7 @@ const TareaSchema = new Schema<TareaDocument>({
     type: String,
     trim: true,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
       message: 'El email del editor no es válido'
@@ -170,7 +170,7 @@ const TareaSchema = new Schema<TareaDocument>({
       values: ['diaria', 'semanal', 'quincenal', 'mensual', 'personalizada'] as FrecuenciaRepeticion[],
       message: 'Frecuencia de repetición no válida: {VALUE}'
     },
-    required: function() {
+    required: function () {
       return this.esRecurrente;
     }
   },
@@ -178,14 +178,14 @@ const TareaSchema = new Schema<TareaDocument>({
     type: Number,
     min: [1, 'El intervalo debe ser al menos 1 día'],
     max: [365, 'El intervalo no puede exceder 365 días'],
-    required: function() {
+    required: function () {
       return this.esRecurrente && this.frecuencia === 'personalizada';
     }
   },
   fechaFinRepeticion: {
     type: String,
     validate: {
-      validator: function(v: string) {
+      validator: function (v: string) {
         return !v || /^\d{4}-\d{2}-\d{2}$/.test(v);
       },
       message: 'La fecha debe estar en formato YYYY-MM-DD'
@@ -207,7 +207,7 @@ const TareaSchema = new Schema<TareaDocument>({
     min: [1, 'Los minutos de recordatorio deben ser al menos 1'],
     max: [10080, 'Los minutos de recordatorio no pueden exceder una semana (10080 minutos)'],
     default: 60, // 1 hora por defecto
-    required: function() {
+    required: function () {
       return this.recordatorioActivado;
     }
   },
@@ -220,11 +220,13 @@ const TareaSchema = new Schema<TareaDocument>({
   // Opciones del schema
   timestamps: false, // Manejamos fechas manualmente
   collection: 'tareas', // Nombre explícito de la colección
-  toJSON: { 
+  toJSON: {
     virtuals: true,
-    transform: function(doc, ret) {
+    transform: function (doc, ret) {
       ret.id = ret._id.toString(); // Mapear _id a id para compatibilidad
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any)._id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (ret as any).__v;
       return ret;
     }
@@ -235,15 +237,15 @@ const TareaSchema = new Schema<TareaDocument>({
 // ===== MÉTODOS VIRTUALES =====
 
 // Verificar si la tarea está vencida
-TareaSchema.virtual('estaVencida').get(function() {
+TareaSchema.virtual('estaVencida').get(function () {
   if (this.estado === 'completada' || this.estado === 'cancelada') return false;
-  
+
   const hoy = new Date().toISOString().split('T')[0];
   return this.fechaProgramada < hoy;
 });
 
 // Obtener días hasta la fecha programada
-TareaSchema.virtual('diasHastaVencimiento').get(function() {
+TareaSchema.virtual('diasHastaVencimiento').get(function () {
   const hoy = new Date();
   const fechaProgramada = new Date(this.fechaProgramada);
   const diff = fechaProgramada.getTime() - hoy.getTime();
@@ -251,14 +253,14 @@ TareaSchema.virtual('diasHastaVencimiento').get(function() {
 });
 
 // Verificar si es hora de enviar recordatorio
-TareaSchema.virtual('debeEnviarRecordatorio').get(function() {
+TareaSchema.virtual('debeEnviarRecordatorio').get(function () {
   if (!this.recordatorioActivado || this.recordatorioEnviado) return false;
   if (this.estado === 'completada' || this.estado === 'cancelada') return false;
-  
+
   const ahora = new Date();
   const fechaProgramada = new Date(`${this.fechaProgramada}T${this.horaProgramada || '12:00'}:00.000Z`);
   const tiempoRecordatorio = new Date(fechaProgramada.getTime() - ((this.minutosRecordatorio || 0) * 60 * 1000));
-  
+
   return ahora >= tiempoRecordatorio;
 });
 
@@ -273,7 +275,7 @@ TareaSchema.index({ titulo: 'text', descripcion: 'text' }); // Búsqueda full-te
 // ===== MIDDLEWARE =====
 
 // Pre-save: Actualizar fecha de modificación
-TareaSchema.pre('save', function(next) {
+TareaSchema.pre('save', function (next) {
   if (this.isModified() && !this.isNew) {
     this.fechaActualizacion = new Date().toISOString().split('T')[0];
   }
@@ -281,7 +283,7 @@ TareaSchema.pre('save', function(next) {
 });
 
 // Pre-save: Marcar fecha de completado automáticamente
-TareaSchema.pre('save', function(next) {
+TareaSchema.pre('save', function (next) {
   if (this.isModified('estado') && this.estado === 'completada' && !this.fechaCompletada) {
     this.fechaCompletada = new Date().toISOString().split('T')[0];
   }
@@ -289,7 +291,7 @@ TareaSchema.pre('save', function(next) {
 });
 
 // Pre-save: Marcar tareas vencidas automáticamente
-TareaSchema.pre('save', function(next) {
+TareaSchema.pre('save', function (next) {
   const hoy = new Date().toISOString().split('T')[0];
   if (this.fechaProgramada < hoy && this.estado === 'pendiente') {
     this.estado = 'vencida';
@@ -298,7 +300,7 @@ TareaSchema.pre('save', function(next) {
 });
 
 // Post-save: Generar siguiente tarea recurrente si es necesario
-TareaSchema.post('save', async function(doc) {
+TareaSchema.post('save', async function (doc) {
   if (doc.estado === 'completada' && doc.esRecurrente && !doc.tareaPadreId) {
     await generarSiguienteTareaRecurrente(doc);
   }
@@ -307,7 +309,7 @@ TareaSchema.post('save', async function(doc) {
 // ===== MÉTODOS ESTÁTICOS =====
 
 // Buscar tareas por cultivo y rango de fechas
-TareaSchema.statics.findByCultivoAndDateRange = function(cultivoId: string, fechaInicio: string, fechaFin: string) {
+TareaSchema.statics.findByCultivoAndDateRange = function (cultivoId: string, fechaInicio: string, fechaFin: string) {
   return this.find({
     cultivoId,
     fechaProgramada: { $gte: fechaInicio, $lte: fechaFin }
@@ -315,15 +317,16 @@ TareaSchema.statics.findByCultivoAndDateRange = function(cultivoId: string, fech
 };
 
 // Buscar tareas pendientes
-TareaSchema.statics.findPendientes = function(cultivoId?: string) {
+TareaSchema.statics.findPendientes = function (cultivoId?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const query: any = { estado: { $in: ['pendiente', 'en_progreso'] } };
   if (cultivoId) query.cultivoId = cultivoId;
-  
+
   return this.find(query).sort({ prioridad: -1, fechaProgramada: 1 });
 };
 
 // Buscar tareas vencidas
-TareaSchema.statics.findVencidas = function() {
+TareaSchema.statics.findVencidas = function () {
   const hoy = new Date().toISOString().split('T')[0];
   return this.find({
     fechaProgramada: { $lt: hoy },
@@ -332,14 +335,16 @@ TareaSchema.statics.findVencidas = function() {
 };
 
 // Buscar tareas que necesitan recordatorio
-TareaSchema.statics.findParaRecordatorio = function() {
+TareaSchema.statics.findParaRecordatorio = function () {
   const ahora = new Date();
-  
+
   return this.find({
     recordatorioActivado: true,
     recordatorioEnviado: false,
     estado: { $in: ['pendiente', 'en_progreso'] }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }).then((tareas: any[]) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return tareas.filter((tarea: any) => {
       const fechaProgramada = new Date(`${tarea.fechaProgramada}T${tarea.horaProgramada || '12:00'}:00.000Z`);
       const tiempoRecordatorio = new Date(fechaProgramada.getTime() - ((tarea.minutosRecordatorio || 0) * 60 * 1000));
@@ -349,10 +354,11 @@ TareaSchema.statics.findParaRecordatorio = function() {
 };
 
 // Obtener estadísticas de tareas
-TareaSchema.statics.getStats = async function(cultivoId?: string) {
+TareaSchema.statics.getStats = async function (cultivoId?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const match: any = {};
   if (cultivoId) match.cultivoId = cultivoId;
-  
+
   const stats = await this.aggregate([
     { $match: match },
     {
@@ -366,7 +372,7 @@ TareaSchema.statics.getStats = async function(cultivoId?: string) {
       }
     }
   ]);
-  
+
   return stats[0] || {
     total: 0,
     pendientes: 0,
@@ -379,7 +385,7 @@ TareaSchema.statics.getStats = async function(cultivoId?: string) {
 // ===== VALIDACIONES PERSONALIZADAS =====
 
 // Validar que la fecha fin de repetición sea posterior a la fecha programada
-TareaSchema.path('fechaFinRepeticion').validate(function(value: string) {
+TareaSchema.path('fechaFinRepeticion').validate(function (value: string) {
   if (!value || !this.esRecurrente) return true;
   return value >= this.fechaProgramada;
 }, 'La fecha fin de repetición debe ser posterior a la fecha programada');
@@ -392,17 +398,17 @@ TareaSchema.path('fechaFinRepeticion').validate(function(value: string) {
  */
 async function generarSiguienteTareaRecurrente(tareaOriginal: TareaDocument) {
   const TareaModel = mongoose.model<TareaDocument>('Tarea');
-  
+
   // Verificar que no hayamos pasado la fecha fin
   if (tareaOriginal.fechaFinRepeticion) {
     const fechaFin = new Date(tareaOriginal.fechaFinRepeticion);
     const fechaActual = new Date(tareaOriginal.fechaProgramada);
     if (fechaActual >= fechaFin) return; // No generar más tareas
   }
-  
+
   // Calcular la siguiente fecha
-  let siguienteFecha = new Date(tareaOriginal.fechaProgramada);
-  
+  const siguienteFecha = new Date(tareaOriginal.fechaProgramada);
+
   switch (tareaOriginal.frecuencia) {
     case 'diaria':
       siguienteFecha.setDate(siguienteFecha.getDate() + 1);
@@ -422,12 +428,12 @@ async function generarSiguienteTareaRecurrente(tareaOriginal: TareaDocument) {
       }
       break;
   }
-  
+
   // Verificar que la nueva fecha no pase la fecha fin
   if (tareaOriginal.fechaFinRepeticion && siguienteFecha > new Date(tareaOriginal.fechaFinRepeticion)) {
     return; // No crear la tarea
   }
-  
+
   // Crear la nueva tarea
   const nuevaTarea = new TareaModel({
     ...tareaOriginal.toObject(),
@@ -440,7 +446,7 @@ async function generarSiguienteTareaRecurrente(tareaOriginal: TareaDocument) {
     fechaCreacion: new Date().toISOString().split('T')[0],
     fechaActualizacion: new Date().toISOString().split('T')[0]
   });
-  
+
   await nuevaTarea.save();
 }
 
