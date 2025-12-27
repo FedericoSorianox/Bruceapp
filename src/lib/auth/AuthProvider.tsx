@@ -128,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initializeAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // ✅ Dependencia vacía: Solo ejecutar al montar el componente
 
   /**

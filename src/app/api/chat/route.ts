@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       // Intentar parsear como JSON
       try {
         n8nData = JSON.parse(textResponse);
-      } catch (e) {
+      } catch {
         // Si falla el parseo, verificar si es un error HTML (común en 500s/502s)
         if (textResponse.trim().toLowerCase().startsWith('<!doctype html') ||
           textResponse.trim().toLowerCase().startsWith('<html')) {
