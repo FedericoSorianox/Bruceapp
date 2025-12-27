@@ -62,24 +62,38 @@ export async function POST(request: NextRequest) {
       if (!textResponse) {
         throw new Error('Respuesta vacía del servicio n8n');
       }
-      n8nData = JSON.parse(textResponse);
+
+      // Intentar parsear como JSON
+      try {
+        n8nData = JSON.parse(textResponse);
+      } catch (e) {
+        // Si falla el parseo, verificar si es un error HTML (común en 500s/502s)
+        if (textResponse.trim().toLowerCase().startsWith('<!doctype html') ||
+          textResponse.trim().toLowerCase().startsWith('<html')) {
+          console.error('❌ Error del servicio (HTML recibido):', textResponse.substring(0, 200));
+          throw new Error('El servicio de IA no está disponible momentáneamente (Error de servidor).');
+        }
+
+        // Si no es HTML, asumir que la respuesta es texto plano válido (la IA respondió directo sin JSON)
+        console.log('⚠️ La respuesta no es JSON, usando texto plano:', textResponse.substring(0, 50));
+        n8nData = { output: textResponse };
+      }
+
     } catch (parseError) {
-      console.error('❌ Error parseando JSON de n8n:', parseError);
-      console.log('📝 Respuesta cruda recibida:', textResponse);
-      throw new Error(`La respuesta del servicio IA no es un JSON válido: ${textResponse.substring(0, 100)}...`);
+      console.error('❌ Error procesando respuesta de n8n:', parseError);
+      throw parseError instanceof Error ? parseError : new Error('Error procesando respuesta del servidor');
     }
 
-    // Se espera que n8n retorne { response: string, tokens?: object }
-    // Adaptar según la estructura real que definas en n8n
-    const respuestaIA = n8nData.output || n8nData.response || n8nData.text || "No se recibió respuesta del orquestador.";
+    // Adaptar según la estructura real que definas en n8n o el texto plano recuperado
+    const respuestaIA = n8nData.output || n8nData.response || n8nData.text || (typeof n8nData === 'string' ? n8nData : "No se recibió respuesta interpretables.");
 
-    console.log('✅ Respuesta recibida de n8n');
+    console.log('✅ Respuesta procesada correctamente');
 
     return NextResponse.json<ApiResponseChat>({
       success: true,
       data: respuestaIA,
-      message: 'Respuesta generada vía n8n',
-      tokens: n8nData.tokens // Opcional, si n8n lo devuelve
+      message: 'Respuesta generada', // Mensaje genérico
+      tokens: n8nData.tokens // Opcional
     });
 
   } catch (error) {
