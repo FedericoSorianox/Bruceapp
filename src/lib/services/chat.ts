@@ -26,38 +26,75 @@ export async function convertirUrlABase64(url: string): Promise<string> {
   try {
     const response = await fetch(url);
     const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = () => reject(new Error('Error al leer el blob de la imagen'));
-      reader.readAsDataURL(blob);
-    });
+    // Usar la misma función de compresión que para los archivos
+    return compressImage(blob);
   } catch (error) {
     throw new Error(`Error al descargar la imagen: ${error instanceof Error ? error.message : 'Error desconocido'}`);
   }
 }
 
 /**
- * Convierte archivo de imagen a base64
+ * Redimensiona y comprime una imagen usando Canvas
+ * @param source - File o Blob de imagen
+ * @param maxWidth - Ancho máximo permitido
+ * @param quality - Calidad JPEG (0-1)
+ * @returns Promise con string base64
+ */
+const compressImage = async (source: File | Blob, maxWidth: number = 1024, quality: number = 0.7): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+
+      // Calcular nuevas dimensiones manteniendo aspect ratio
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('No se pudo obtener contexto del canvas'));
+        return;
+      }
+
+      // Dibujar imagen redimensionada
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Obtener base64 comprimido (JPEG)
+      // data:image/jpeg;base64,...
+      const base64Url = canvas.toDataURL('image/jpeg', quality);
+
+      // Remover prefijo
+      const base64 = base64Url.split(',')[1];
+      resolve(base64);
+    };
+    img.onerror = () => reject(new Error('Error al cargar la imagen para compresión'));
+
+    reader.readAsDataURL(source);
+  });
+};
+
+/**
+ * Convierte archivo de imagen a base64 con compresión automática
  * @param file - Archivo de imagen
  * @returns Promise con string base64
  */
 export async function convertirImagenABase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Remover el prefijo "data:image/...;base64," para obtener solo el base64
-      const base64 = result.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = () => reject(new Error('Error al leer el archivo'));
-    reader.readAsDataURL(file);
-  });
+  // Usar compresión para optimizar payload a la IA
+  return compressImage(file);
 }
 
 /**
