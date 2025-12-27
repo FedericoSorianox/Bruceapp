@@ -90,9 +90,9 @@ export async function POST(request: Request) {
     // Esto evita el error 502 por "Out of Memory" en servidores con recursos limitados
 
     // Convertir el stream del archivo (Web Stream) a un stream de Node
-    // @ts-ignore - Readable.fromWeb es compatible en entornos modernos de Node/Next.js
+
     const { Readable } = await import('stream');
-    // @ts-ignore
+    // @ts-expect-error - Readable.fromWeb es compatible en entornos modernos
     const nodeStream = Readable.fromWeb(archivo.stream());
 
     // Generar un public_id único para la imagen
@@ -100,6 +100,7 @@ export async function POST(request: Request) {
     const publicId = `galeria-cultivos/${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Subir imagen a Cloudinary usando streaming
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const uploadResult = await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -140,6 +141,7 @@ export async function POST(request: Request) {
 
     // Manejar errores específicos de Cloudinary
     if (error && typeof error === 'object' && 'http_code' in error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cloudinaryError = error as any;
       if (cloudinaryError.http_code === 401) {
         return buildErrorResponse('Credenciales de Cloudinary inválidas.', 500);

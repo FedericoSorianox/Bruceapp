@@ -64,6 +64,7 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     }
 
     // Obtener el modelo específico para esta conexión
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const CultivoModel = getCultivoModel(connection) as any;
 
     // Query con filtro de usuario aplicado
@@ -89,6 +90,7 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
 
     // Ejecutar y transformar
     const cultivosDocs = await cultivosQuery;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cultivos = cultivosDocs.map((doc: any) => doc.toJSON());
 
     // Total para paginación
@@ -170,6 +172,7 @@ export const POST = withUserDB(async (request: Request, userEmail: string) => {
     };
 
     // Obtener el modelo específico para esta conexión
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const CultivoModel = getCultivoModel(connection) as any;
 
     // Crear nuevo cultivo usando el modelo específico (validaciones automáticas)

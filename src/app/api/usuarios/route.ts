@@ -97,6 +97,7 @@ export async function GET(request: Request) {
     const creadoPorFilter = url.searchParams.get('creadoPor');
 
     // Construir query de MongoDB
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: any = {};
 
     if (roleFilter && ['admin', 'user'].includes(roleFilter)) {

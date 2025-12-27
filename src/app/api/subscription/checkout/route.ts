@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     try {
       decoded = jwt.verify(token, JWT_SECRET) as { email: string; role: string };
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Token inválido' },
         { status: 401 }

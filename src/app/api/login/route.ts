@@ -48,13 +48,13 @@ const COOKIE_OPTIONS = {
 export async function POST(request: NextRequest) {
   try {
     console.log('🔐 Login request recibido');
-    
+
     // Conectar a MongoDB
     await connectDB();
 
     // 📥 OBTENER DATOS DEL REQUEST
     const { email, password, redirectUrl } = await request.json();
-    
+
     console.log('📧 Login attempt para:', email, '| Redirect URL:', redirectUrl);
 
     // 🔍 VALIDACIONES BÁSICAS
@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 🔐 VALIDACIÓN DE CREDENCIALES CONTRA BASE DE DATOS
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const usuario = await Usuario.findByEmail(email.toLowerCase().trim()) as any;
 
     if (!usuario) {
@@ -100,13 +101,13 @@ export async function POST(request: NextRequest) {
     };
 
     const jwtToken = jwt.sign(tokenPayload, JWT_SECRET);
-    
+
     console.log('✅ Token JWT generado exitosamente');
 
     // 🚀 REDIRECCIÓN SOLICITADA - DEVOLVER INFO PARA REDIRECCIÓN
     if (redirectUrl && redirectUrl.startsWith('/')) {
       console.log('🔄 Preparando respuesta con redirectTo:', redirectUrl);
-      
+
       const response = NextResponse.json({
         success: true,
         token: jwtToken,

@@ -31,6 +31,7 @@ const CultivoPage = React.memo(() => {
     useCultivos({ _sort: 'nombre', _order: 'asc' });
 
   // Hook de autenticación para permisos
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { canCreateCultivo, user } = useAuth();
 
   // Estados locales para la UI
@@ -53,6 +54,7 @@ const CultivoPage = React.memo(() => {
   };
 
   // Función para alternar entre orden ascendente y descendente
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const toggleOrder = () => {
     const next = order === 'asc' ? 'desc' : 'asc';
     setOrder(next);
@@ -366,6 +368,7 @@ const CultivoPage = React.memo(() => {
                     onTareaClick={(tarea) => setTareaSeleccionada(tarea)}
                   />
                   <GestionTareasCultivo
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     onTareaClick={(tarea) => { /* TODO: Implementar detalle de tarea desde gestión */ }}
                   />
                 </div>

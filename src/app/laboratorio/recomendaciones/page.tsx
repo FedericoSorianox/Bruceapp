@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import RequireAuth from "@/lib/auth/RequireAuth";
 import Link from "next/link";
 import { useCultivos } from "@/lib/hooks/useCultivos";
-import type { Cultivo } from "@/types/cultivo";
+// import type { Cultivo } from "@/types/cultivo";
 
 const RecomendacionesPage = () => {
     const { cultivos, loading } = useCultivos();

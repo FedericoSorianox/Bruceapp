@@ -44,6 +44,7 @@ if (!cached) {
  * Genera el nombre de la base de datos global
  * @returns Nombre de la base de datos principal
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getDatabaseName(_adminEmail?: string): string {
   // Retornar siempre el nombre de la base de datos principal
   return 'canopia_main';

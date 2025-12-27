@@ -9,6 +9,7 @@ import { withUserDB, connectToUserDB, getComentarioModel } from '@/lib/mongodb';
 export const GET = withUserDB(async (request, userEmail) => {
   try {
     const connection = await connectToUserDB(userEmail);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ComentarioModel = getComentarioModel(connection) as any;
 
     const url = new URL(request.url);
@@ -44,6 +45,7 @@ export const GET = withUserDB(async (request, userEmail) => {
 export const PATCH = withUserDB(async (request, userEmail) => {
   try {
     const connection = await connectToUserDB(userEmail);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ComentarioModel = getComentarioModel(connection) as any;
 
     const url = new URL(request.url);
@@ -80,6 +82,7 @@ export const PATCH = withUserDB(async (request, userEmail) => {
 export const DELETE = withUserDB(async (request, userEmail) => {
   try {
     const connection = await connectToUserDB(userEmail);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ComentarioModel = getComentarioModel(connection) as any;
 
     const url = new URL(request.url);

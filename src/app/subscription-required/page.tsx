@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useRouter } from 'next/navigation';
 
@@ -19,19 +19,7 @@ export default function SubscriptionRequiredPage() {
   const [loading, setLoading] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
-  // Redirigir si el usuario ya tiene acceso
-  useEffect(() => {
-    if (hasActiveSubscription() || isExemptFromPayments()) {
-      router.push('/notas');
-    }
-  }, [hasActiveSubscription, isExemptFromPayments, router]);
-
-  // Crear enlace de pago al cargar la página
-  useEffect(() => {
-    createPaymentLink();
-  }, []);
-
-  const createPaymentLink = async () => {
+  const createPaymentLink = useCallback(async () => {
     try {
       const token = localStorage.getItem('bruce_token');
       if (!token) {
@@ -56,7 +44,19 @@ export default function SubscriptionRequiredPage() {
     } catch (error) {
       console.error('Error:', error);
     }
-  };
+  }, [router]);
+
+  // Redirigir si el usuario ya tiene acceso
+  useEffect(() => {
+    if (hasActiveSubscription() || isExemptFromPayments()) {
+      router.push('/notas');
+    }
+  }, [hasActiveSubscription, isExemptFromPayments, router]);
+
+  // Crear enlace de pago al cargar la página
+  useEffect(() => {
+    createPaymentLink();
+  }, [createPaymentLink]);
 
   const handleSubscribe = () => {
     if (paymentUrl) {

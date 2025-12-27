@@ -69,6 +69,7 @@ const SimuladorPage = () => {
     };
 
     // Handle gallery image selection
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleGallerySelect = (img: any) => {
         setSelectedImage({
             url: img.url,
@@ -351,7 +352,7 @@ const SimuladorPage = () => {
                                                 </div>
                                             ) : (
                                                 <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                                    <p className="text-gray-400 text-sm">Sube fotos en la sección de "Galería" de tu cultivo</p>
+                                                    <p className="text-gray-400 text-sm">Sube fotos en la sección de &quot;Galería&quot; de tu cultivo</p>
                                                 </div>
                                             )}
                                         </div>

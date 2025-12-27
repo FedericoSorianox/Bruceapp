@@ -61,9 +61,13 @@ export default function CultivoForm({
   // Estados de carga (IA)
   const [cargandoPH, setCargandoPH] = useState(false);
   const [cargandoEC, setCargandoEC] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [cargandoTempVegetacion, setCargandoTempVegetacion] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [cargandoTempFloracion, setCargandoTempFloracion] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [cargandoHumedadVegetacion, setCargandoHumedadVegetacion] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [cargandoHumedadFloracion, setCargandoHumedadFloracion] = useState(false);
 
   // Validación
@@ -117,7 +121,8 @@ export default function CultivoForm({
     } catch (e) { console.error(e); } finally { setCargandoEC(false); }
   };
 
-  const wrapConsulta = async (setter: Function, loader: Function, fetcher: Function, ...args: any[]) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wrapConsulta = async (setter: (val: string) => void, loader: (val: boolean) => void, fetcher: (ctx: any, ...args: any[]) => Promise<any>, ...args: any[]) => {
     loader(true);
     try {
       const res = await fetcher(crearContextoCultivo, ...args);

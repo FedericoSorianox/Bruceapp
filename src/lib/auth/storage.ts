@@ -22,6 +22,7 @@
  */
 const KEY = 'auth_token';
 const COOKIE_NAME = 'auth-token';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -53,7 +54,7 @@ export function getToken(): string | null {
   if (typeof window === 'undefined') {
     return null; // En servidor no existe localStorage
   }
-  
+
   // 📱 Recupera token del localStorage del navegador
   return localStorage.getItem(KEY);
 }
@@ -80,7 +81,7 @@ export function setToken(token: string) {
   if (typeof window === 'undefined') {
     return; // En servidor no se puede acceder a localStorage
   }
-  
+
   // 💾 Almacena token en localStorage del navegador
   localStorage.setItem(KEY, token);
 }
@@ -105,7 +106,7 @@ export function clearToken() {
   if (typeof window === 'undefined') {
     return; // En servidor no se puede acceder a localStorage
   }
-  
+
   // 🗑️ Elimina token del localStorage del navegador
   localStorage.removeItem(KEY);
 }

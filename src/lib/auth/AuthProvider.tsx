@@ -66,9 +66,9 @@ const AuthCtx = createContext<AuthContextType | null>(null);
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 📊 ESTADOS LOCALES DEL PROVEEDOR
-  const [ready, setReady]   = useState(false);        // Control de hidratación
-  const [token, setTok]     = useState<string | null>(null);  // Token actual
-  const [user, setUser]     = useState<User | null>(null);    // Usuario actual
+  const [ready, setReady] = useState(false);        // Control de hidratación
+  const [token, setTok] = useState<string | null>(null);  // Token actual
+  const [user, setUser] = useState<User | null>(null);    // Usuario actual
   const [isVerifying, setIsVerifying] = useState(false); // Control para evitar múltiples verificaciones
 
   /**
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initializeAuth();
-  }, []);
+  }, [isVerifying]);
 
   /**
    * 🔐 FUNCIÓN DE LOGIN
@@ -187,7 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 🚀 REDIRECCIÓN SIMPLE Y DIRECTA - SIEMPRE REDIRIGIR TRAS LOGIN
       const targetUrl = redirectTo || '/cultivo';
       console.log('🔄 Login completado, redirigiendo a:', targetUrl);
-      
+
       // 🛡️ REDIRECCIÓN INMEDIATA TRAS LOGIN
       setTimeout(() => {
         console.log('⏰ Ejecutando redirección post-login a:', targetUrl);
@@ -273,7 +273,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 🚀 REDIRECCIÓN SIMPLE Y DIRECTA
       const targetUrl = redirectTo || '/cultivo';
       console.log('🔄 Registro completo, redirigiendo a:', targetUrl);
-      
+
       // 🛡️ PREVENIR MÚLTIPLES REDIRECCIONES
       setTimeout(() => {
         window.location.replace(targetUrl);
@@ -298,7 +298,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearTokenWithCookies(); // 🗑️ Elimina de localStorage y cookies
     setTok(null);    // 🔄 Resetea estado del token
     setUser(null);   // 🔄 Resetea datos del usuario
-    
+
     console.log('✅ Logout exitoso - sesión terminada');
   }
 
@@ -477,11 +477,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  */
 export function useAuth() {
   const ctx = useContext(AuthCtx);
-  
+
   // 🛡️ VALIDACIÓN DE USO CORRECTO
   if (!ctx) {
     throw new Error('useAuth debe usarse dentro de <AuthProvider>');
   }
-  
+
   return ctx;
 }

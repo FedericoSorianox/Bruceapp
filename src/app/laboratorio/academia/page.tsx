@@ -6,11 +6,12 @@ import Link from "next/link";
 import { useCultivos } from "@/lib/hooks/useCultivos";
 
 // Definition of the detailed content structure
-interface StageDetail {
-    steps: { title: string; desc: string }[];
-    params: { temp: string; humidity: string; light: string; ec?: string; ph?: string };
-    checklist: string[];
-}
+// Definition of the detailed content structure
+// interface StageDetail {
+//     steps: { title: string; desc: string }[];
+//     params: { temp: string; humidity: string; light: string; ec?: string; ph?: string };
+//     checklist: string[];
+// }
 
 const AcademiaPage = () => {
     const { cultivos, loading } = useCultivos();
@@ -256,7 +257,7 @@ const AcademiaPage = () => {
                         {/* Vertical Line for Desktop */}
                         <div className="hidden md:block absolute left-8 top-0 bottom-0 w-1 bg-gray-200 rounded-full"></div>
 
-                        {stages.map((stage, index) => {
+                        {stages.map((stage) => {
                             const isActive = selectedCrop ? stage.id === currentStageId : false;
 
                             return (

@@ -15,6 +15,7 @@ import { withUserDB, connectToUserDB, getTareaModel } from '@/lib/mongodb';
 export const GET = withUserDB(async (request, userEmail) => {
   try {
     const connection = await connectToUserDB(userEmail);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const TareaModel = getTareaModel(connection) as any;
 
     // Extraer ID desde la URL
@@ -62,6 +63,7 @@ export const GET = withUserDB(async (request, userEmail) => {
 export const PATCH = withUserDB(async (request, userEmail) => {
   try {
     const connection = await connectToUserDB(userEmail);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const TareaModel = getTareaModel(connection) as any;
 
     // Extraer ID desde la URL
@@ -115,6 +117,7 @@ export const PATCH = withUserDB(async (request, userEmail) => {
     };
 
     if (isValidationError(error) && error.name === 'ValidationError') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const validationErrors = Object.values(error.errors).map((err: any) => err.message);
       return NextResponse.json(
         { success: false, error: 'Datos inválidos', message: 'Errores de validación', details: validationErrors },
@@ -135,6 +138,7 @@ export const PATCH = withUserDB(async (request, userEmail) => {
 export const DELETE = withUserDB(async (request, userEmail) => {
   try {
     const connection = await connectToUserDB(userEmail);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const TareaModel = getTareaModel(connection) as any;
 
     // Extraer ID desde la URL

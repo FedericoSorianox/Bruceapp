@@ -41,6 +41,7 @@ export const GET = withUserDB(async (request, userEmail) => {
     }
 
     // Obtener el modelo específico para esta conexión
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const CultivoModel = getCultivoModel(connection) as any;
 
     // Buscar el cultivo por ID Y por creador (seguridad)
@@ -127,6 +128,7 @@ export const PATCH = withUserDB(async (request, userEmail) => {
     const updates = await request.json();
 
     // Obtener el modelo específico para esta conexión
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const CultivoModel = getCultivoModel(connection) as any;
 
     // Agregar auditoría automáticamente
@@ -209,6 +211,7 @@ export const DELETE = withUserDB(async (request, userEmail) => {
     }
 
     // Obtener el modelo específico para esta conexión
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const CultivoModel = getCultivoModel(connection) as any;
 
     // Buscar y eliminar el cultivo SOLO si pertenece al usuario

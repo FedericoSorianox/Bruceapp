@@ -3,7 +3,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 import { withUserDB, connectToUserDB, getComentarioModel } from '@/lib/mongodb';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -13,6 +13,7 @@ export const GET = withUserDB(async (request: Request, userEmail: string) => {
     const connection = await connectToUserDB(userEmail);
 
     // Obtener el modelo Comentario específico para esta conexión
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ComentarioModel = getComentarioModel(connection) as any;
 
     const url = new URL(request.url);
@@ -66,6 +67,7 @@ export const POST = withUserDB(async (request: Request, userEmail: string) => {
     const connection = await connectToUserDB(userEmail);
 
     // Obtener el modelo Comentario específico para esta conexión
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ComentarioModel = getComentarioModel(connection) as any;
 
     const comentarioData = await request.json();

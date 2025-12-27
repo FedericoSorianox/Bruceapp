@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth/AuthProvider';
  * Componente para mostrar y gestionar el estado de suscripción
  */
 export default function SubscriptionStatus() {
-  const { user, checkSubscription, isExemptFromPayments } = useAuth();
+  const { user, isExemptFromPayments } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const handleSubscribe = async () => {
