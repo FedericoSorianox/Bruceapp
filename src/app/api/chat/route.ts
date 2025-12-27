@@ -55,7 +55,19 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Procesar respuesta de n8n
-    const n8nData = await n8nResponse.json();
+    const textResponse = await n8nResponse.text();
+    let n8nData;
+
+    try {
+      if (!textResponse) {
+        throw new Error('Respuesta vacía del servicio n8n');
+      }
+      n8nData = JSON.parse(textResponse);
+    } catch (parseError) {
+      console.error('❌ Error parseando JSON de n8n:', parseError);
+      console.log('📝 Respuesta cruda recibida:', textResponse);
+      throw new Error(`La respuesta del servicio IA no es un JSON válido: ${textResponse.substring(0, 100)}...`);
+    }
 
     // Se espera que n8n retorne { response: string, tokens?: object }
     // Adaptar según la estructura real que definas en n8n

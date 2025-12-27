@@ -310,17 +310,26 @@ const SimuladorPage = () => {
                                     {/* Crop Selector */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Cultivo</label>
-                                        <select
-                                            value={cultivoSeleccionadoId}
-                                            onChange={(e) => setCultivoSeleccionadoId(e.target.value)}
-                                            className="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4"
-                                            disabled={loadingCultivos}
-                                        >
-                                            <option value="">-- Selecciona un cultivo --</option>
-                                            {cultivos.map(c => (
-                                                <option key={c.id} value={c.id}>{c.nombre}</option>
-                                            ))}
-                                        </select>
+                                        <div className="relative">
+                                            <select
+                                                value={cultivoSeleccionadoId}
+                                                onChange={(e) => setCultivoSeleccionadoId(e.target.value)}
+                                                className={`w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4 ${loadingCultivos ? 'bg-gray-50 text-gray-400 cursor-wait' : ''}`}
+                                                disabled={loadingCultivos}
+                                            >
+                                                <option value="">
+                                                    {loadingCultivos ? 'Cargando tus cultivos...' : '-- Selecciona un cultivo --'}
+                                                </option>
+                                                {cultivos.map(c => (
+                                                    <option key={c.id} value={c.id}>{c.nombre}</option>
+                                                ))}
+                                            </select>
+                                            {loadingCultivos && (
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Gallery Grid */}
