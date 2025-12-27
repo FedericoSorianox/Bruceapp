@@ -86,29 +86,28 @@ export async function POST(request: Request) {
       return buildErrorResponse(`El archivo ${nombreOriginal} supera el límite permitido de 10MB.`, 413);
     }
 
-    // Convertir el archivo a buffer para subir a Cloudinary
-    const arrayBuffer = await archivo.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Optimización: Usar streaming para subir a Cloudinary en lugar de cargar todo en memoria
+    // Esto evita el error 502 por "Out of Memory" en servidores con recursos limitados
+
+    // Convertir el stream del archivo (Web Stream) a un stream de Node
+    // @ts-ignore - Readable.fromWeb es compatible en entornos modernos de Node/Next.js
+    const { Readable } = await import('stream');
+    // @ts-ignore
+    const nodeStream = Readable.fromWeb(archivo.stream());
 
     // Generar un public_id único para la imagen
     const timestamp = Date.now();
     const publicId = `galeria-cultivos/${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Subir imagen a Cloudinary
+    // Subir imagen a Cloudinary usando streaming
     const uploadResult = await new Promise<any>((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
+      const uploadStream = cloudinary.uploader.upload_stream(
         {
           public_id: publicId,
           folder: 'galeria-cultivos',
           resource_type: 'image',
           // Optimizaciones automáticas de Cloudinary
           quality: 'auto',
-          // Permitir que Cloudinary determine el mejor formato
-          // eager: [
-          //   { width: 800, height: 600, crop: 'fill' },
-          //   { width: 400, height: 300, crop: 'fill' },
-          // ],
-          // Nota: Las transformaciones eager se pueden agregar después si son necesarias
         },
         (error, result) => {
           if (error) {
@@ -118,7 +117,10 @@ export async function POST(request: Request) {
             resolve(result);
           }
         }
-      ).end(buffer);
+      );
+
+      // Conectar el stream del archivo al stream de subida de Cloudinary
+      nodeStream.pipe(uploadStream);
     });
 
     const body: RespuestaApiGaleria = {

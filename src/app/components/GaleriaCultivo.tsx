@@ -40,10 +40,10 @@ interface ArchivoSubida {
  * Componente principal de galería de imágenes del cultivo
  * Maneja la visualización, carga y gestión de imágenes
  */
-const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({ 
-  cultivo, 
+const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
+  cultivo,
   onActualizarCultivo,
-  className = '' 
+  className = ''
 }) => {
   // Estados locales
   const [imagenSeleccionada, setImagenSeleccionada] = useState<ImagenCultivo | null>(null);
@@ -116,7 +116,7 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
 
     // Validar archivos
     const archivosValidos: ArchivoSubida[] = [];
-    
+
     for (const file of Array.from(files)) {
       // Validar tipo de archivo
       if (!file.type.startsWith('image/')) {
@@ -134,7 +134,7 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
           useWebWorker: true,
           initialQuality: 0.8,
         };
-        
+
         // Solo intentar comprimir si es imagen y mayor a 1MB
         if (file.size > 1024 * 1024) {
           fileToUpload = await imageCompression(file, options);
@@ -167,13 +167,13 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
       for (const archivo of archivosValidos) {
         try {
           const nuevaImagen = await subirArchivoCloudinary(archivo);
-          
+
           // Actualizar cultivo con la nueva imagen (solo información, no base64)
           const cultivoActualizado = {
             ...cultivo,
             galeria: [...(cultivo.galeria || []), nuevaImagen],
           };
-          
+
           // Solo enviar la información de la galería, no las imágenes completas
           onActualizarCultivo(cultivoActualizado);
         } catch (error) {
@@ -202,13 +202,13 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
     if (confirmar) {
       // Solo actualizar la lista de imágenes, no enviar datos completos
       const galeriaActualizada = imagenes.filter(img => img.id !== imagenId);
-      
+
       // Enviar solo la información de la galería actualizada
       onActualizarCultivo({
         ...cultivo,
         galeria: galeriaActualizada,
       });
-      
+
       // Cerrar vista detalle si es la imagen eliminada
       if (imagenSeleccionada?.id === imagenId) {
         setImagenSeleccionada(null);
@@ -222,18 +222,18 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
    */
   const handleActualizarDescripcion = (imagenId: string, nuevaDescripcion: string) => {
     // Solo actualizar la descripción de la imagen específica
-    const galeriaActualizada = imagenes.map(img => 
-      img.id === imagenId 
+    const galeriaActualizada = imagenes.map(img =>
+      img.id === imagenId
         ? { ...img, descripcion: nuevaDescripcion }
         : img
     );
-    
+
     // Enviar solo la información de la galería actualizada
     onActualizarCultivo({
       ...cultivo,
       galeria: galeriaActualizada,
     });
-    
+
     // Actualizar imagen seleccionada si es la misma
     if (imagenSeleccionada?.id === imagenId) {
       setImagenSeleccionada({ ...imagenSeleccionada, descripcion: nuevaDescripcion });
@@ -332,38 +332,7 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
         </div>
       )}
 
-      {/* Archivos subiendo */}
-      {archivosSubiendo.length > 0 && (
-        <div className="mx-6 mt-6 space-y-3">
-          {archivosSubiendo.map((archivo) => (
-            <div key={archivo.id} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="relative w-12 h-12 rounded-lg overflow-hidden">
-                  <Image
-                    src={archivo.preview}
-                    alt={archivo.file.name}
-                    fill
-                    className="object-cover rounded-lg"
-                    unoptimized={archivo.preview.startsWith('data:')}
-                  />
-                </div>
-                <div className="flex-grow">
-                  <p className="text-sm font-medium text-gray-900">{archivo.file.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-grow bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${archivo.progreso}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-600">{archivo.progreso}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* El estado de subida ahora se muestra en el loader global */}
 
       {/* Grid de imágenes */}
       <div className="p-6">
@@ -381,7 +350,7 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {imagenes.map((imagen) => (
               <div key={imagen.id} className="group relative">
-                <div 
+                <div
                   className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer transition-transform duration-200 hover:scale-105"
                   onClick={() => handleAbrirDetalle(imagen)}
                 >
@@ -393,7 +362,7 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
                     unoptimized={imagen.url.startsWith('data:') || imagen.url.includes('/api/galeria/temp/')}
                   />
                 </div>
-                
+
                 {/* Overlay con acciones */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center gap-2">
                   <button
@@ -565,6 +534,43 @@ const GaleriaCultivo: React.FC<GaleriaCultivoProps> = ({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Loader de subida global */}
+      {archivosSubiendo.length > 0 && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
+            <div className="text-center space-y-2">
+              <div className="inline-flex p-4 bg-purple-100 text-purple-600 rounded-full mb-2">
+                <svg className="w-8 h-8 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Subiendo imágenes...</h3>
+              <p className="text-gray-500">Por favor espera mientras procesamos tus fotos.</p>
+            </div>
+
+            <div className="space-y-4">
+              {archivosSubiendo.map((archivo) => (
+                <div key={archivo.id} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium text-gray-700 truncate max-w-[200px]">{archivo.file.name}</span>
+                    <span className="text-purple-600 font-medium">{archivo.progreso}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-purple-600 rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${archivo.progreso}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-center text-xs text-gray-400">
+              No cierres esta ventana hasta que finalice
+            </p>
           </div>
         </div>
       )}
