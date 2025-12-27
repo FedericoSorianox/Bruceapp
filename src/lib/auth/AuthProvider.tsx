@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initializeAuth();
-  }, [isVerifying]);
+  }, []); // ✅ Dependencia vacía: Solo ejecutar al montar el componente
 
   /**
    * 🔐 FUNCIÓN DE LOGIN
