@@ -86,18 +86,31 @@ export async function POST(request: NextRequest) {
 
     // Adaptar según la estructura real que definas en n8n o el texto plano recuperado
     // Normalizar la respuesta (n8n a veces devuelve un array)
-    const responseItem = Array.isArray(n8nData) ? n8nData[0] : n8nData;
+    // Normalizar la respuesta (n8n puede devolver array, o array de arrays)
+    let responseItem = n8nData;
+    while (Array.isArray(responseItem) && responseItem.length > 0) {
+      responseItem = responseItem[0];
+    }
 
+    // Log para depuración profunda
+    console.log('🔍 Estructura n8n procesada:', JSON.stringify(responseItem, null, 2));
+
+    // Adaptar según la estructura real que definas en n8n o el texto plano recuperado
     const respuestaIA = responseItem?.output ||
       responseItem?.response ||
       responseItem?.text ||
       responseItem?.message ||
+      responseItem?.json?.output || // Estructura común n8n
+      responseItem?.json?.response ||
+      responseItem?.json?.text ||
+      responseItem?.body?.output ||
+      responseItem?.data || // A veces devuelve directo data
       (typeof responseItem === 'string' ? responseItem : "No se recibió respuesta interpretables.");
 
     if (respuestaIA === "No se recibió respuesta interpretables.") {
-      console.error('❌ Estructura de respuesta n8n no reconocida:', JSON.stringify(n8nData, null, 2));
+      console.error('❌ Estructura de respuesta n8n finall no reconocida. Raw:', textResponse);
     } else {
-      console.log('✅ Respuesta procesada correctamente');
+      console.log('✅ Respuesta extraída correctamente:', typeof respuestaIA === 'string' ? respuestaIA.substring(0, 50) + '...' : respuestaIA);
     }
 
     return NextResponse.json<ApiResponseChat>({
