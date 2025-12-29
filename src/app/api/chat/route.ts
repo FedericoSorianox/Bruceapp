@@ -85,9 +85,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Adaptar según la estructura real que definas en n8n o el texto plano recuperado
-    const respuestaIA = n8nData.output || n8nData.response || n8nData.text || (typeof n8nData === 'string' ? n8nData : "No se recibió respuesta interpretables.");
+    // Normalizar la respuesta (n8n a veces devuelve un array)
+    const responseItem = Array.isArray(n8nData) ? n8nData[0] : n8nData;
 
-    console.log('✅ Respuesta procesada correctamente');
+    const respuestaIA = responseItem?.output ||
+      responseItem?.response ||
+      responseItem?.text ||
+      responseItem?.message ||
+      (typeof responseItem === 'string' ? responseItem : "No se recibió respuesta interpretables.");
+
+    if (respuestaIA === "No se recibió respuesta interpretables.") {
+      console.error('❌ Estructura de respuesta n8n no reconocida:', JSON.stringify(n8nData, null, 2));
+    } else {
+      console.log('✅ Respuesta procesada correctamente');
+    }
 
     return NextResponse.json<ApiResponseChat>({
       success: true,
