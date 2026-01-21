@@ -97,21 +97,35 @@ export async function POST(request: NextRequest) {
 
     // Adaptar según la estructura real que definas en n8n o el texto plano recuperado
     const respuestaIA = responseItem?.output ||
+      responseItem?.reply ||
       responseItem?.response ||
       responseItem?.text ||
+      responseItem?.content ||
       responseItem?.message ||
       responseItem?.json?.output || // Estructura común n8n
+      responseItem?.json?.reply ||
       responseItem?.json?.response ||
       responseItem?.json?.text ||
       responseItem?.body?.output ||
+      responseItem?.body?.reply ||
       responseItem?.data || // A veces devuelve directo data
-      (typeof responseItem === 'string' ? responseItem : "No se recibió respuesta interpretables.");
+      (typeof responseItem === 'string' ? responseItem : null);
 
-    if (respuestaIA === "No se recibió respuesta interpretables.") {
-      console.error('❌ Estructura de respuesta n8n finall no reconocida. Raw:', textResponse);
-    } else {
-      console.log('✅ Respuesta extraída correctamente:', typeof respuestaIA === 'string' ? respuestaIA.substring(0, 50) + '...' : respuestaIA);
+    if (!respuestaIA) {
+      console.error('❌ Estructura de respuesta n8n final no reconocida. Keys:', responseItem ? Object.keys(responseItem) : 'null');
+      console.error('Raw content:', textResponse);
+      const fallback = "No se recibió respuesta interpretables.";
+
+      // Intentar una última búsqueda recursiva o flexible si es necesario, 
+      // por ahora devolvemos el fallback
+      return NextResponse.json<ApiResponseChat>({
+        success: true,
+        data: fallback,
+        message: 'Respuesta generada (fallback)',
+      });
     }
+
+    console.log('✅ Respuesta extraída correctamente:', typeof respuestaIA === 'string' ? respuestaIA.substring(0, 50) + '...' : respuestaIA);
 
     return NextResponse.json<ApiResponseChat>({
       success: true,
