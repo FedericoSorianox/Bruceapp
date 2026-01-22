@@ -51,7 +51,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!n8nResponse.ok) {
-      throw new Error(`Error en n8n: ${n8nResponse.status} ${n8nResponse.statusText}`);
+      const errorText = await n8nResponse.text();
+      console.error(`❌ Error en n8n (${n8nResponse.status}):`, errorText);
+      throw new Error(`Error en n8n: ${n8nResponse.status} - ${errorText.substring(0, 200)}`);
     }
 
     // 4. Procesar respuesta de n8n
@@ -137,10 +139,16 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('❌ Error en API de chat (Proxy n8n):', error);
 
+    // Identificar timeout
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    const isTimeout = errorMessage.includes('timeout') || errorMessage.includes('abort');
+
     return NextResponse.json<ApiResponseChat>({
       success: false,
-      error: 'Error al comunicarse con el servicio de inteligencia artificial.',
-      message: error instanceof Error ? error.message : 'Error desconocido'
+      error: isTimeout
+        ? 'El análisis de la imagen está tomando más tiempo de lo esperado. Por favor intenta de nuevo.'
+        : 'Error al comunicarse con el servicio de inteligencia artificial.',
+      message: errorMessage
     }, { status: 500 });
   }
 }
