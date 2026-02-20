@@ -29,7 +29,7 @@ const publicRoutes = ['/', '/login', '/register', '/blog', '/subscription-requir
 const protectedApiRoutes = ['/api/cultivos', '/api/notas', '/api/tareas', '/api/comentarios', '/api/galeria'];
 
 // 🌐 RUTAS DE API PÚBLICAS
-const publicApiRoutes = ['/api/login', '/api/register', '/api/verify-token', '/api/subscription'];
+const publicApiRoutes = ['/api/login', '/api/register', '/api/verify-token', '/api/subscription', '/api/health'];
 
 
 /**
