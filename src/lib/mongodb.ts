@@ -167,8 +167,17 @@ export async function connectToUserDB(adminEmail: string): Promise<mongoose.Conn
   }
 
   // Crear URI específica para la base de datos principal
-  // Reemplazar el nombre de la DB en la URI base con el nombre fijo
-  const baseUri = process.env.MONGODB_URI.replace(/\/[^/]*$/, `/${dbName}`);
+  // Usamos 'new URL' para parsear de manera segura y no romper
+  // el string de conexión (ej. borrando el host si no tiene path)
+  let baseUri: string;
+  try {
+    const parsedUrl = new URL(process.env.MONGODB_URI);
+    parsedUrl.pathname = `/${dbName}`;
+    baseUri = parsedUrl.toString();
+  } catch (error) {
+    // Fallback por si la URI no cumple el estándar URL
+    baseUri = process.env.MONGODB_URI.replace(/\/[^/]*$/, `/${dbName}`);
+  }
 
   // Si no hay promesa de conexión para esta DB, crear una nueva
   if (!cachedConnection || !cachedConnection.promise) {
