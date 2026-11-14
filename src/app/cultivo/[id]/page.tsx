@@ -10,6 +10,7 @@ import GaleriaCultivo from "../../components/GaleriaCultivo";
 import CalendarioCultivos from "../../components/CalendarioCultivos";
 import GestionTareasCultivo from "../../components/GestionTareasCultivo";
 import { useCultivos } from "@/lib/hooks/useCultivos";
+import { usePlanificacion } from "@/lib/hooks/usePlanificacion";
 import { calcularMetricasFases, iniciarFloracion } from "@/lib/services/cultivos";
 import type { Cultivo } from "@/types/cultivo";
 import type { TareaCultivo } from "@/types/planificacion";
@@ -45,6 +46,13 @@ export default function CultivoDetailPage() {
 
   // Hook para operaciones de cultivos
   const { getById, update, remove, finalizar, reactivar } = useCultivos();
+
+  // Hook compartido de planificación para este cultivo
+  const planificacion = usePlanificacion({
+    cultivoId,
+    _sort: 'fechaProgramada',
+    _order: 'asc',
+  });
 
   // Estados locales
   const [cultivo, setCultivo] = useState<Cultivo | null>(null);
@@ -222,8 +230,8 @@ export default function CultivoDetailPage() {
   const metricas = calcularMetricas(cultivo);
 
   return (
-    <main data-testid="cultivo-main" className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-100">
-      <div data-testid="cultivo-main-content" className="mx-auto max-w-7xl p-8 space-y-8">
+    <main data-testid="cultivo-main" className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-100 pt-20">
+      <div data-testid="cultivo-main-content" className="mx-auto max-w-7xl p-4 sm:p-8 space-y-8">
         {/* Header con navegación */}
         <div data-testid="cultivo-header" className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -760,8 +768,8 @@ export default function CultivoDetailPage() {
           <div className="space-y-8" data-testid="cultivo-tabview-planificacion">
             <CalendarioCultivos
               cultivoId={cultivo.id}
+              planificacion={planificacion}
               onTareaClick={(tarea) => {
-                // Abrir modal con detalles de la tarea
                 setTareaSeleccionada(tarea);
               }}
               data-testid="cultivo-calendario"
@@ -769,6 +777,7 @@ export default function CultivoDetailPage() {
 
             <GestionTareasCultivo
               cultivoId={cultivo.id}
+              planificacion={planificacion}
               data-testid="cultivo-gestion-tareas"
             />
           </div>
@@ -859,16 +868,18 @@ export default function CultivoDetailPage() {
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => {
-                    // Aquí podrías implementar la edición de la tarea
-                    console.log('Editar tarea:', tareaSeleccionada);
-                  }}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
-                  data-testid="cultivo-modal-tarea-editar"
-                >
-                  Editar Tarea
-                </button>
+                {tareaSeleccionada.estado !== 'completada' && (
+                  <button
+                    onClick={async () => {
+                      await planificacion.completar(tareaSeleccionada.id);
+                      setTareaSeleccionada(null);
+                    }}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
+                    data-testid="cultivo-modal-tarea-editar"
+                  >
+                    ✓ Marcar como Completada
+                  </button>
+                )}
                 <button
                   onClick={() => setTareaSeleccionada(null)}
                   className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"

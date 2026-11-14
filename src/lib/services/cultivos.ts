@@ -64,24 +64,16 @@ export function calcularMetricasFases(cultivo: Cultivo) {
  * @param fechaInicioFloracion - Fecha de inicio de floración (por defecto hoy)
  * @returns Promise con el cultivo actualizado
  */
-export async function iniciarFloracion(cultivoId: string, fechaInicioFloracion?: string): Promise<Cultivo> {
+export async function iniciarFloracion(cultivoId: string, fechaInicioFloracion?: string, token?: string): Promise<Cultivo> {
   const fecha = fechaInicioFloracion || new Date().toISOString().split('T')[0];
-
-  const res = await fetch(`${API_BASE}/${R}/${cultivoId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+  return updateCultivo(
+    cultivoId,
+    {
       fechaInicioFloracion: fecha,
       fechaActualizacion: new Date().toISOString().split('T')[0]
-    }),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`No se pudo marcar el inicio de floración: ${errorText}`);
-  }
-
-  return res.json();
+    },
+    token
+  );
 }
 
 import type {

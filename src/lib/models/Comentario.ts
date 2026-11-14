@@ -225,6 +225,11 @@ const ComentarioSchema = new Schema<ComentarioDocument>({
   },
 
   // ===== AUDITORÍA EXTENDIDA =====
+  creadoPor: {
+    type: String,
+    trim: true,
+    index: true
+  },
   editadoPor: {
     type: String,
     trim: true,

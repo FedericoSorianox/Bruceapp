@@ -7,17 +7,15 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { usePlanificacion } from '@/lib/hooks/usePlanificacion';
+import { usePlanificacion, type UsePlanificacionReturn } from '@/lib/hooks/usePlanificacion';
 import type { TareaCultivo, TipoTarea, EstadoTarea, EventoCalendario } from '@/types/planificacion';
 
-/**
- * Props del componente CalendarioCultivos
- */
 interface Props {
-  cultivoId?: string;          // ID del cultivo para filtrar tareas (opcional)
-  onTareaClick?: (tarea: TareaCultivo) => void; // Callback al hacer clic en una tarea
-  mostrarSoloActivas?: boolean; // Si mostrar solo tareas activas
-  className?: string;          // Clases CSS adicionales
+  cultivoId?: string;
+  onTareaClick?: (tarea: TareaCultivo) => void;
+  mostrarSoloActivas?: boolean;
+  className?: string;
+  planificacion?: UsePlanificacionReturn;
 }
 
 /**
@@ -97,18 +95,19 @@ export default function CalendarioCultivos({
   cultivoId,
   onTareaClick,
   mostrarSoloActivas = false,
-  className = ''
+  className = '',
+  planificacion
 }: Props) {
-  // Estado para el mes y año actual del calendario
   const [mesActual, setMesActual] = useState(new Date().getMonth() + 1);
   const [anioActual, setAnioActual] = useState(new Date().getFullYear());
 
-  // Hook para obtener tareas
-  const { tareas, loading, error } = usePlanificacion({
+  const internalPlanificacion = usePlanificacion({
     cultivoId,
     _sort: 'fechaProgramada',
     _order: 'asc'
   });
+
+  const { tareas, loading, error } = planificacion || internalPlanificacion;
 
   /**
    * Filtra tareas según los criterios especificados

@@ -57,8 +57,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 🔑 Intentar obtener token de las cookies usando la función utilitaria
-  const token = getTokenFromCookies(request);
+  // 🔑 Intentar obtener token de las cookies o del header Authorization
+  const token = getTokenFromCookies(request) || request.headers.get('authorization')?.replace('Bearer ', '') || null;
 
   if (!token) {
     // 🚨 Sin token - Redirigir al login

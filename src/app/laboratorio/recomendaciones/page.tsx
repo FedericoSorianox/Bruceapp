@@ -1,211 +1,348 @@
-"use client";
+'use client';
 
-import React, { useState, useMemo } from "react";
-import RequireAuth from "@/lib/auth/RequireAuth";
-import Link from "next/link";
-import { useCultivos } from "@/lib/hooks/useCultivos";
-// import type { Cultivo } from "@/types/cultivo";
+import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useCultivos } from '@/lib/hooks/useCultivos';
+import { usePlanificacion } from '@/lib/hooks/usePlanificacion';
+import { calcularMetricasFases } from '@/lib/services/cultivos';
 
-const RecomendacionesPage = () => {
-    const { cultivos, loading } = useCultivos();
-    const [selectedCropId, setSelectedCropId] = useState<string>('all');
+interface AlertaInteligente {
+  id: string;
+  type: 'urgent' | 'tip' | 'info' | 'success';
+  title: string;
+  cropName: string;
+  cropId?: string;
+  taskId?: string;
+  description: string;
+  badgeText: string;
+  actionLabel: string;
+  onAction?: () => Promise<void>;
+}
 
-    const selectedCrop = useMemo(() =>
-        cultivos.find(c => c.id === selectedCropId),
-        [cultivos, selectedCropId]);
+export default function RecomendacionesPage() {
+  const { cultivos, loading: loadingCultivos, update, iniciarFloracion } = useCultivos();
+  const planificacion = usePlanificacion({ _sort: 'fechaProgramada', _order: 'asc' });
+  const [filtroTipo, setFiltroTipo] = useState<'todas' | 'urgent' | 'tip' | 'info'>('todas');
+  const [procesandoId, setProcesandoId] = useState<string | null>(null);
 
-    // Static recommendations for demo purposes (would be nice to filter these too eventually)
-    const recommendations = [
-        {
-            id: 1,
+  const alertas = useMemo<AlertaInteligente[]>(() => {
+    const list: AlertaInteligente[] = [];
+    const hoy = new Date().toISOString().split('T')[0];
+
+    const cultivoMap: Record<string, string> = {};
+    for (const c of cultivos) {
+      cultivoMap[c.id] = c.nombre;
+    }
+
+    // 1. Tareas vencidas o programadas para hoy
+    for (const tarea of planificacion.tareas) {
+      if (tarea.estado === 'pendiente' || tarea.estado === 'en_progreso') {
+        const nombreSala = cultivoMap[tarea.cultivoId] || 'Sala General';
+        if (tarea.fechaProgramada < hoy) {
+          list.push({
+            id: `tarea-vencida-${tarea.id}`,
             type: 'urgent',
-            title: 'Ajuste de pH Urgente',
-            message: 'Las últimas lecturas sugieren un bloqueo de nutrientes. Baja el pH a 5.8 para mejor absorción de Magnesio.',
-            cultivo: 'Indoor #1',
-            action: 'Ver Tabla'
-        },
-        {
-            id: 2,
-            type: 'warning',
-            title: 'Temperatura Nocturna',
-            message: 'La diferencia térmica día/noche es mayor a 10°C. Esto puede causar estiramiento excesivo en pre-floración.',
-            cultivo: 'Exterior 2024',
-            action: 'Ajustar'
+            title: `Tarea vencida: ${tarea.titulo}`,
+            cropName: nombreSala,
+            cropId: tarea.cultivoId,
+            taskId: tarea.id,
+            description:
+              tarea.descripcion ||
+              `Esta actividad estaba programada para el ${new Date(tarea.fechaProgramada).toLocaleDateString()} y requiere atención inmediata.`,
+            badgeText: 'Vencida',
+            actionLabel: '✓ Completar Tarea Ahora',
+            onAction: async () => {
+              await planificacion.completar(tarea.id);
+            },
+          });
+        } else if (tarea.fechaProgramada === hoy) {
+          list.push({
+            id: `tarea-hoy-${tarea.id}`,
+            type: tarea.prioridad === 'urgente' || tarea.prioridad === 'alta' ? 'urgent' : 'info',
+            title: `Agenda de Hoy: ${tarea.titulo}`,
+            cropName: nombreSala,
+            cropId: tarea.cultivoId,
+            taskId: tarea.id,
+            description:
+              tarea.descripcion ||
+              `Actividad operativa programada para hoy${tarea.horaProgramada ? ` a las ${tarea.horaProgramada} hs` : ''}.`,
+            badgeText: tarea.horaProgramada ? `Hoy ${tarea.horaProgramada} hs` : 'Para Hoy',
+            actionLabel: '✓ Marcar Completada',
+            onAction: async () => {
+              await planificacion.completar(tarea.id);
+            },
+          });
         }
-    ];
+      }
+    }
 
-    // Helper to determine phase
-    const isFlowering = selectedCrop?.fechaInicioFloracion && new Date(selectedCrop.fechaInicioFloracion) <= new Date();
+    // 2. Auditoría agronómica de cada cultivo activo
+    for (const c of cultivos) {
+      if (c.activo === false) continue;
+      const metricas = calcularMetricasFases(c);
 
-    return (
-        <RequireAuth>
-            <div className="min-h-screen bg-gray-50 pb-20">
-                {/* Header */}
-                <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <Link href="/laboratorio" className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                </Link>
-                                <div>
-                                    <h1 className="text-2xl font-bold text-gray-900">Recomendaciones IA</h1>
-                                    <p className="text-sm text-gray-500">
-                                        {selectedCrop ? `Analizando: ${selectedCrop.nombre}` : 'Insights generales'}
-                                    </p>
-                                </div>
-                            </div>
+      // Cultivos en vegetación prolongada (> 28 días) listos para pasar a 12/12
+      if (metricas.faseActual === 'vegetacion' && metricas.diasVegetacionActual >= 28) {
+        list.push({
+          id: `transicion-flora-${c.id}`,
+          type: 'tip',
+          title: 'Ventana óptima para transición a Floración (12/12)',
+          cropName: c.nombre,
+          cropId: c.id,
+          description: `El cultivo lleva ${metricas.diasVegetacionActual} días (Semana ${metricas.semanaVegetacion}) en crecimiento vegetativo. Considera cambiar el fotoperíodo a 12/12 teniendo en cuenta que duplicará su altura durante el stretch.`,
+          badgeText: `Día ${metricas.diasVegetacionActual} Vege`,
+          actionLabel: '🌸 Iniciar Floración Hoy',
+          onAction: async () => {
+            await iniciarFloracion(c.id);
+          },
+        });
+      }
 
-                            {/* Context Action Button */}
-                            {selectedCrop && (
-                                <Link
-                                    href={`/cultivo/${selectedCrop.id}`}
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-100 transition-colors"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    Ver Galería & Dashboard
-                                </Link>
-                            )}
-                        </div>
-                    </div>
-                </div>
+      // Cultivos en floración media/avanzada (Semana 5+) -> Control de humedad / PK / Tricomas
+      if (metricas.faseActual === 'floracion' && metricas.semanaFloracion >= 5) {
+        list.push({
+          id: `flora-avanzada-${c.id}`,
+          type: 'urgent',
+          title: `Semana ${metricas.semanaFloracion} de Floración: Prevención de Botrytis y Engorde`,
+          cropName: c.nombre,
+          cropId: c.id,
+          description: `Con ${metricas.diasFloracionActual} días en floración los cogollos son densos. Mantén la humedad nocturna por debajo de 45-48% HR y monitorea la maduración de tricomas.`,
+          badgeText: `Semana ${metricas.semanaFloracion} Flora`,
+          actionLabel: 'Ajustar Meta HR a 45%',
+          onAction: async () => {
+            await update(c.id, { humedadObjetivoFloracion: 45, tempObjetivoFloracion: 22 });
+          },
+        });
+      }
 
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      // Cultivos sin objetivos de pH/EC configurados
+      if (!c.phObjetivo || !c.ecObjetivo) {
+        const esFlora = metricas.faseActual === 'floracion';
+        list.push({
+          id: `nutricion-target-${c.id}`,
+          type: 'info',
+          title: 'Configurar Objetivos Nutricionales (pH y EC)',
+          cropName: c.nombre,
+          cropId: c.id,
+          description: `Definir metas claras de pH y electroconductividad permite detectar bloqueos de nutrientes a tiempo. Sugerencia para ${esFlora ? 'Floración' : 'Vegetación'}: pH ${esFlora ? '6.2' : '5.9'} y EC ${esFlora ? '1500' : '950'} ppm.`,
+          badgeText: 'Optimización',
+          actionLabel: '⚡ Autoconfigurar pH/EC Ideal',
+          onAction: async () => {
+            await update(c.id, {
+              phObjetivo: esFlora ? 6.2 : 5.9,
+              ecObjetivo: esFlora ? 1500 : 950,
+              aguaDiariaObjetivo: c.aguaDiariaObjetivo || (c.numeroplantas ? Math.round(c.numeroplantas * 1.5) : 12),
+            });
+          },
+        });
+      }
 
-                    <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Sidebar / Filter */}
-                        <div className="w-full lg:w-64 flex-shrink-0 space-y-4">
-                            <h3 className="font-bold text-gray-900 uppercase text-xs tracking-wider mb-2">Filtrar por Cultivo</h3>
-                            <div className="flex flex-col gap-2">
-                                <button
-                                    onClick={() => setSelectedCropId('all')}
-                                    className={`text-left px-4 py-3 rounded-xl font-medium transition-colors border ${selectedCropId === 'all' ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'}`}
-                                >
-                                    Todos los cultivos
-                                </button>
-                                {!loading && cultivos.map(c => (
-                                    <button
-                                        key={c.id}
-                                        onClick={() => setSelectedCropId(c.id)}
-                                        className={`text-left px-4 py-3 rounded-xl font-medium transition-colors border ${selectedCropId === c.id ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'}`}
-                                    >
-                                        {c.nombre}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+      // Densidad lumínica (Watts / m²)
+      if (c.potenciaLamparas && c.metrosCuadrados) {
+        const wM2 = c.potenciaLamparas / c.metrosCuadrados;
+        if (wM2 < 250) {
+          list.push({
+            id: `luz-baja-${c.id}`,
+            type: 'tip',
+            title: `Densidad lumínica moderada (${Math.round(wM2)} W/m²)`,
+            cropName: c.nombre,
+            cropId: c.id,
+            description: `Estás aplicando ${c.potenciaLamparas}W en ${c.metrosCuadrados} m². Para maximizar producción en floración se recomiendan entre 300 y 450 W/m² con tecnología LED de alta eficiencia.`,
+            badgeText: 'Iluminación',
+            actionLabel: 'Ver Detalles de Sala',
+          });
+        }
+      }
+    }
 
-                        {/* Main Content */}
-                        <div className="flex-1 space-y-8">
+    return list;
+  }, [cultivos, planificacion, iniciarFloracion, update]);
 
-                            {/* COMPARISON CARD - Only if a crop is selected */}
-                            {selectedCrop && (
-                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex justify-between items-center text-white">
-                                        <h3 className="font-bold text-lg flex items-center gap-2">
-                                            <span className="text-2xl">⚖️</span> Comparativa de Estado
-                                        </h3>
-                                        <span className="text-xs bg-white/20 px-2 py-1 rounded-full uppercase tracking-wider font-semibold">
-                                            Fase: {isFlowering ? 'Floración 🌸' : 'Vegetación 🌱'}
-                                        </span>
-                                    </div>
+  const alertasFiltradas = useMemo(() => {
+    if (filtroTipo === 'todas') return alertas;
+    return alertas.filter((a) => a.type === filtroTipo);
+  }, [alertas, filtroTipo]);
 
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left text-sm">
-                                            <thead className="bg-gray-50 border-b border-gray-100">
-                                                <tr>
-                                                    <th className="px-6 py-3 font-semibold text-gray-500 uppercase tracking-wider">Parámetro</th>
-                                                    <th className="px-6 py-3 font-semibold text-blue-700 uppercase tracking-wider">Tu Cultivo</th>
-                                                    <th className="px-6 py-3 font-semibold text-green-700 uppercase tracking-wider">Ideal IA</th>
-                                                    <th className="px-6 py-3 font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100">
-                                                {/* pH Row */}
-                                                <tr className="hover:bg-gray-50/50">
-                                                    <td className="px-6 py-4 font-medium text-gray-900">pH Agua</td>
-                                                    <td className="px-6 py-4 font-bold text-gray-800">{selectedCrop.phObjetivo || '---'}</td>
-                                                    <td className="px-6 py-4 text-green-600 font-medium">5.8 - 6.2</td>
-                                                    <td className="px-6 py-4">
-                                                        {!selectedCrop.phObjetivo ? <span className="text-gray-400">Sin datos</span> :
-                                                            (selectedCrop.phObjetivo < 5.8 || selectedCrop.phObjetivo > 6.5)
-                                                                ? <span className="text-red-500 font-bold text-xs bg-red-50 px-2 py-1 rounded-full">Desviado</span>
-                                                                : <span className="text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded-full">Óptimo</span>}
-                                                    </td>
-                                                </tr>
-                                                {/* EC Row */}
-                                                <tr className="hover:bg-gray-50/50">
-                                                    <td className="px-6 py-4 font-medium text-gray-900">EC (ppm)</td>
-                                                    <td className="px-6 py-4 font-bold text-gray-800">{selectedCrop.ecObjetivo || '---'}</td>
-                                                    <td className="px-6 py-4 text-green-600 font-medium">{isFlowering ? '1.2 - 2.0' : '0.8 - 1.2'}</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="text-gray-400">-</span>
-                                                    </td>
-                                                </tr>
-                                                {/* Temp Row */}
-                                                <tr className="hover:bg-gray-50/50">
-                                                    <td className="px-6 py-4 font-medium text-gray-900">Temperatura</td>
-                                                    <td className="px-6 py-4 font-bold text-gray-800">
-                                                        {isFlowering ? selectedCrop.tempObjetivoFloracion : selectedCrop.tempObjetivoVegetacion || '---'} °C
-                                                    </td>
-                                                    <td className="px-6 py-4 text-green-600 font-medium">24.0 °C</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="text-gray-400 text-xs text-center border px-2 py-1 rounded bg-gray-50">Verificar</span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-xs text-gray-500 flex justify-between items-center">
-                                        <span>* Basado en los objetivos configurados en la edición del cultivo.</span>
-                                        <Link href={`/cultivo/${selectedCrop.id}`} className="text-blue-600 hover:underline">
-                                            Actualizar datos →
-                                        </Link>
-                                    </div>
-                                </div>
-                            )}
+  const getBadgeStyle = (type: AlertaInteligente['type']) => {
+    switch (type) {
+      case 'urgent':
+        return 'bg-rose-100 text-rose-700 border-rose-200';
+      case 'tip':
+        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'info':
+        return 'bg-sky-100 text-sky-700 border-sky-200';
+      case 'success':
+        return 'bg-purple-100 text-purple-700 border-purple-200';
+    }
+  };
 
-                            {/* Recommendations Feed */}
-                            <h3 className="font-bold text-gray-900 text-lg">
-                                {selectedCrop ? 'Alertas Específicas' : 'Alertas Recientes'}
-                            </h3>
+  const getIcon = (type: AlertaInteligente['type']) => {
+    switch (type) {
+      case 'urgent':
+        return '🚨';
+      case 'tip':
+        return '💡';
+      case 'info':
+        return 'ℹ️';
+      case 'success':
+        return '✨';
+    }
+  };
 
-                            <div className="space-y-4">
-                                {recommendations.map(rec => (
-                                    <div key={rec.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-start gap-5 hover:shadow-md transition-shadow">
-                                        <div className={`
-                      flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-xl
-                      ${rec.type === 'urgent' ? 'bg-red-100 text-red-600' : ''}
-                      ${rec.type === 'warning' ? 'bg-yellow-100 text-yellow-600' : ''}
-                    `}>
-                                            {rec.type === 'urgent' ? '🚨' : '⚠️'}
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <h3 className="text-lg font-bold text-gray-900">{rec.title}</h3>
-                                                <span className="text-xs font-semibold bg-gray-100 text-gray-500 px-2 py-1 rounded">
-                                                    {rec.cultivo}
-                                                </span>
-                                            </div>
-                                            <p className="text-gray-600 mb-4">{rec.message}</p>
-                                            <button className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-                                                {rec.action} →
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
+  return (
+    <main className="min-h-screen bg-slate-50 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/laboratorio"
+              className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-xs"
+            >
+              ← Volver
+            </Link>
+            <div>
+              <h1 className="text-3xl font-extrabold text-slate-900">Motor de Recomendaciones IA</h1>
+              <p className="text-slate-600 text-sm">
+                Auditoría automática en tiempo real basada en tus salas activas y calendario de tareas
+              </p>
             </div>
-        </RequireAuth>
-    );
-};
+          </div>
 
-export default RecomendacionesPage;
+          <Link
+            href="/cultivo"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors self-start sm:self-auto"
+          >
+            <span>🌿</span> Ir a Mis Cultivos
+          </Link>
+        </div>
+
+        {/* Estado General Dinámico */}
+        <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold mb-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              Monitoreo Agronómico Activo
+            </div>
+            <h2 className="text-xl font-bold">
+              Analizando {cultivos.filter((c) => c.activo !== false).length} cultivos activos y{' '}
+              {planificacion.estadisticas.tareasPendientes} tareas pendientes
+            </h2>
+            <p className="text-emerald-100/80 text-sm mt-1">
+              {alertas.filter((a) => a.type === 'urgent').length > 0
+                ? `Se detectaron ${alertas.filter((a) => a.type === 'urgent').length} alertas prioritarias que requieren acción hoy.`
+                : 'Todos tus parámetros principales se encuentran dentro de los umbrales seguros.'}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-center px-4 py-2.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10">
+              <div className="text-2xl font-extrabold text-white">{alertas.length}</div>
+              <div className="text-[11px] text-emerald-200">Sugerencias</div>
+            </div>
+            <div className="text-center px-4 py-2.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10">
+              <div className="text-2xl font-extrabold text-emerald-400">
+                {planificacion.estadisticas.productividad}%
+              </div>
+              <div className="text-[11px] text-emerald-200">Cumplimiento</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filtros de Tipo de Alerta */}
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { id: 'todas', label: `Todas (${alertas.length})` },
+            { id: 'urgent', label: `🚨 Prioritarias (${alertas.filter((a) => a.type === 'urgent').length})` },
+            { id: 'tip', label: `💡 Consejos de Cultivo (${alertas.filter((a) => a.type === 'tip').length})` },
+            { id: 'info', label: `ℹ️ Agenda y Metas (${alertas.filter((a) => a.type === 'info').length})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setFiltroTipo(tab.id as typeof filtroTipo)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                filtroTipo === tab.id
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Lista de Recomendaciones Dinámicas */}
+        {loadingCultivos || planificacion.loading ? (
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-200 border-t-emerald-600 mb-3" />
+            <p className="text-slate-600 text-sm">Analizando telemetría de tus cultivos...</p>
+          </div>
+        ) : alertasFiltradas.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+            <div className="text-4xl mb-3">✅</div>
+            <h3 className="text-lg font-bold text-slate-900">¡Todo al día en tus salas!</h3>
+            <p className="text-sm text-slate-500 mt-1">
+              No hay alertas pendientes en esta categoría. Tus cultivos y tareas están bajo control.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {alertasFiltradas.map((rec) => (
+              <div
+                key={rec.id}
+                className="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 hover:shadow-md hover:border-emerald-300 transition-all flex flex-col sm:flex-row gap-5 items-start"
+              >
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 border ${getBadgeStyle(
+                    rec.type
+                  )}`}
+                >
+                  {getIcon(rec.type)}
+                </div>
+
+                <div className="flex-grow">
+                  <div className="flex flex-wrap justify-between items-start gap-2 mb-1.5">
+                    <h4 className="text-base sm:text-lg font-bold text-slate-900">{rec.title}</h4>
+                    <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+                      {rec.badgeText}
+                    </span>
+                  </div>
+
+                  <p className="text-xs font-bold text-emerald-700 mb-2">🌿 Sala: {rec.cropName}</p>
+                  <p className="text-slate-600 text-sm leading-relaxed mb-4">{rec.description}</p>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    {rec.onAction && (
+                      <button
+                        disabled={procesandoId === rec.id}
+                        onClick={async () => {
+                          setProcesandoId(rec.id);
+                          try {
+                            await rec.onAction!();
+                          } finally {
+                            setProcesandoId(null);
+                          }
+                        }}
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors shadow-xs disabled:opacity-50"
+                      >
+                        {procesandoId === rec.id ? 'Aplicando...' : rec.actionLabel}
+                      </button>
+                    )}
+
+                    {rec.cropId && (
+                      <Link
+                        href={`/cultivo/${rec.cropId}`}
+                        className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
+                      >
+                        Abrir Sala →
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}

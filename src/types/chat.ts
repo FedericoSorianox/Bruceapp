@@ -168,6 +168,7 @@ export interface ComentarioCultivo {
   resuelto?: boolean;            // Indica si el comentario está resuelto
   resuelto_por?: string;         // Usuario que resolvió el comentario
   fechaResolucion?: string;      // Fecha cuando se resolvió
+  creadoPor?: string;            // Email del usuario que creó el comentario
   editadoPor?: string;           // Usuario que editó el comentario
   activo: boolean;               // Indica si el comentario está activo
   destacado?: boolean;           // Indica si es un comentario destacado

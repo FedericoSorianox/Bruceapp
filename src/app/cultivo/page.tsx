@@ -1,452 +1,725 @@
 'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
-import RequireAuth from "@/lib/auth/RequireAuth";
-import CultivoForm from "../components/CultivoForm";
-import CalendarioCultivos from "../components/CalendarioCultivos";
-import GestionTareasCultivo from "../components/GestionTareasCultivo";
-import { useCultivos } from "@/lib/hooks/useCultivos";
-import { useAuth } from "@/lib/auth/AuthProvider";
-import type { Cultivo } from "@/types/cultivo";
-import type { TareaCultivo } from "@/types/planificacion";
+import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
+import RequireAuth from '@/lib/auth/RequireAuth';
+import { useAuth } from '@/lib/auth/AuthProvider';
+import { useCultivos } from '@/lib/hooks/useCultivos';
+import { usePlanificacion } from '@/lib/hooks/usePlanificacion';
+import { calcularMetricasFases } from '@/lib/services/cultivos';
+import CultivoForm from '../components/CultivoForm';
+import CalendarioCultivos from '../components/CalendarioCultivos';
+import GestionTareasCultivo from '../components/GestionTareasCultivo';
+import type { Cultivo, CultivoCreacion } from '@/types/cultivo';
+import type { TareaCultivo } from '@/types/planificacion';
 
-/**
- * Página de Cultivo - Dashboard principal para gestión integral de cultivos
- *
- * Características implementadas:
- * - Lista de cultivos existentes con filtros
- * - Formulario para crear nuevos cultivos
- * - Botones para ver detalles de cada cultivo
- * - Gestión de estados (activo/inactivo)
- * - Estadísticas básicas de cultivos
- *
- * Nuevas funcionalidades:
- * - Planificación de cultivos con calendario interactivo
- * - Gestión de tareas con recordatorios automáticos
- */
-const CultivoPage = React.memo(() => {
-  // Hook personalizado que gestiona todas las operaciones de cultivos
-  const { cultivos, loading, error, estadisticas, setQuery, setSort, setFiltroActivo, create, update, remove } =
-    useCultivos({ _sort: 'nombre', _order: 'asc' });
+export default function CultivoPage() {
+  return (
+    <RequireAuth>
+      <CultivoContent />
+    </RequireAuth>
+  );
+}
 
-  // Hook de autenticación para permisos
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { canCreateCultivo, user } = useAuth();
+function CultivoContent() {
+  const { user, canCreateCultivo, canDeleteCultivo, canEditRecursos } = useAuth();
+  const {
+    cultivos,
+    loading,
+    error,
+    estadisticas,
+    create,
+    update,
+    remove,
+    finalizar,
+    reactivar,
+    iniciarFloracion,
+  } = useCultivos();
 
-  // Estados locales para la UI
-  const [search, setSearch] = useState('');
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-  const [filtroActivo, setFiltroActivoLocal] = useState<'todos' | 'activos' | 'inactivos'>('todos');
-  const [editing, setEditing] = useState<Cultivo | null>(null);
-  const [creating, setCreating] = useState(false);
+  const planificacion = usePlanificacion({
+    _sort: 'fechaProgramada',
+    _order: 'asc',
+  });
 
-  // Estado para la pestaña activa
-  const [pestanaActiva, setPestanaActiva] = useState<'cultivos' | 'planificacion'>('cultivos');
-
-  // Estado para la tarea seleccionada desde el calendario
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [cultivoEditando, setCultivoEditando] = useState<Cultivo | null>(null);
+  const [busquedaLocal, setBusquedaLocal] = useState('');
+  const [filtroFase, setFiltroFase] = useState<'todos' | 'vegetacion' | 'floracion' | 'finalizados'>('todos');
+  const [ordenPor, setOrdenPor] = useState<'nombre' | 'fechaCreacion' | 'metrosCuadrados' | 'numeroplantas'>('fechaCreacion');
+  const [ordenDir, setOrdenDir] = useState<'asc' | 'desc'>('desc');
+  const [vistaActiva, setVistaActiva] = useState<'cultivos' | 'planificacion'>('cultivos');
   const [tareaSeleccionada, setTareaSeleccionada] = useState<TareaCultivo | null>(null);
 
-  // Función manejadora del formulario de búsqueda
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setQuery(search);
+  // Filtrado y ordenamiento instantáneo en memoria (0ms latencia)
+  const cultivosFiltrados = useMemo(() => {
+    const q = busquedaLocal.trim().toLowerCase();
+
+    return cultivos
+      .filter((c) => {
+        if (filtroFase === 'finalizados') {
+          if (c.activo !== false) return false;
+        } else if (filtroFase === 'vegetacion') {
+          if (c.activo === false || c.fechaInicioFloracion) return false;
+        } else if (filtroFase === 'floracion') {
+          if (c.activo === false || !c.fechaInicioFloracion) return false;
+        }
+
+        if (!q) return true;
+        return (
+          c.nombre.toLowerCase().includes(q) ||
+          (c.genetica && c.genetica.toLowerCase().includes(q)) ||
+          (c.sustrato && c.sustrato.toLowerCase().includes(q)) ||
+          (c.notas && c.notas.toLowerCase().includes(q))
+        );
+      })
+      .sort((a, b) => {
+        const dir = ordenDir === 'asc' ? 1 : -1;
+        if (ordenPor === 'nombre') {
+          return a.nombre.localeCompare(b.nombre) * dir;
+        }
+        if (ordenPor === 'metrosCuadrados') {
+          return ((a.metrosCuadrados || 0) - (b.metrosCuadrados || 0)) * dir;
+        }
+        if (ordenPor === 'numeroplantas') {
+          return ((a.numeroplantas || 0) - (b.numeroplantas || 0)) * dir;
+        }
+        const dateA = a.fechaComienzo || a.fechaCreacion || '';
+        const dateB = b.fechaComienzo || b.fechaCreacion || '';
+        return dateA.localeCompare(dateB) * dir;
+      });
+  }, [cultivos, busquedaLocal, filtroFase, ordenPor, ordenDir]);
+
+  const tareasUrgentesHoy = useMemo(() => {
+    const hoy = new Date().toISOString().split('T')[0];
+    return planificacion.tareas.filter(
+      (t) => (t.estado === 'pendiente' || t.estado === 'en_progreso') && t.fechaProgramada <= hoy
+    );
+  }, [planificacion.tareas]);
+
+  const handleCrearCultivo = async (datos: CultivoCreacion) => {
+    await create({
+      ...datos,
+      creadoPor: user?.email || 'unknown',
+    });
+    setMostrarFormulario(false);
   };
 
-  // Función para alternar entre orden ascendente y descendente
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const toggleOrder = () => {
-    const next = order === 'asc' ? 'desc' : 'asc';
-    setOrder(next);
-    setSort('nombre', next);
+  const handleActualizarCultivo = async (datos: CultivoCreacion) => {
+    if (!cultivoEditando) return;
+    await update(cultivoEditando.id, {
+      ...datos,
+      editadoPor: user?.email || 'unknown',
+    });
+    setCultivoEditando(null);
   };
 
-  // Función para cambiar el filtro de cultivos activos/inactivos
-  const handleFiltroChange = (filtro: 'todos' | 'activos' | 'inactivos') => {
-    setFiltroActivoLocal(filtro);
-    if (filtro === 'todos') {
-      setFiltroActivo(undefined);
-    } else if (filtro === 'activos') {
-      setFiltroActivo(true);
-    } else {
-      setFiltroActivo(false);
+  const handleCancelarFormulario = () => {
+    setMostrarFormulario(false);
+    setCultivoEditando(null);
+  };
+
+  const handleEliminarCultivo = async (id: string, nombre: string) => {
+    if (window.confirm(`¿Estás seguro de eliminar el cultivo "${nombre}"?`)) {
+      try {
+        await remove(id);
+      } catch (err) {
+        console.error('Error al eliminar cultivo:', err);
+      }
+    }
+  };
+
+  const handleToggleEstado = async (cultivo: Cultivo) => {
+    try {
+      if (cultivo.activo !== false) {
+        await finalizar(cultivo.id);
+      } else {
+        await reactivar(cultivo.id);
+      }
+    } catch (err) {
+      console.error('Error al cambiar estado del cultivo:', err);
+    }
+  };
+
+  const handlePasarAFloracion = async (cultivo: Cultivo) => {
+    if (window.confirm(`¿Iniciar fase de floración hoy para "${cultivo.nombre}"?`)) {
+      try {
+        await iniciarFloracion(cultivo.id);
+      } catch (err) {
+        console.error('Error al iniciar floración:', err);
+      }
     }
   };
 
   return (
-    <RequireAuth>
-      <main className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-green-100 via-slate-50 to-emerald-50 relative overflow-hidden" data-testid="cultivo-page">
-        {/* Ambient Background Blobs */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-          <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-green-200/30 blur-[100px]" />
-          <div className="absolute top-[20%] -left-[10%] w-[40%] h-[40%] rounded-full bg-emerald-200/20 blur-[100px]" />
+    <main className="min-h-screen bg-slate-50 pt-20 pb-16">
+      {/* Hero Compacto de Comando */}
+      <div className="bg-slate-900 text-white border-b border-slate-800 relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold mb-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Centro de Control Agronómico
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                Mis Cultivos & Planificación
+              </h1>
+              <p className="text-slate-400 text-sm sm:text-base mt-1">
+                Monitorea fases vegetativas y florales, objetivos nutricionales y calendario operativo en tiempo real.
+              </p>
+            </div>
+
+            {canCreateCultivo() && (
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => {
+                    setCultivoEditando(null);
+                    setMostrarFormulario(true);
+                    setVistaActiva('cultivos');
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-900/30 transition-all cursor-pointer"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Nuevo Cultivo
+                </button>
+                <Link
+                  href="/laboratorio/simulador"
+                  className="inline-flex items-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl border border-slate-700 transition-all text-sm"
+                >
+                  <span>🌡️</span>
+                  <span>Simulador VPD & Doctor IA</span>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* KPIs Rápidos */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-7">
+            <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4">
+              <div className="text-xs text-slate-400 font-medium">Cultivos Activos</div>
+              <div className="text-2xl font-extrabold text-emerald-400 mt-1">{estadisticas.activos}</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">de {estadisticas.total} registrados</div>
+            </div>
+            <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4">
+              <div className="text-xs text-slate-400 font-medium">Total Plantas</div>
+              <div className="text-2xl font-extrabold text-white mt-1">{estadisticas.totalPlantas}</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">en seguimiento</div>
+            </div>
+            <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4">
+              <div className="text-xs text-slate-400 font-medium">Área Total</div>
+              <div className="text-2xl font-extrabold text-teal-400 mt-1">
+                {estadisticas.totalMetrosCuadrados.toFixed(1)} <span className="text-sm font-normal">m²</span>
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">superficie cultivada</div>
+            </div>
+            <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4">
+              <div className="text-xs text-slate-400 font-medium">Tareas para Hoy</div>
+              <div className="text-2xl font-extrabold text-amber-400 mt-1">
+                {planificacion.estadisticas.tareasHoy}
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                {planificacion.estadisticas.tareasPendientes} pendientes totales
+              </div>
+            </div>
+            <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4">
+              <div className="text-xs text-slate-400 font-medium">Tareas Vencidas</div>
+              <div
+                className={`text-2xl font-extrabold mt-1 ${
+                  planificacion.estadisticas.tareasVencidas > 0 ? 'text-rose-400' : 'text-slate-300'
+                }`}
+              >
+                {planificacion.estadisticas.tareasVencidas}
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">requieren atención</div>
+            </div>
+            <div className="bg-slate-800/70 border border-slate-700/60 rounded-2xl p-4">
+              <div className="text-xs text-slate-400 font-medium">Cumplimiento</div>
+              <div className="text-2xl font-extrabold text-sky-400 mt-1">
+                {planificacion.estadisticas.productividad}%
+              </div>
+              <div className="text-[11px] text-slate-500 mt-0.5">
+                {planificacion.estadisticas.tareasCompletadas} completadas
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+        {/* Banner inteligente de tareas del día / urgentes */}
+        {tareasUrgentesHoy.length > 0 && (
+          <div className="bg-amber-50/90 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div className="flex items-start sm:items-center gap-3">
+              <span className="text-2xl">⚡</span>
+              <div>
+                <h3 className="text-sm font-bold text-amber-900">
+                  Tienes {tareasUrgentesHoy.length}{' '}
+                  {tareasUrgentesHoy.length === 1 ? 'tarea programada para hoy o vencida' : 'tareas programadas para hoy o vencidas'}
+                </h3>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  Próxima: <span className="font-semibold">{tareasUrgentesHoy[0].titulo}</span>
+                  {tareasUrgentesHoy[0].horaProgramada ? ` (${tareasUrgentesHoy[0].horaProgramada} hs)` : ''}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => planificacion.completar(tareasUrgentesHoy[0].id)}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors"
+              >
+                ✓ Completar ahora
+              </button>
+              <button
+                onClick={() => setVistaActiva('planificacion')}
+                className="px-3.5 py-2 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold rounded-xl transition-colors"
+              >
+                Ver Calendario ({planificacion.estadisticas.tareasPendientes})
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Selector de Vista Principal */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-white p-1.5 rounded-2xl shadow-xs border border-slate-200 inline-flex">
+            <button
+              onClick={() => setVistaActiva('cultivos')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                vistaActiva === 'cultivos'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <span>🌱</span>
+              <span>Salas y Cultivos ({cultivos.length})</span>
+            </button>
+            <button
+              onClick={() => setVistaActiva('planificacion')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                vistaActiva === 'planificacion'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <span>📅</span>
+              <span>Calendario y Tareas ({planificacion.estadisticas.tareasPendientes} pendientes)</span>
+            </button>
+          </div>
+
+          {vistaActiva === 'cultivos' && (
+            <div className="flex flex-wrap items-center gap-2">
+              {(['todos', 'vegetacion', 'floracion', 'finalizados'] as const).map((fase) => {
+                const labels = {
+                  todos: 'Todos',
+                  vegetacion: '🌱 En Vegetación',
+                  floracion: '🌸 En Floración',
+                  finalizados: '📦 Finalizados',
+                };
+                return (
+                  <button
+                    key={fase}
+                    onClick={() => setFiltroFase(fase)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
+                      filtroFase === fase
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {labels[fase]}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        <div className="mx-auto max-w-7xl p-6 sm:p-8 space-y-10 relative z-10" data-testid="cultivo-main-wrapper">
-          {/* Hero Section - Premium Glass */}
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl" data-testid="cultivo-hero">
-            <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-700 opacity-90" />
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+        {/* Formulario Modal / Desplegable para Crear o Editar Cultivo */}
+        {(mostrarFormulario || cultivoEditando) && (
+          <div className="animate-fadeIn">
+            <CultivoForm
+              initial={cultivoEditando || undefined}
+              onSubmit={cultivoEditando ? handleActualizarCultivo : handleCrearCultivo}
+              onCancel={handleCancelarFormulario}
+            />
+          </div>
+        )}
 
-            <div className="relative z-10 p-6 sm:p-14 text-center">
-              <div
-                className="mb-8 inline-flex items-center rounded-full bg-white/10 px-5 py-2 text-sm font-medium text-white backdrop-blur-md border border-white/20 shadow-lg"
-                data-testid="cultivo-hero-badge"
-              >
-                <span className="mr-2 text-lg">✨</span>
-                Gestión Inteligente de Cultivos
+        {/* VISTA 1: SALAS Y CULTIVOS */}
+        {vistaActiva === 'cultivos' && (
+          <>
+            {/* Barra de Búsqueda Instantánea y Ordenamiento */}
+            <div className="bg-white rounded-2xl shadow-xs border border-slate-200 p-4">
+              <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+                <div className="relative w-full md:max-w-md">
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre, genética, sustrato o notas..."
+                    value={busquedaLocal}
+                    onChange={(e) => setBusquedaLocal(e.target.value)}
+                    className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm text-slate-800 outline-none transition-all"
+                  />
+                  <svg
+                    className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  {busquedaLocal && (
+                    <button
+                      onClick={() => setBusquedaLocal('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Ordenar:</span>
+                  <select
+                    value={ordenPor}
+                    onChange={(e) => setOrdenPor(e.target.value as typeof ordenPor)}
+                    className="px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="fechaCreacion">Fecha de inicio</option>
+                    <option value="nombre">Nombre (A-Z)</option>
+                    <option value="numeroplantas">N° de Plantas</option>
+                    <option value="metrosCuadrados">Área (m²)</option>
+                  </select>
+                  <button
+                    onClick={() => setOrdenDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+                    className="px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-700"
+                    title="Invertir orden"
+                  >
+                    {ordenDir === 'asc' ? '↑ Asc' : '↓ Desc'}
+                  </button>
+                </div>
               </div>
-
-              <h1 className="mb-6 text-3xl font-bold sm:text-6xl tracking-tight text-white drop-shadow-sm" data-testid="cultivo-page-title">
-                Tu Dashboard de <br />
-                <span className="text-green-50 bg-clip-text text-transparent bg-gradient-to-r from-white to-green-100">
-                  Cultivos Inteligentes
-                </span>
-              </h1>
-
-              <p className="mx-auto mb-10 max-w-2xl text-lg sm:text-xl text-green-50 font-light leading-relaxed">
-                Monitorea, planifica y optimiza tu producción agrícola con el poder de la inteligencia artificial.
-              </p>
-
-              {/* Estadísticas rápidas - Floating Cards */}
-              {estadisticas && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-12 max-w-4xl mx-auto">
-                  {[
-                    { label: 'Total Cultivos', value: estadisticas.total, icon: '📊' },
-                    { label: 'Activos', value: estadisticas.activos, icon: '🟢' },
-                    { label: 'Metros Cuadrados', value: `${estadisticas.totalMetrosCuadrados.toFixed(1)} m²`, icon: '📐' },
-                    { label: 'Total Plantas', value: estadisticas.totalPlantas, icon: '🌱' }
-                  ].map((stat, idx) => (
-                    <div key={`step-stat-${idx}`} className="group bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                      <div className="text-2xl sm:text-3xl font-bold text-white mb-1 group-hover:scale-110 transition-transform origin-left inline-block">
-                        {stat.value}
-                      </div>
-                      <div className="text-[10px] sm:text-xs font-medium text-green-100 uppercase tracking-wider flex items-center justify-between">
-                        {stat.label}
-                        <span className="opacity-50">{stat.icon}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          </div>
 
-          {/* Pestañas de navegación - Glass Pill Style */}
-          <div className="flex justify-center mb-8" data-testid="cultivo-tabs-container">
-            <div className="bg-white/60 p-1 sm:p-1.5 rounded-full shadow-lg backdrop-blur-md border border-white/40 inline-flex">
-              {[
-                { id: 'cultivos', label: 'Mis Cultivos', icon: '🌿' },
-                { id: 'planificacion', label: 'Planificación', icon: '📅' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setPestanaActiva(tab.id as 'cultivos' | 'planificacion')}
-                  className={`
-                    flex items-center gap-2 px-5 py-2 sm:px-8 sm:py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300
-                    ${pestanaActiva === tab.id
-                      ? 'bg-green-600 text-white shadow-md transform scale-100'
-                      : 'text-gray-600 hover:text-green-700 hover:bg-green-50/50'
-                    }
-                  `}
-                >
-                  <span className="text-base sm:text-lg">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-700 flex items-center gap-3">
+                <span>⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
 
-          {/* Contenido Dinámico */}
-          <div className="relative min-h-[400px]">
-            {pestanaActiva === 'cultivos' ? (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
-                {/* Barra de Herramientas */}
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-white/70 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-white/50">
-                  <form onSubmit={handleSearch} className="relative w-full lg:w-96 group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400 group-focus-within:text-green-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                    <input
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Buscar por nombre..."
-                      className="block w-full pl-11 pr-4 py-3 bg-white/50 border-0 rounded-xl text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500/50 focus:bg-white transition-all shadow-inner"
-                    />
-                  </form>
-
-                  <div className="flex items-center gap-3 w-full lg:w-auto">
-                    <div className="flex bg-white/50 p-1 rounded-xl shadow-inner border border-white/50 flex-1 lg:flex-none">
-                      {['todos', 'activos', 'inactivos'].map((filter) => (
-                        <button
-                          key={filter}
-                          onClick={() => handleFiltroChange(filter as 'todos' | 'activos' | 'inactivos')}
-                          className={`
-                              px-4 py-2 rounded-lg text-xs font-semibold capitalize transition-all flex-1 text-center
-                              ${filtroActivo === filter
-                              ? 'bg-white text-green-700 shadow-sm'
-                              : 'text-gray-500 hover:text-gray-700'
-                            }
-                            `}
-                        >
-                          {filter}
-                        </button>
-                      ))}
-                    </div>
-
-                    {canCreateCultivo() && (
-                      <button
-                        onClick={() => { setCreating(true); setEditing(null); }}
-                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-xl shadow-lg shadow-green-600/20 transition-all hover:-translate-y-0.5"
-                      >
-                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        <span className="whitespace-nowrap">Nuevo Cultivo</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Lista de Cultivos */}
-                {loading ? (
-                  <div className="flex flex-col items-center justify-center p-20 space-y-4">
-                    <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
-                    <p className="text-gray-500 font-medium animate-pulse">Cargando tus cultivos...</p>
-                  </div>
-                ) : error ? (
-                  <div className="rounded-2xl bg-red-50 p-6 border border-red-100 flex items-center gap-4 text-red-800">
-                    <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div>
-                      <h3 className="font-bold">Error al cargar</h3>
-                      <p className="text-sm opacity-80">{error}</p>
-                    </div>
-                  </div>
-                ) : cultivos.length === 0 ? (
-                  <div className="text-center py-20 bg-white/40 backdrop-blur-md rounded-3xl border border-dashed border-gray-300">
-                    <div className="bg-green-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <span className="text-4xl">🌱</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Aún no hay cultivos</h3>
-                    <p className="text-gray-500 max-w-md mx-auto mb-8">
-                      Comienza tu viaje agrícola creando tu primer espacio de cultivo. Podrás monitorear cada detalle.
-                    </p>
-                    {canCreateCultivo() && (
-                      <button
-                        onClick={() => setCreating(true)}
-                        className="px-8 py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-colors"
-                      >
-                        Crear Primer Cultivo
-                      </button>
-                    )}
-                  </div>
+            {loading ? (
+              <div className="bg-white rounded-3xl border border-slate-200 p-16 text-center">
+                <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-emerald-200 border-t-emerald-600 mb-3" />
+                <p className="text-slate-600 font-medium">Cargando tus salas de cultivo...</p>
+              </div>
+            ) : cultivosFiltrados.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center">
+                <div className="text-5xl mb-3">🌱</div>
+                <h3 className="text-xl font-bold text-slate-800 mb-1">No se encontraron cultivos</h3>
+                <p className="text-slate-500 text-sm mb-6 max-w-md mx-auto">
+                  {busquedaLocal || filtroFase !== 'todos'
+                    ? 'Prueba limpiando los filtros de búsqueda para ver todas tus salas.'
+                    : 'Crea tu primer cultivo para llevar control de fases, clima, tareas y asistencia IA.'}
+                </p>
+                {busquedaLocal || filtroFase !== 'todos' ? (
+                  <button
+                    onClick={() => {
+                      setBusquedaLocal('');
+                      setFiltroFase('todos');
+                    }}
+                    className="px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl"
+                  >
+                    Ver todos los cultivos
+                  </button>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {cultivos.map((cultivo) => (
+                  canCreateCultivo() && (
+                    <button
+                      onClick={() => setMostrarFormulario(true)}
+                      className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-xl shadow-md"
+                    >
+                      + Crear Primer Cultivo
+                    </button>
+                  )
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {cultivosFiltrados.map((cultivo) => {
+                  const metricas = calcularMetricasFases(cultivo);
+                  const enFloracion = metricas.faseActual === 'floracion';
+                  const tareasCultivoPendientes = planificacion.tareas.filter(
+                    (t) => t.cultivoId === cultivo.id && (t.estado === 'pendiente' || t.estado === 'en_progreso')
+                  ).length;
+
+                  return (
+                    <div
+                      key={cultivo.id}
+                      className="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl hover:border-emerald-300 transition-all duration-200 flex flex-col overflow-hidden group"
+                    >
+                      {/* Top Color Strip */}
                       <div
-                        key={cultivo.id}
-                        className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
-                      >
-                        <div className="flex justify-between items-start mb-6">
+                        className={`h-1.5 w-full ${
+                          cultivo.activo === false
+                            ? 'bg-slate-300'
+                            : enFloracion
+                              ? 'bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500'
+                              : 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                        }`}
+                      />
+
+                      <div className="p-6 flex-1 flex flex-col">
+                        {/* Header & Phase Badge */}
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="min-w-0">
+                            <Link
+                              href={`/cultivo/${cultivo.id}`}
+                              className="text-lg font-extrabold text-slate-900 hover:text-emerald-600 transition-colors block truncate"
+                            >
+                              {cultivo.nombre}
+                            </Link>
+                            <p className="text-xs font-medium text-slate-500 truncate mt-0.5">
+                              🧬 {cultivo.genetica || 'Genética sin especificar'}
+                            </p>
+                          </div>
+
+                          {cultivo.activo === false ? (
+                            <span className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                              Finalizado
+                            </span>
+                          ) : enFloracion ? (
+                            <span className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                              🌸 Sem {metricas.semanaFloracion} Flora ({metricas.diasFloracionActual}d)
+                            </span>
+                          ) : (
+                            <span className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              🌱 Sem {metricas.semanaVegetacion} Vege ({metricas.diasVegetacionActual}d)
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Sustrato y Tareas Pendientes */}
+                        <div className="flex flex-wrap items-center gap-2 mb-4">
+                          {cultivo.sustrato && (
+                            <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">
+                              🪴 {cultivo.sustrato}
+                            </span>
+                          )}
+                          {tareasCultivoPendientes > 0 && (
+                            <span className="px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
+                              📋 {tareasCultivoPendientes} {tareasCultivoPendientes === 1 ? 'tarea' : 'tareas'}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Grid de Métricas Técnicas */}
+                        <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100 mb-4 text-center">
                           <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-green-700 transition-colors">
-                                {cultivo.nombre}
-                              </h3>
-                              {cultivo.activo && <span className="relative flex h-3 w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                              </span>}
-                            </div>
-                            <p className="text-sm font-medium text-gray-500">{cultivo.genetica || 'Sin genética especificada'}</p>
-                          </div>
-                          <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider ${cultivo.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                            {cultivo.activo ? 'Activo' : 'Finalizado'}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                          <div className="bg-gray-50 p-3 rounded-xl">
-                            <div className="text-xs text-gray-400 mb-1">Plantas</div>
-                            <div className="font-semibold text-gray-700 flex items-center gap-1">
-                              <span>🌱</span> {cultivo.numeroplantas || 0}
+                            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Plantas</div>
+                            <div className="text-sm font-extrabold text-slate-800 mt-0.5">
+                              {cultivo.numeroplantas ?? '-'}
                             </div>
                           </div>
-                          <div className="bg-gray-50 p-3 rounded-xl">
-                            <div className="text-xs text-gray-400 mb-1">Superficie</div>
-                            <div className="font-semibold text-gray-700 flex items-center gap-1">
-                              <span>📐</span> {cultivo.metrosCuadrados || 0} m²
+                          <div className="border-x border-slate-200/70">
+                            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Espacio</div>
+                            <div className="text-sm font-extrabold text-slate-800 mt-0.5">
+                              {cultivo.metrosCuadrados ? `${cultivo.metrosCuadrados} m²` : '-'}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Luz</div>
+                            <div className="text-sm font-extrabold text-slate-800 mt-0.5">
+                              {cultivo.potenciaLamparas ? `${cultivo.potenciaLamparas}W` : '-'}
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                        {/* Objetivos Nutricionales si existen */}
+                        {(cultivo.phObjetivo || cultivo.ecObjetivo || cultivo.aguaDiariaObjetivo) && (
+                          <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs mb-4">
+                            <span className="font-semibold text-emerald-800">Objetivos:</span>
+                            <div className="flex items-center gap-3 text-emerald-700 font-bold">
+                              {cultivo.phObjetivo && <span>pH {cultivo.phObjetivo}</span>}
+                              {cultivo.ecObjetivo && <span>EC {cultivo.ecObjetivo}</span>}
+                              {cultivo.aguaDiariaObjetivo && <span>💧 {cultivo.aguaDiariaObjetivo}L/d</span>}
+                            </div>
+                          </div>
+                        )}
+
+                        {cultivo.notas && (
+                          <p className="text-xs text-slate-500 line-clamp-2 italic mb-4">
+                            &ldquo;{cultivo.notas}&rdquo;
+                          </p>
+                        )}
+
+                        {/* Botones de Acción */}
+                        <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                           <Link
                             href={`/cultivo/${cultivo.id}`}
-                            className="flex-1 text-center py-2.5 rounded-lg bg-green-50 text-green-700 font-semibold text-sm hover:bg-green-100 transition-colors"
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs transition-colors shadow-xs"
                           >
-                            Ver Tablero
-                          </Link>
-                          <button
-                            onClick={() => { setEditing(cultivo); setCreating(false); }}
-                            className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Editar"
-                          >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            <span>Abrir Sala & IA</span>
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
-                          </button>
-                          {canCreateCultivo() && (
+                          </Link>
+
+                          {cultivo.activo !== false && !enFloracion && canEditRecursos(cultivo.creadoPor || '') && (
                             <button
-                              onClick={async () => {
-                                const ok = confirm(`¿Eliminar ${cultivo.nombre}?`);
-                                if (ok) await remove(cultivo.id);
-                              }}
-                              className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Eliminar"
+                              onClick={() => handlePasarAFloracion(cultivo)}
+                              className="p-2.5 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition-colors text-xs font-bold"
+                              title="Iniciar Fase de Floración"
                             >
-                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              🌸 Flora
+                            </button>
+                          )}
+
+                          {canEditRecursos(cultivo.creadoPor || '') && (
+                            <button
+                              onClick={() => {
+                                setCultivoEditando(cultivo);
+                                setMostrarFormulario(false);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="p-2.5 rounded-xl text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 border border-slate-200 transition-colors"
+                              title="Editar parámetros"
+                            >
+                              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                          )}
+
+                          {canEditRecursos(cultivo.creadoPor || '') && (
+                            <button
+                              onClick={() => handleToggleEstado(cultivo)}
+                              className="p-2.5 rounded-xl text-slate-500 hover:text-amber-600 hover:bg-amber-50 border border-slate-200 transition-colors"
+                              title={cultivo.activo !== false ? 'Finalizar cultivo' : 'Reactivar cultivo'}
+                            >
+                              {cultivo.activo !== false ? '📦' : '🔄'}
+                            </button>
+                          )}
+
+                          {canDeleteCultivo(cultivo.creadoPor || '') && (
+                            <button
+                              onClick={() => handleEliminarCultivo(cultivo.id, cultivo.nombre)}
+                              className="p-2.5 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 border border-slate-200 transition-colors"
+                              title="Eliminar cultivo"
+                            >
+                              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                             </button>
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
 
-                {/* Modal de Creación/Edición en Slide-over o similar podía ser mejor, pero mantenemos inline por simplicidad pero mejorado */}
-                {(creating || editing) && (
-                  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
-                      <div className="p-8">
-                        <div className="flex justify-between items-center mb-6">
-                          <h2 className="text-2xl font-bold text-gray-900">
-                            {creating ? 'Nuevo Espacio de Cultivo' : 'Editar Cultivo'}
-                          </h2>
-                          <button
-                            onClick={() => { setCreating(false); setEditing(null); }}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                          >
-                            <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                        <CultivoForm
-                          initial={editing || undefined}
-                          onSubmit={async (payload) => {
-                            if (creating) {
-                              await create(payload);
-                              setCreating(false);
-                            } else if (editing) {
-                              await update(editing.id, payload);
-                              setEditing(null);
-                            }
-                          }}
-                          onCancel={() => {
-                            setCreating(false);
-                            setEditing(null);
-                          }}
-                          submitLabel={creating ? "Crear Espacio" : "Guardar Cambios"}
-                        />
-                      </div>
+        {/* VISTA 2: PLANIFICACIÓN UNIFICADA (CALENDARIO + GESTOR DE TAREAS SINCRONIZADOS) */}
+        {vistaActiva === 'planificacion' && (
+          <div className="space-y-8">
+            <div className="grid gap-8 lg:grid-cols-12">
+              <div className="lg:col-span-7">
+                <CalendarioCultivos
+                  planificacion={planificacion}
+                  onTareaClick={(tarea) => setTareaSeleccionada(tarea)}
+                  mostrarSoloActivas={false}
+                />
+              </div>
+
+              <div className="lg:col-span-5">
+                <GestionTareasCultivo
+                  planificacion={planificacion}
+                  cultivos={cultivos}
+                  onTareaClick={(tarea) => setTareaSeleccionada(tarea)}
+                  mostrarSoloActivas={false}
+                />
+              </div>
+            </div>
+
+            {/* Modal interactivo al hacer clic en una tarea del calendario */}
+            {tareaSeleccionada && (
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-100 p-6">
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+                        Detalle de Tarea
+                      </span>
+                      <h3 className="text-xl font-bold text-slate-900 mt-0.5">
+                        {tareaSeleccionada.titulo}
+                      </h3>
+                    </div>
+                    <button
+                      onClick={() => setTareaSeleccionada(null)}
+                      className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {tareaSeleccionada.descripcion && (
+                    <p className="text-sm text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-100 mb-4">
+                      {tareaSeleccionada.descripcion}
+                    </p>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3 text-xs text-slate-600 mb-6">
+                    <div className="p-3 bg-slate-50 rounded-xl">
+                      <span className="text-slate-400 block mb-0.5">Fecha Programada</span>
+                      <span className="font-bold text-slate-800">
+                        📅 {new Date(tareaSeleccionada.fechaProgramada).toLocaleDateString()}
+                        {tareaSeleccionada.horaProgramada ? ` · ${tareaSeleccionada.horaProgramada}` : ''}
+                      </span>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl">
+                      <span className="text-slate-400 block mb-0.5">Estado / Prioridad</span>
+                      <span className="font-bold text-slate-800 capitalize">
+                        {tareaSeleccionada.estado.replace('_', ' ')} · {tareaSeleccionada.prioridad}
+                      </span>
                     </div>
                   </div>
-                )}
 
-              </div>
-            ) : (
-              <div className="bg-white/60 backdrop-blur-md rounded-3xl p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-xl border border-white/50">
-                <div className="space-y-8">
-                  <CalendarioCultivos
-                    onTareaClick={(tarea) => setTareaSeleccionada(tarea)}
-                  />
-                  <GestionTareasCultivo
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    onTareaClick={(tarea) => { /* TODO: Implementar detalle de tarea desde gestión */ }}
-                  />
+                  <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                    {tareaSeleccionada.estado !== 'completada' && (
+                      <button
+                        onClick={async () => {
+                          await planificacion.completar(tareaSeleccionada.id);
+                          setTareaSeleccionada(null);
+                        }}
+                        className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-colors"
+                      >
+                        ✓ Marcar Completada
+                      </button>
+                    )}
+                    {tareaSeleccionada.cultivoId && (
+                      <Link
+                        href={`/cultivo/${tareaSeleccionada.cultivoId}`}
+                        className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-colors"
+                      >
+                        Ir al Cultivo →
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => setTareaSeleccionada(null)}
+                      className="py-2.5 px-4 border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-xs rounded-xl"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-        </div>
-
-        {/* Modal de detalles de tarea (Estilo Glass) */}
-        {tareaSeleccionada && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
-              <div className="p-8">
-                {/* Header Modal */}
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900">Detalles de Tarea</h3>
-                    <p className="text-gray-500">Información completa de la actividad</p>
-                  </div>
-                  <button
-                    onClick={() => setTareaSeleccionada(null)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Body Modal */}
-                <div className="bg-white/50 rounded-2xl p-6 mb-8 border border-gray-100 shadow-inner">
-                  <div className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xl font-bold text-gray-800">{tareaSeleccionada.titulo}</h4>
-                      <span className={`px-3 py-1 text-sm font-semibold rounded-full 
-                          ${tareaSeleccionada.prioridad === 'alta' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                        {tareaSeleccionada.prioridad}
-                      </span>
-                    </div>
-
-                    <p className="text-gray-600 leading-relaxed text-lg">{tareaSeleccionada.descripcion || 'Sin descripción detallada.'}</p>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-2">
-                        <span>📅</span> {new Date(tareaSeleccionada.fechaProgramada).toLocaleDateString()}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>⏱️</span> {tareaSeleccionada.duracionEstimada ? `${tareaSeleccionada.duracionEstimada} min` : 'N/A'}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>🔄</span> {tareaSeleccionada.esRecurrente ? 'Recurrente' : 'Única'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => console.log('Editar')}
-                    className="flex-1 bg-gray-900 hover:bg-black text-white font-bold py-4 rounded-xl transition-all hover:shadow-lg"
-                  >
-                    Editar Tarea
-                  </button>
-                  <button
-                    onClick={() => setTareaSeleccionada(null)}
-                    className="px-8 py-4 border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
         )}
-      </main>
-    </RequireAuth>
+      </div>
+    </main>
   );
-});
-CultivoPage.displayName = 'CultivoPage';
-
-export default CultivoPage;
+}

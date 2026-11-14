@@ -10,22 +10,25 @@ import type {
   TipoComentario,
   PrioridadComentario
 } from '@/types/chat';
+import { getToken } from '@/lib/auth/storage';
 
 // Configuración base
 const API_BASE = '/api/comentarios';
 
-/**
- * Obtiene comentarios con filtros opcionales
- * @param filtros - Criterios de filtrado y paginación
- * @param signal - Señal de aborto para cancelar petición
- * @returns Promise con array de comentarios
- */
+function createHeadersWithAuth(baseHeaders: Record<string, string> = {}): Record<string, string> {
+  const headers = { ...baseHeaders };
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 export async function obtenerComentarios(
   filtros: FiltrosComentarios = {},
   signal?: AbortSignal
 ): Promise<ComentarioCultivo[]> {
   try {
-    // Construir URL con parámetros de consulta
     const url = new URL(API_BASE, window.location.origin);
     
     Object.entries(filtros).forEach(([key, value]) => {
@@ -34,7 +37,10 @@ export async function obtenerComentarios(
       }
     });
 
-    const response = await fetch(url, { signal });
+    const response = await fetch(url, {
+      signal,
+      headers: createHeadersWithAuth(),
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -54,12 +60,6 @@ export async function obtenerComentarios(
   }
 }
 
-/**
- * Obtiene comentarios específicos de un cultivo
- * @param cultivoId - ID del cultivo
- * @param signal - Señal de aborto
- * @returns Promise con array de comentarios del cultivo
- */
 export async function obtenerComentariosCultivo(
   cultivoId: string,
   signal?: AbortSignal
@@ -71,18 +71,15 @@ export async function obtenerComentariosCultivo(
   }, signal);
 }
 
-/**
- * Obtiene un comentario específico por ID
- * @param id - ID del comentario
- * @param signal - Señal de aborto
- * @returns Promise con el comentario
- */
 export async function obtenerComentario(
   id: string,
   signal?: AbortSignal
 ): Promise<ComentarioCultivo> {
   try {
-    const response = await fetch(`${API_BASE}/${id}`, { signal });
+    const response = await fetch(`${API_BASE}/${id}`, {
+      signal,
+      headers: createHeadersWithAuth(),
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -102,20 +99,15 @@ export async function obtenerComentario(
   }
 }
 
-/**
- * Crea un nuevo comentario
- * @param comentario - Datos del comentario (sin ID)
- * @returns Promise con el comentario creado
- */
 export async function crearComentario(
   comentario: Omit<ComentarioCultivo, 'id' | 'fecha' | 'fechaActualizacion'>
 ): Promise<ComentarioCultivo> {
   try {
     const response = await fetch(API_BASE, {
       method: 'POST',
-      headers: {
+      headers: createHeadersWithAuth({
         'Content-Type': 'application/json',
-      },
+      }),
       body: JSON.stringify(comentario)
     });
 
@@ -137,12 +129,6 @@ export async function crearComentario(
   }
 }
 
-/**
- * Actualiza un comentario existente
- * @param id - ID del comentario
- * @param cambios - Campos a actualizar
- * @returns Promise con el comentario actualizado
- */
 export async function actualizarComentario(
   id: string,
   cambios: Partial<Omit<ComentarioCultivo, 'id' | 'fecha'>>
@@ -150,9 +136,9 @@ export async function actualizarComentario(
   try {
     const response = await fetch(`${API_BASE}/${id}`, {
       method: 'PATCH',
-      headers: {
+      headers: createHeadersWithAuth({
         'Content-Type': 'application/json',
-      },
+      }),
       body: JSON.stringify(cambios)
     });
 
@@ -174,15 +160,11 @@ export async function actualizarComentario(
   }
 }
 
-/**
- * Elimina un comentario
- * @param id - ID del comentario a eliminar
- * @returns Promise que resuelve cuando se elimina
- */
 export async function eliminarComentario(id: string): Promise<void> {
   try {
     const response = await fetch(`${API_BASE}/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: createHeadersWithAuth(),
     });
 
     if (!response.ok) {

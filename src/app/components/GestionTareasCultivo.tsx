@@ -7,8 +7,9 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { usePlanificacion } from '@/lib/hooks/usePlanificacion';
+import { usePlanificacion, type UsePlanificacionReturn } from '@/lib/hooks/usePlanificacion';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import type { Cultivo } from '@/types/cultivo';
 import type {
   TareaCultivo,
   TareaCreacion,
@@ -17,14 +18,13 @@ import type {
   PrioridadTarea
 } from '@/types/planificacion';
 
-/**
- * Props del componente GestionTareasCultivo
- */
 interface Props {
-  cultivoId?: string;          // ID del cultivo para filtrar tareas (opcional)
-  mostrarSoloActivas?: boolean; // Si mostrar solo tareas activas
-  className?: string;          // Clases CSS adicionales
-  onTareaClick?: (tarea: TareaCultivo) => void; // Callback al hacer clic en una tarea
+  cultivoId?: string;
+  cultivos?: Cultivo[];
+  planificacion?: UsePlanificacionReturn;
+  mostrarSoloActivas?: boolean;
+  className?: string;
+  onTareaClick?: (tarea: TareaCultivo) => void;
 }
 
 /**
@@ -102,23 +102,28 @@ const NOMBRES_PRIORIDADES: Record<PrioridadTarea, string> = {
  */
 export default function GestionTareasCultivo({
   cultivoId,
+  cultivos = [],
+  planificacion,
   mostrarSoloActivas = false,
   className = '',
   onTareaClick
 }: Props) {
-  // Estados del componente
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [tareaEditando, setTareaEditando] = useState<TareaCultivo | null>(null);
   const [tareaDetalle, setTareaDetalle] = useState<TareaCultivo | null>(null);
   const [busqueda, setBusqueda] = useState('');
 
-  // Hook de autenticación para permisos
   const { canCreateTarea, canDeleteTarea, canEditRecursos } = useAuth();
   const [filtroTipo, setFiltroTipo] = useState<TipoTarea | 'todos'>('todos');
   const [filtroEstado, setFiltroEstado] = useState<EstadoTarea | 'todos'>('todos');
   const [filtroPrioridad, setFiltroPrioridad] = useState<PrioridadTarea | 'todos'>('todos');
 
-  // Hook para gestión de tareas
+  const internalPlanificacion = usePlanificacion({
+    cultivoId,
+    _sort: 'fechaProgramada',
+    _order: 'asc'
+  });
+
   const {
     tareas,
     loading,
@@ -130,11 +135,15 @@ export default function GestionTareasCultivo({
     completar,
     iniciar,
     cancelar
-  } = usePlanificacion({
-    cultivoId,
-    _sort: 'fechaProgramada',
-    _order: 'asc'
-  });
+  } = planificacion || internalPlanificacion;
+
+  const cultivoMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const c of cultivos) {
+      map[c.id] = c.nombre;
+    }
+    return map;
+  }, [cultivos]);
 
   /**
    * Filtra tareas según los criterios de búsqueda y filtros
@@ -281,7 +290,7 @@ export default function GestionTareasCultivo({
       >
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               <h4 className="font-semibold text-gray-900">{tarea.titulo}</h4>
               <span className={`px-2 py-1 text-xs rounded-full ${colores.bg} ${colores.text} ${colores.border}`}>
                 {NOMBRES_TIPOS[tarea.tipo]}
@@ -289,6 +298,11 @@ export default function GestionTareasCultivo({
               <span className={`text-xs px-2 py-1 rounded-full ${COLORES_PRIORIDADES[tarea.prioridad]} bg-gray-100`}>
                 {NOMBRES_PRIORIDADES[tarea.prioridad]}
               </span>
+              {!cultivoId && cultivoMap[tarea.cultivoId] && (
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+                  🌿 {cultivoMap[tarea.cultivoId]}
+                </span>
+              )}
             </div>
 
             {tarea.descripcion && (
@@ -426,12 +440,14 @@ export default function GestionTareasCultivo({
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
 
+                const selectedCultivoId = cultivoId || (formData.get('cultivoId') as string) || tareaEditando?.cultivoId || (cultivos[0]?.id ?? '');
+
                 const datos: TareaCreacion = {
-                  cultivoId: cultivoId || '',
+                  cultivoId: selectedCultivoId,
                   titulo: formData.get('titulo') as string,
                   descripcion: formData.get('descripcion') as string,
                   tipo: formData.get('tipo') as TipoTarea,
-                  estado: formData.get('estado') as EstadoTarea,
+                  estado: (formData.get('estado') as EstadoTarea) || 'pendiente',
                   prioridad: formData.get('prioridad') as PrioridadTarea,
                   fechaProgramada: formData.get('fechaProgramada') as string,
                   horaProgramada: formData.get('horaProgramada') as string || undefined,
@@ -449,6 +465,27 @@ export default function GestionTareasCultivo({
               }}
               className="space-y-6"
             >
+              {/* Selector de cultivo cuando se crea desde la vista general */}
+              {!cultivoId && cultivos.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Cultivo / Sala *
+                  </label>
+                  <select
+                    name="cultivoId"
+                    defaultValue={tareaEditando?.cultivoId || cultivos[0]?.id || ''}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  >
+                    {cultivos.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        🌿 {c.nombre} {c.genetica ? `(${c.genetica})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* Campos básicos */}
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
@@ -791,10 +828,10 @@ export default function GestionTareasCultivo({
             </div>
           </div>
 
-          {canCreateTarea() && cultivoId && (
+          {canCreateTarea() && (cultivoId || cultivos.length > 0) && (
             <button
               onClick={() => setMostrarFormulario(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200"
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-sm transition-colors duration-200"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -802,13 +839,9 @@ export default function GestionTareasCultivo({
               Nueva Tarea
             </button>
           )}
-          {(!canCreateTarea() || !cultivoId) && (
+          {!canCreateTarea() && (
             <div className="px-4 py-2 text-sm text-gray-500 bg-gray-100 rounded-lg">
-              {!canCreateTarea() ? (
-                <span><span className="font-medium">Solo administradores</span> pueden crear tareas</span>
-              ) : (
-                <span>Seleccione un cultivo específico para crear tareas</span>
-              )}
+              <span><span className="font-medium">Solo administradores</span> pueden crear tareas</span>
             </div>
           )}
         </div>
