@@ -25,33 +25,35 @@ export function calcularMetricasFases(cultivo: Cultivo) {
     faseActual: 'vegetacion' as 'vegetacion' | 'floracion'
   };
 
-  if (!cultivo.fechaComienzo) return metricas;
+  if (!cultivo.fechaComienzo && !cultivo.fechaInicioFloracion) return metricas;
 
-  const fechaInicio = new Date(cultivo.fechaComienzo);
+  const fechaInicio = cultivo.fechaComienzo ? new Date(cultivo.fechaComienzo) : null;
 
   if (cultivo.fechaInicioFloracion) {
     // El cultivo está en fase de floración
     const fechaFloracion = new Date(cultivo.fechaInicioFloracion);
 
     // Días en vegetación = desde inicio hasta inicio floración
-    const diffVegetacion = Math.abs(fechaFloracion.getTime() - fechaInicio.getTime());
-    metricas.diasVegetacionActual = Math.ceil(diffVegetacion / (1000 * 60 * 60 * 24));
+    if (fechaInicio) {
+      const diffVegetacion = Math.max(0, fechaFloracion.getTime() - fechaInicio.getTime());
+      metricas.diasVegetacionActual = Math.ceil(diffVegetacion / (1000 * 60 * 60 * 24));
+    }
 
     // Días en floración = desde inicio floración hasta hoy
-    const diffFloracion = Math.abs(hoy.getTime() - fechaFloracion.getTime());
-    metricas.diasFloracionActual = Math.ceil(diffFloracion / (1000 * 60 * 60 * 24));
+    const diffFloracion = Math.max(0, hoy.getTime() - fechaFloracion.getTime());
+    metricas.diasFloracionActual = Math.max(1, Math.ceil(diffFloracion / (1000 * 60 * 60 * 24)));
 
     metricas.faseActual = 'floracion';
-  } else {
+  } else if (fechaInicio) {
     // El cultivo está en fase de vegetación
-    const diffVegetacion = Math.abs(hoy.getTime() - fechaInicio.getTime());
+    const diffVegetacion = Math.max(0, hoy.getTime() - fechaInicio.getTime());
     metricas.diasVegetacionActual = Math.ceil(diffVegetacion / (1000 * 60 * 60 * 24));
     metricas.faseActual = 'vegetacion';
   }
 
   // Calcular semanas (división entera + 1 para mostrar semana actual)
   metricas.semanaVegetacion = Math.floor(metricas.diasVegetacionActual / 7) + 1;
-  if (metricas.diasFloracionActual > 0) {
+  if (metricas.faseActual === 'floracion' || metricas.diasFloracionActual > 0) {
     metricas.semanaFloracion = Math.floor(metricas.diasFloracionActual / 7) + 1;
   }
 

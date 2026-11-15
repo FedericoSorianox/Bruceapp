@@ -457,25 +457,26 @@ const ComentariosCultivo: React.FC<ComentariosCultivoProps> = ({
   const estadisticas = obtenerEstadisticasComentarios(comentarios);
 
   return (
-    <div className={`bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 ${className}`}>
+    <div className={`bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden ${className}`}>
+      <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-teal-500" />
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex justify-between items-center">
+      <div className="p-6 border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-blue-100 text-blue-600">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">Comentarios y Notas</h3>
-              <p className="text-gray-600 text-sm">{nombreCultivo} • {estadisticas.total} comentarios</p>
+              <h3 className="text-lg font-extrabold text-slate-900">Bitácora y Comentarios</h3>
+              <p className="text-slate-500 text-xs font-medium mt-0.5">{nombreCultivo} · {estadisticas.total} registros</p>
             </div>
           </div>
           
           <button
             onClick={() => setMostrandoFormulario(!mostrandoFormulario)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs transition-colors self-start sm:self-auto"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -487,8 +488,8 @@ const ComentariosCultivo: React.FC<ComentariosCultivoProps> = ({
 
       {/* Formulario de nuevo comentario */}
       {mostrandoFormulario && (
-        <div className="p-6 border-b border-gray-200 bg-gray-50">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Nuevo Comentario</h4>
+        <div className="p-6 border-b border-slate-200 bg-slate-50/70">
+          <h4 className="text-base font-extrabold text-slate-900 mb-4">Nuevo Registro de Bitácora</h4>
           <FormularioComentario
             cultivoId={cultivoId}
             onComentarioGuardado={handleComentarioGuardado}
@@ -499,18 +500,16 @@ const ComentariosCultivo: React.FC<ComentariosCultivoProps> = ({
 
       {/* Modal de edición */}
       {comentarioEditando && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100">
               <div className="flex justify-between items-center">
-                <h4 className="text-lg font-medium text-gray-900">Editar Comentario</h4>
+                <h4 className="text-lg font-extrabold text-slate-900">Editar Comentario</h4>
                 <button
                   onClick={handleCancelarEdicion}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  ✕
                 </button>
               </div>
             </div>
@@ -531,42 +530,37 @@ const ComentariosCultivo: React.FC<ComentariosCultivoProps> = ({
         {cargando ? (
           <div className="text-center py-8">
             <div className="inline-flex items-center gap-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-200 border-t-blue-600"></div>
-              <span className="text-gray-600">Cargando comentarios...</span>
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-emerald-200 border-t-emerald-600"></div>
+              <span className="text-slate-600 font-medium text-sm">Cargando comentarios...</span>
             </div>
           </div>
         ) : error ? (
           <div className="text-center py-8">
-            <svg className="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-red-600 mb-2">Error al cargar comentarios</p>
-            <p className="text-sm text-gray-600 mb-4">{error}</p>
+            <p className="text-rose-600 font-bold mb-1">Error al cargar comentarios</p>
+            <p className="text-xs text-slate-500 mb-4">{error}</p>
             <button
               onClick={cargarComentarios}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-colors"
             >
               Reintentar
             </button>
           </div>
         ) : comentarios.length === 0 ? (
-          <div className="text-center py-8">
-            <svg className="h-12 w-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            <p className="text-gray-500 mb-2">No hay comentarios aún</p>
-            <p className="text-sm text-gray-400 mb-4">
-              Agrega el primer comentario para comenzar a documentar tu cultivo
+          <div className="text-center py-10">
+            <div className="text-4xl mb-3">📋</div>
+            <p className="text-slate-800 font-bold mb-1">No hay registros en la bitácora aún</p>
+            <p className="text-xs text-slate-500 mb-5 max-w-sm mx-auto">
+              Documenta observaciones de riego, fertilización, plagas o evolución semanal de esta sala.
             </p>
             <button
               onClick={() => setMostrandoFormulario(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-500 transition-colors"
             >
-              Agregar Comentario
+              + Agregar Primer Comentario
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {comentarios.map((comentario) => (
               <TarjetaComentario
                 key={comentario.id}

@@ -212,11 +212,11 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
         className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6`}
       >
         <div
-          className={`max-w-[85%] rounded-2xl px-5 py-4 shadow-sm backdrop-blur-sm transition-all duration-200 ${isUser
-            ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-br-none shadow-green-200/50'
+          className={`max-w-[85%] rounded-2xl px-5 py-3.5 shadow-2xs transition-all duration-200 ${isUser
+            ? 'bg-emerald-600 text-white rounded-br-none'
             : isSystem
-              ? 'bg-yellow-50/90 text-yellow-800 border border-yellow-200/50'
-              : 'bg-white/80 text-gray-800 border border-white/50 rounded-bl-none shadow-gray-200/50'
+              ? 'bg-amber-50 text-amber-900 border border-amber-200'
+              : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'
             }`}
         >
           {/* Mostrar imágenes si las hay */}
@@ -277,41 +277,45 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
   };
 
   return (
-    <div className={`bg-white/60 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 overflow-hidden flex flex-col ${className}`} data-testid="chat-ia-component">
+    <div className={`bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col ${className}`} data-testid="chat-ia-component">
+      <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-teal-500" />
       {/* Header del chat */}
-      <div className="p-5 border-b border-white/30 bg-gradient-to-r from-white/50 to-green-50/30" data-testid="chat-header">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-green-100 to-emerald-50 text-green-600 shadow-inner">
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
+      <div className="p-5 border-b border-slate-100 bg-slate-900 text-white" data-testid="chat-header">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-white" data-testid="chat-title">Asistente Agronómico IA</h3>
+              <p className="text-emerald-300 text-xs font-medium flex items-center gap-1.5 mt-0.5" data-testid="chat-subtitle">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Conectado al contexto de {cultivo.nombre}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-gray-800" data-testid="chat-title">Asistente Virtual</h3>
-            <p className="text-green-700 text-xs font-medium flex items-center gap-1" data-testid="chat-subtitle">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              En línea • {cultivo.nombre}
-            </p>
-          </div>
+          <span className="hidden sm:inline-flex px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-semibold">
+            🧬 {cultivo.genetica || 'Cultivo Activo'}
+          </span>
         </div>
       </div>
 
       {/* Área de mensajes */}
       <div
         ref={mensajesContainerRef}
-        className="h-[60vh] sm:h-[500px] overflow-y-auto p-6 space-y-2 bg-gradient-to-b from-transparent to-white/20 scroll-smooth"
+        className="h-[60vh] sm:h-[500px] overflow-y-auto p-6 space-y-2 bg-slate-50/70 scroll-smooth"
         data-testid="chat-messages-container"
       >
         {mensajes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-60" data-testid="chat-empty-state">
-            <div className="bg-green-50 p-6 rounded-full mb-4">
-              <svg className="h-10 w-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
+          <div className="flex flex-col items-center justify-center h-full text-center p-8" data-testid="chat-empty-state">
+            <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl mb-4 text-3xl">
+              🤖
             </div>
-            <p className="font-semibold text-gray-700 text-lg mb-2">¡Hola! Soy tu experto en cannabis</p>
-            <p className="text-sm text-gray-500 max-w-xs">
-              Pregúntame lo que sea sobre tu cultivo o sube fotos para que las analice.
+            <p className="font-extrabold text-slate-800 text-lg mb-1">Asistente IA de {cultivo.nombre}</p>
+            <p className="text-sm text-slate-500 max-w-sm">
+              Consulta sobre nutrición, riego, VPD, plagas o sube fotos de las plantas para un diagnóstico en tiempo real.
             </p>
           </div>
         ) : (
@@ -321,21 +325,21 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
 
       {/* Vista previa de imágenes seleccionadas */}
       {imagenes.length > 0 && (
-        <div className="px-6 py-3 border-t border-white/30 bg-white/40 backdrop-blur-sm">
+        <div className="px-6 py-3 border-t border-slate-200 bg-slate-50">
           <div className="flex flex-wrap gap-3">
             {imagenes.map((imagen) => (
-              <div key={imagen.id} className="relative group scale-up-center">
+              <div key={imagen.id} className="relative group">
                 <Image
                   src={imagen.url}
                   alt={imagen.name}
                   width={64}
                   height={64}
-                  className="h-16 w-16 object-cover rounded-xl border-2 border-white shadow-sm"
+                  className="h-16 w-16 object-cover rounded-xl border border-slate-200 shadow-2xs"
                   unoptimized
                 />
                 <button
                   onClick={() => handleEliminarImagen(imagen.id)}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow-sm"
+                  className="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-rose-700 transition-colors shadow-2xs"
                 >
                   ×
                 </button>
@@ -347,43 +351,41 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
 
       {/* Mostrar error si existe */}
       {error && (
-        <div className="px-6 py-3 border-t border-red-100 bg-red-50/80 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-red-700 text-sm font-medium">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            {error}
+        <div className="px-6 py-3 border-t border-rose-200 bg-rose-50">
+          <div className="flex items-center gap-2 text-rose-700 text-xs font-semibold">
+            <span>⚠️</span>
+            <span>{error}</span>
           </div>
         </div>
       )}
 
       {/* Input de mensaje */}
-      <div className="p-5 border-t border-white/30 bg-white/60 backdrop-blur-md" data-testid="chat-input-section">
-        <div className="flex items-end gap-3">
+      <div className="p-4 sm:p-5 border-t border-slate-200 bg-white" data-testid="chat-input-section">
+        <div className="flex items-end gap-2.5">
           {/* Botón para agregar imágenes */}
           <button
             onClick={() => inputFileRef.current?.click()}
             disabled={enviando}
             data-testid="chat-add-image-button"
-            className="flex-shrink-0 p-3 text-gray-500 hover:text-green-600 hover:bg-green-100/50 rounded-2xl transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
+            className="flex-shrink-0 p-3 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 border border-slate-200 rounded-xl transition-all disabled:opacity-50"
             title="Agregar imágenes"
           >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </button>
 
           {/* Textarea del mensaje */}
-          <div className="flex-grow shadow-inner rounded-2xl bg-white/50">
+          <div className="flex-grow">
             <textarea
               ref={textareaRef}
               value={mensaje}
               onChange={handleMensajeChange}
               onKeyDown={handleKeyDown}
-              placeholder="Escribe tu mensaje..."
+              placeholder="Escribe tu consulta agronómica..."
               disabled={enviando}
               data-testid="chat-message-input"
-              className="w-full resize-none rounded-2xl border-0 bg-transparent px-4 py-3 text-sm focus:ring-2 focus:ring-green-400/50 placeholder-gray-400 disabled:opacity-50 min-h-[48px] max-h-32 text-gray-800"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-4 py-2.5 text-sm placeholder-slate-400 disabled:opacity-50 min-h-[44px] max-h-32 text-slate-800 outline-none transition-all"
               rows={1}
             />
           </div>
@@ -393,13 +395,13 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
             onClick={handleEnviarMensaje}
             disabled={enviando || (!mensaje.trim() && imagenes.length === 0)}
             data-testid="chat-send-button"
-            className="flex-shrink-0 p-3 bg-gradient-to-br from-green-600 to-emerald-600 text-white rounded-2xl hover:shadow-lg hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95 shadow-green-600/20 shadow-md"
+            className="flex-shrink-0 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xs"
             title="Enviar mensaje"
           >
             {enviando ? (
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             )}
@@ -417,9 +419,9 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
         />
 
         {/* Ayuda sobre controles */}
-        <div className="flex justify-between items-center mt-3 px-1 text-[11px] font-medium text-gray-400 uppercase tracking-wide">
-          <span>Shift + Enter: Nueva línea</span>
-          <span>Max 10MB</span>
+        <div className="flex justify-between items-center mt-2.5 px-1 text-[11px] font-semibold text-slate-400">
+          <span>Enter para enviar · Shift + Enter para nueva línea</span>
+          <span>Máx 10MB por foto</span>
         </div>
       </div>
     </div>

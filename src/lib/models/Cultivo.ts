@@ -388,9 +388,17 @@ CultivoSchema.statics.getStats = async function () {
 
 // Validar que la fecha de floración sea posterior al inicio
 CultivoSchema.path('fechaInicioFloracion').validate(function (value: string) {
-  if (!value || !this.fechaComienzo) return true;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const self = this as any;
+  const fechaComienzo =
+    self?.fechaComienzo ||
+    (typeof self?.getUpdate === 'function'
+      ? self.getUpdate()?.fechaComienzo ?? self.getUpdate()?.$set?.fechaComienzo
+      : undefined);
 
-  const inicio = new Date(this.fechaComienzo);
+  if (!value || !fechaComienzo) return true;
+
+  const inicio = new Date(fechaComienzo);
   const floracion = new Date(value);
 
   return floracion >= inicio;
