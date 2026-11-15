@@ -23,7 +23,7 @@ import { getTokenFromCookies } from './lib/auth/storage';
 const protectedRoutes = ['/cultivo', '/notas'];
 
 // 🚫 RUTAS PÚBLICAS (no requieren autenticación)
-const publicRoutes = ['/', '/login', '/register', '/blog', '/subscription-required'];
+const publicRoutes = ['/', '/login', '/register', '/blog', '/subscription-required', '/privacidad', '/terminos', '/cookies'];
 
 // 🔍 RUTAS DE API PROTEGIDAS
 const protectedApiRoutes = ['/api/cultivos', '/api/notas', '/api/tareas', '/api/comentarios', '/api/galeria'];

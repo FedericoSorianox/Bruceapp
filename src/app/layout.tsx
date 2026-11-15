@@ -152,27 +152,40 @@ export default function RootLayout({
         className={`${interSans.variable} ${jetBrainsMono.variable} flex h-full flex-col antialiased`}
         suppressHydrationWarning={true}
       >
-        {/* Script para registro seguro del service worker */}
+        {/* Script para registro seguro del service worker y limpieza de cachés obsoletas de Workbox */}
         <Script
           id="register-sw"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  try {
-                    navigator.serviceWorker.register('/sw.js')
-                      .then(function(registration) {
-                        console.log('SW registered: ', registration);
-                      })
-                      .catch(function(registrationError) {
-                        console.log('SW registration failed: ', registrationError);
-                      });
-                  } catch (error) {
-                    console.log('SW registration error: ', error);
+              (async function() {
+                try {
+                  if ('caches' in window) {
+                    var keys = await caches.keys();
+                    var hasOldWorkbox = keys.some(function(k) {
+                      return k.indexOf('workbox') !== -1 || k.indexOf('start-url') !== -1;
+                    });
+                    if (hasOldWorkbox) {
+                      await Promise.all(keys.map(function(k) { return caches.delete(k); }));
+                    }
                   }
-                });
-              }
+                  if ('serviceWorker' in navigator) {
+                    var registrations = await navigator.serviceWorker.getRegistrations();
+                    for (var i = 0; i < registrations.length; i++) {
+                      var reg = registrations[i];
+                      var scriptURL = (reg.active && reg.active.scriptURL) || (reg.installing && reg.installing.scriptURL) || '';
+                      if (scriptURL.indexOf('workbox') !== -1) {
+                        await reg.unregister();
+                      } else {
+                        await reg.update();
+                      }
+                    }
+                    await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+                  }
+                } catch (error) {
+                  console.warn('SW cleanup warning:', error);
+                }
+              })();
             `,
           }}
         />
@@ -180,7 +193,7 @@ export default function RootLayout({
         {/* 🌐 PROVEEDOR DE AUTENTICACIÓN GLOBAL */}
         {/* Envuelve toda la aplicación para acceso al contexto de auth */}
         <AuthProvider>
-          
+
           {/* 🧭 HEADER GLOBAL */}
           {/* Navegación principal visible en todas las páginas */}
           <Header />
@@ -195,7 +208,7 @@ export default function RootLayout({
           {/* 🦶 FOOTER GLOBAL */}
           {/* Información y enlaces importantes, siempre en el bottom */}
           <Footer />
-          
+
         </AuthProvider>
       </body>
     </html>

@@ -98,13 +98,13 @@ const Footer = () => {
             </p>
 
             <div className="flex space-x-6">
-              <Link href="/privacidad" className="text-xs text-gray-500 hover:text-green-400 transition-colors">
+              <Link prefetch={false} href="/privacidad" className="text-xs text-gray-500 hover:text-green-400 transition-colors">
                 Privacidad
               </Link>
-              <Link href="/terminos" className="text-xs text-gray-500 hover:text-green-400 transition-colors">
+              <Link prefetch={false} href="/terminos" className="text-xs text-gray-500 hover:text-green-400 transition-colors">
                 Términos
               </Link>
-              <Link href="/cookies" className="text-xs text-gray-500 hover:text-green-400 transition-colors">
+              <Link prefetch={false} href="/cookies" className="text-xs text-gray-500 hover:text-green-400 transition-colors">
                 Cookies
               </Link>
             </div>
