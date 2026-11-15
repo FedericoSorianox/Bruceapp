@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useCultivos } from '@/lib/hooks/useCultivos';
 import { usePlanificacion } from '@/lib/hooks/usePlanificacion';
 import { calcularMetricasFases } from '@/lib/services/cultivos';
+import { calcularObjetivosAgronomicos } from '@/lib/knowledge/agronomicKnowledgeBase';
+import { prepararContextoCultivo } from '@/lib/services/chat';
 
 interface AlertaInteligente {
   id: string;
@@ -115,23 +117,27 @@ export default function RecomendacionesPage() {
         });
       }
 
-      // Cultivos sin objetivos de pH/EC configurados
+      // Cultivos sin objetivos de pH/EC configurados o desalineados con la Base de Conocimiento
+      const objetivosKB = calcularObjetivosAgronomicos(prepararContextoCultivo(c));
       if (!c.phObjetivo || !c.ecObjetivo) {
-        const esFlora = metricas.faseActual === 'floracion';
         list.push({
           id: `nutricion-target-${c.id}`,
           type: 'info',
-          title: 'Configurar Objetivos Nutricionales (pH y EC)',
+          title: `Configurar Objetivos desde Base de Conocimiento (${objetivosKB.codigoProtocolo})`,
           cropName: c.nombre,
           cropId: c.id,
-          description: `Definir metas claras de pH y electroconductividad permite detectar bloqueos de nutrientes a tiempo. Sugerencia para ${esFlora ? 'Floración' : 'Vegetación'}: pH ${esFlora ? '6.2' : '5.9'} y EC ${esFlora ? '1500' : '950'} ppm.`,
-          badgeText: 'Optimización',
-          actionLabel: '⚡ Autoconfigurar pH/EC Ideal',
+          description: `${objetivosKB.resumenExplicativo} Definir estas metas permite auditar desvíos nutricionales y climáticos con 0 tokens.`,
+          badgeText: objetivosKB.codigoProtocolo,
+          actionLabel: `⚡ Aplicar pH ${objetivosKB.phObjetivo} y EC ${objetivosKB.ecObjetivo} mS`,
           onAction: async () => {
             await update(c.id, {
-              phObjetivo: esFlora ? 6.2 : 5.9,
-              ecObjetivo: esFlora ? 1500 : 950,
-              aguaDiariaObjetivo: c.aguaDiariaObjetivo || (c.numeroplantas ? Math.round(c.numeroplantas * 1.5) : 12),
+              phObjetivo: objetivosKB.phObjetivo,
+              ecObjetivo: objetivosKB.ecObjetivo,
+              tempObjetivoVegetacion: objetivosKB.tempObjetivoVegetacion,
+              humedadObjetivoVegetacion: objetivosKB.humedadObjetivoVegetacion,
+              tempObjetivoFloracion: objetivosKB.tempObjetivoFloracion,
+              humedadObjetivoFloracion: objetivosKB.humedadObjetivoFloracion,
+              aguaDiariaObjetivo: c.aguaDiariaObjetivo || objetivosKB.aguaDiariaObjetivo,
             });
           },
         });

@@ -9,6 +9,8 @@
 import React, { useState, useMemo } from 'react';
 import { usePlanificacion, type UsePlanificacionReturn } from '@/lib/hooks/usePlanificacion';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { calcularObjetivosAgronomicos } from '@/lib/knowledge/agronomicKnowledgeBase';
+import { prepararContextoCultivo } from '@/lib/services/chat';
 import type { Cultivo } from '@/types/cultivo';
 import type {
   TareaCultivo,
@@ -112,6 +114,8 @@ export default function GestionTareasCultivo({
   const [tareaEditando, setTareaEditando] = useState<TareaCultivo | null>(null);
   const [tareaDetalle, setTareaDetalle] = useState<TareaCultivo | null>(null);
   const [busqueda, setBusqueda] = useState('');
+  const [generandoPlanKB, setGenerandoPlanKB] = useState(false);
+  const [mensajePlanKB, setMensajePlanKB] = useState<string | null>(null);
 
   const { canCreateTarea, canDeleteTarea, canEditRecursos } = useAuth();
   const [filtroTipo, setFiltroTipo] = useState<TipoTarea | 'todos'>('todos');
@@ -829,15 +833,79 @@ export default function GestionTareasCultivo({
           </div>
 
           {canCreateTarea() && (cultivoId || cultivos.length > 0) && (
-            <button
-              onClick={() => setMostrarFormulario(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-sm transition-colors duration-200"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Nueva Tarea
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={generandoPlanKB}
+                onClick={async () => {
+                  const targetCrop =
+                    cultivos.find((c) => c.id === cultivoId) || cultivos[0];
+                  if (!targetCrop) return;
+                  setGenerandoPlanKB(true);
+                  setMensajePlanKB(null);
+                  try {
+                    const ctx = prepararContextoCultivo(targetCrop);
+                    const kb = calcularObjetivosAgronomicos(ctx);
+                    const accionesTareas = kb.accionesSugeridas.filter(
+                      (a) => a.tipoAccion === 'crear_tarea'
+                    );
+                    let creadas = 0;
+                    for (const acc of accionesTareas) {
+                      const yaExiste = tareas.some(
+                        (t) =>
+                          t.cultivoId === targetCrop.id &&
+                          t.estado !== 'cancelada' &&
+                          t.titulo === acc.titulo
+                      );
+                      if (!yaExiste) {
+                        const fechaTarget = new Date();
+                        fechaTarget.setDate(
+                          fechaTarget.getDate() + (acc.diasOffset ?? 0)
+                        );
+                        await create({
+                          cultivoId: targetCrop.id,
+                          titulo: acc.titulo,
+                          descripcion: acc.descripcion,
+                          tipo: acc.categoriaTarea || 'mantenimiento',
+                          estado: 'pendiente',
+                          prioridad: acc.prioridad || 'alta',
+                          fechaProgramada: fechaTarget.toISOString().split('T')[0],
+                          duracionEstimada: acc.duracionEstimada || 30,
+                          esRecurrente: false,
+                          recordatorioActivado: true,
+                          minutosRecordatorio: 15,
+                        });
+                        creadas++;
+                      }
+                    }
+                    setMensajePlanKB(
+                      creadas > 0
+                        ? `✓ Se agendaron ${creadas} tareas oficiales del protocolo ${kb.codigoProtocolo} (0 tokens)`
+                        : `✓ Las tareas del protocolo ${kb.codigoProtocolo} ya están agendadas en la sala`
+                    );
+                  } catch (e) {
+                    console.error('Error al generar plan KB:', e);
+                  } finally {
+                    setGenerandoPlanKB(false);
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                title="Generar tareas estandarizadas desde la Base de Conocimiento Agronómica (0 tokens)"
+              >
+                <span>📚</span>
+                <span>{generandoPlanKB ? 'Generando...' : '✨ Plan Etapa (KB)'}</span>
+              </button>
+
+              <button
+                onClick={() => setMostrarFormulario(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-sm transition-colors duration-200"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Nueva Tarea
+              </button>
+            </div>
           )}
           {!canCreateTarea() && (
             <div className="px-4 py-2 text-sm text-gray-500 bg-gray-100 rounded-lg">
@@ -845,6 +913,19 @@ export default function GestionTareasCultivo({
             </div>
           )}
         </div>
+
+        {mensajePlanKB && (
+          <div className="mt-3 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between">
+            <span>{mensajePlanKB}</span>
+            <button
+              type="button"
+              onClick={() => setMensajePlanKB(null)}
+              className="text-emerald-700 hover:text-emerald-950 ml-2"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Estadísticas rápidas */}
         {estadisticas && (

@@ -1,12 +1,14 @@
 /**
- * Tipos de datos para el sistema de chat con IA
- * Define estructuras para mensajes, conversaciones y análisis de imágenes
+ * Tipos de datos para el sistema de chat con IA y Base de Conocimiento Agronómica
+ * Define estructuras para mensajes, conversaciones, acciones consistentes y análisis de imágenes
  */
+
+import type { TipoTarea, PrioridadTarea } from './planificacion';
 
 /**
  * Tipo de mensaje en el chat
  * 'user': Mensaje enviado por el usuario
- * 'assistant': Respuesta generada por la IA
+ * 'assistant': Respuesta generada por la IA / Base de Conocimiento
  * 'system': Mensajes del sistema (ej: "Analizando imagen...")
  */
 export type TipoMensaje = 'user' | 'assistant' | 'system';
@@ -18,6 +20,31 @@ export type TipoMensaje = 'user' | 'assistant' | 'system';
  * 'mixed': Texto + imagen
  */
 export type TipoContenido = 'text' | 'image' | 'mixed';
+
+/**
+ * Acción estandarizada proveniente de la Base de Conocimiento Agronómica
+ * Permite que el usuario ejecute o agende tareas y ajustes con 1 clic de forma consistente
+ */
+export interface AccionConocimiento {
+  id: string;
+  codigoKB: string;              // Código único en la Base de Conocimiento (ej: 'KB-ACT-RIEGO-COCO-FLORA')
+  tipoAccion: 'crear_tarea' | 'actualizar_parametros';
+  titulo: string;
+  descripcion: string;
+  categoriaTarea?: TipoTarea;
+  prioridad?: PrioridadTarea;
+  diasOffset?: number;           // En cuántos días programar (0 = hoy, 1 = mañana, etc.)
+  duracionEstimada?: number;     // Minutos estimados
+  parametrosObjetivo?: {
+    phObjetivo?: number;
+    ecObjetivo?: number;
+    tempObjetivoVegetacion?: number;
+    tempObjetivoFloracion?: number;
+    humedadObjetivoVegetacion?: number;
+    humedadObjetivoFloracion?: number;
+    aguaDiariaObjetivo?: number;
+  };
+}
 
 /**
  * Información de imagen adjunta al mensaje
@@ -40,19 +67,22 @@ export interface ImagenMensaje {
 export interface MensajeChat {
   id: string;                    // ID único del mensaje
   cultivoId: string;             // ID del cultivo al que pertenece el chat
-  tipo: TipoMensaje;            // Tipo de mensaje (user/assistant/system)
+  tipo: TipoMensaje;             // Tipo de mensaje (user/assistant/system)
   contenido: string;             // Texto del mensaje
   imagenes?: ImagenMensaje[];    // Array de imágenes adjuntas (opcional)
-  tipoContenido: TipoContenido; // Tipo de contenido del mensaje
+  tipoContenido: TipoContenido;  // Tipo de contenido del mensaje
   timestamp: string;             // Fecha y hora del mensaje (ISO string)
   procesando?: boolean;          // Indica si el mensaje se está procesando
   error?: string;                // Mensaje de error si hubo problemas
   respuestaA?: string;           // ID del mensaje al que responde (solo para mensajes de IA)
-  tokensUsados?: {               // Métricas de tokens de OpenAI (solo para mensajes assistant)
+  tokensUsados?: {               // Métricas de tokens (0 cuando resuelve por Base de Conocimiento local)
     prompt: number;
     completion: number;
     total: number;
+    fuente?: 'kb_local' | 'kb_rag_llm' | 'n8n_webhook';
   };
+  accionesSugeridas?: AccionConocimiento[]; // Acciones consistentes extraídas de la Base de Conocimiento
+  fuentesConocimiento?: string[]; // IDs/Títulos de los protocolos de la KB utilizados
   contextoEnviado?: boolean;     // Indica si se envió contexto del cultivo con este mensaje
   versionContexto?: string;      // Versión del contexto del cultivo enviado
   calificacion?: number;         // Calificación del usuario (1-5 estrellas)
@@ -76,8 +106,7 @@ export interface ImagenGaleriaContexto {
 }
 
 /**
- * Contexto completo del cultivo para la IA
- * Información que se envía a OpenAI para que tenga contexto completo
+ * Contexto completo del cultivo para la IA y el Motor de Conocimiento
  */
 export interface ContextoCultivo {
   // Información básica del cultivo
@@ -86,6 +115,7 @@ export interface ContextoCultivo {
   genetica?: string;
   sustrato?: string;
   fechaComienzo?: string;
+  fechaInicioFloracion?: string;
 
   // Especificaciones técnicas
   metrosCuadrados?: number;
@@ -93,8 +123,19 @@ export interface ContextoCultivo {
   litrosMaceta?: number;
   potenciaLamparas?: number;
 
+  // Objetivos actuales configurados
+  phObjetivo?: number;
+  ecObjetivo?: number;
+  tempObjetivoVegetacion?: number;
+  tempObjetivoFloracion?: number;
+  humedadObjetivoVegetacion?: number;
+  humedadObjetivoFloracion?: number;
+
   // Métricas calculadas
   diasDesdeInicio?: number;
+  faseActual?: 'vegetacion' | 'floracion';
+  semanaActual?: number;
+  diasFaseActual?: number;
   plantasPorM2?: number;
   wattsPorM2?: number;
   litrosTotales?: number;
@@ -121,15 +162,15 @@ export interface ImagenPayload {
 }
 
 /**
- * Payload para enviar a la API de OpenAI
- * Estructura optimizada para GPT-4 Vision
+ * Payload para enviar a la API de Chat / Motor Híbrido IA
  */
 export interface PayloadOpenAI {
   cultivoContext: ContextoCultivo;    // Contexto completo del cultivo
-  message: string;                    // Mensaje del usuario (renombrado de mensaje)
+  message: string;                    // Mensaje del usuario
   email?: string;                     // Email del usuario (opcional)
   imagenes?: ImagenPayload[];         // Imágenes con base64 y metadatos
   historialReciente?: MensajeChat[];  // Últimos mensajes para contexto
+  modo?: 'auto' | 'kb_only' | 'diagnostico'; // Control de consumo de tokens
 }
 
 /**
@@ -138,13 +179,16 @@ export interface PayloadOpenAI {
  */
 export interface ApiResponseChat<T = unknown> {
   success: boolean;              // Indica si la operación fue exitosa
-  data?: T;                      // Datos retornados
+  data?: T;                      // Datos retornados (texto de respuesta)
   message?: string;              // Mensaje descriptivo
   error?: string;                // Mensaje de error si hubo problemas
-  tokens?: {                     // Información de tokens usados (OpenAI)
+  accionesSugeridas?: AccionConocimiento[]; // Acciones consistentes de la KB
+  fuentesConocimiento?: string[]; // Artículos/Protocolos de la KB consultados
+  tokens?: {                     // Información de tokens usados y fuente
     prompt: number;
     completion: number;
     total: number;
+    fuente?: 'kb_local' | 'kb_rag_llm' | 'n8n_webhook';
   };
 }
 

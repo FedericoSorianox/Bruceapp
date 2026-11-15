@@ -1,7 +1,7 @@
 /**
  * Formulario para creación y edición de cultivos
  * Componente reutilizable que maneja tanto la creación como la edición de cultivos
- * Incluye edición de fecha de inicio de vegetación y fecha de inicio de floración
+ * Conectado a la Base de Conocimiento Agronómica (0 tokens, respuesta instantánea y 100% consistente)
  */
 
 'use client';
@@ -13,7 +13,8 @@ import {
   consultarRecomendacionPH,
   consultarRecomendacionEC,
   consultarRecomendacionTemperatura,
-  consultarRecomendacionHumedad
+  consultarRecomendacionHumedad,
+  consultarTodosLosObjetivosKB,
 } from '@/lib/services/chat';
 import type { ContextoCultivo } from '@/types/chat';
 
@@ -28,7 +29,7 @@ export default function CultivoForm({
   initial,
   onSubmit,
   onCancel,
-  submitLabel = 'Guardar Cultivo'
+  submitLabel = 'Guardar Cultivo',
 }: Props) {
   // Estado Principal
   const [nombre, setNombre] = useState(initial?.nombre ?? '');
@@ -51,21 +52,30 @@ export default function CultivoForm({
   const [ecObjetivo, setEcObjetivo] = useState<number | string>(initial?.ecObjetivo ?? '');
 
   // Condiciones Ambientales
-  const [tempObjetivoVegetacion, setTempObjetivoVegetacion] = useState<number | string>(initial?.tempObjetivoVegetacion ?? '');
-  const [tempObjetivoFloracion, setTempObjetivoFloracion] = useState<number | string>(initial?.tempObjetivoFloracion ?? '');
-  const [humedadObjetivoVegetacion, setHumedadObjetivoVegetacion] = useState<number | string>(initial?.humedadObjetivoVegetacion ?? '');
-  const [humedadObjetivoFloracion, setHumedadObjetivoFloracion] = useState<number | string>(initial?.humedadObjetivoFloracion ?? '');
+  const [tempObjetivoVegetacion, setTempObjetivoVegetacion] = useState<number | string>(
+    initial?.tempObjetivoVegetacion ?? ''
+  );
+  const [tempObjetivoFloracion, setTempObjetivoFloracion] = useState<number | string>(
+    initial?.tempObjetivoFloracion ?? ''
+  );
+  const [humedadObjetivoVegetacion, setHumedadObjetivoVegetacion] = useState<number | string>(
+    initial?.humedadObjetivoVegetacion ?? ''
+  );
+  const [humedadObjetivoFloracion, setHumedadObjetivoFloracion] = useState<number | string>(
+    initial?.humedadObjetivoFloracion ?? ''
+  );
 
   // Notas
   const [notas, setNotas] = useState(initial?.notas ?? '');
 
-  // Estados de carga (IA)
+  // Estados de carga e información de la Base de Conocimiento
   const [cargandoPH, setCargandoPH] = useState(false);
   const [cargandoEC, setCargandoEC] = useState(false);
   const [cargandoTempVegetacion, setCargandoTempVegetacion] = useState(false);
   const [cargandoTempFloracion, setCargandoTempFloracion] = useState(false);
   const [cargandoHumedadVegetacion, setCargandoHumedadVegetacion] = useState(false);
   const [cargandoHumedadFloracion, setCargandoHumedadFloracion] = useState(false);
+  const [protocoloAplicadoMsg, setProtocoloAplicadoMsg] = useState<string | null>(null);
 
   // Validación
   const [error, setError] = useState<string | null>(null);
@@ -117,10 +127,18 @@ export default function CultivoForm({
       fechaActualizacion: initial?.fechaActualizacion,
       phObjetivo: phObjetivo ? parseFloat(phObjetivo.toString()) : undefined,
       ecObjetivo: ecObjetivo ? parseFloat(ecObjetivo.toString()) : undefined,
-      tempObjetivoVegetacion: tempObjetivoVegetacion ? parseFloat(tempObjetivoVegetacion.toString()) : undefined,
-      tempObjetivoFloracion: tempObjetivoFloracion ? parseFloat(tempObjetivoFloracion.toString()) : undefined,
-      humedadObjetivoVegetacion: humedadObjetivoVegetacion ? parseFloat(humedadObjetivoVegetacion.toString()) : undefined,
-      humedadObjetivoFloracion: humedadObjetivoFloracion ? parseFloat(humedadObjetivoFloracion.toString()) : undefined,
+      tempObjetivoVegetacion: tempObjetivoVegetacion
+        ? parseFloat(tempObjetivoVegetacion.toString())
+        : undefined,
+      tempObjetivoFloracion: tempObjetivoFloracion
+        ? parseFloat(tempObjetivoFloracion.toString())
+        : undefined,
+      humedadObjetivoVegetacion: humedadObjetivoVegetacion
+        ? parseFloat(humedadObjetivoVegetacion.toString())
+        : undefined,
+      humedadObjetivoFloracion: humedadObjetivoFloracion
+        ? parseFloat(humedadObjetivoFloracion.toString())
+        : undefined,
     };
     return prepararContextoCultivo(cultivoTemporal);
   }, [
@@ -141,14 +159,37 @@ export default function CultivoForm({
     tempObjetivoFloracion,
     humedadObjetivoVegetacion,
     humedadObjetivoFloracion,
-    initial
+    initial,
   ]);
+
+  // Diagnóstico en tiempo real desde la Base de Conocimiento (0 tokens)
+  const diagnosticoKB = useMemo(
+    () => consultarTodosLosObjetivosKB(crearContextoCultivo),
+    [crearContextoCultivo]
+  );
+
+  const handleAutocompletarTodoKB = () => {
+    setPhObjetivo(diagnosticoKB.phObjetivo.toString());
+    setEcObjetivo(diagnosticoKB.ecObjetivo.toString());
+    setTempObjetivoVegetacion(diagnosticoKB.tempObjetivoVegetacion.toString());
+    setHumedadObjetivoVegetacion(diagnosticoKB.humedadObjetivoVegetacion.toString());
+    setTempObjetivoFloracion(diagnosticoKB.tempObjetivoFloracion.toString());
+    setHumedadObjetivoFloracion(diagnosticoKB.humedadObjetivoFloracion.toString());
+    setProtocoloAplicadoMsg(
+      `✓ Aplicado ${diagnosticoKB.codigoProtocolo} (${diagnosticoKB.sustratoDetectado.nombre}) · 0 tokens consumidos`
+    );
+  };
 
   const handleConsultarPH = async () => {
     setCargandoPH(true);
     try {
       const recomendacion = await consultarRecomendacionPH(crearContextoCultivo);
-      if (recomendacion !== null) setPhObjetivo(recomendacion.toString());
+      if (recomendacion !== null) {
+        setPhObjetivo(recomendacion.toString());
+        setProtocoloAplicadoMsg(
+          `✓ pH ${recomendacion} asignado desde ${diagnosticoKB.codigoProtocolo} (${diagnosticoKB.sustratoDetectado.nombre})`
+        );
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -160,7 +201,12 @@ export default function CultivoForm({
     setCargandoEC(true);
     try {
       const recomendacion = await consultarRecomendacionEC(crearContextoCultivo);
-      if (recomendacion !== null) setEcObjetivo(recomendacion.toString());
+      if (recomendacion !== null) {
+        setEcObjetivo(recomendacion.toString());
+        setProtocoloAplicadoMsg(
+          `✓ EC ${recomendacion} mS asignada desde ${diagnosticoKB.codigoProtocolo} (${diagnosticoKB.sustratoDetectado.nombre})`
+        );
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -169,11 +215,21 @@ export default function CultivoForm({
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wrapConsulta = async (setter: (val: string) => void, loader: (val: boolean) => void, fetcher: (ctx: any, ...args: any[]) => Promise<any>, ...args: any[]) => {
+  const wrapConsulta = async (
+    setter: (val: string) => void,
+    loader: (val: boolean) => void,
+    fetcher: (ctx: ContextoCultivo, ...args: any[]) => Promise<number | null>,
+    ...args: any[]
+  ) => {
     loader(true);
     try {
       const res = await fetcher(crearContextoCultivo, ...args);
-      if (res !== null) setter(res.toString());
+      if (res !== null) {
+        setter(res.toString());
+        setProtocoloAplicadoMsg(
+          `✓ Parámetro climático actualizado según ${diagnosticoKB.codigoProtocolo} (0 tokens)`
+        );
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -189,7 +245,9 @@ export default function CultivoForm({
     }
 
     if (fechaComienzo && fechaInicioFloracion && fechaInicioFloracion < fechaComienzo) {
-      setError('La fecha de inicio de floración debe ser igual o posterior a la fecha de inicio del cultivo');
+      setError(
+        'La fecha de inicio de floración debe ser igual o posterior a la fecha de inicio del cultivo'
+      );
       return;
     }
 
@@ -207,16 +265,26 @@ export default function CultivoForm({
       activo,
       phObjetivo: phObjetivo ? parseFloat(phObjetivo.toString()) : undefined,
       ecObjetivo: ecObjetivo ? parseFloat(ecObjetivo.toString()) : undefined,
-      tempObjetivoVegetacion: tempObjetivoVegetacion ? parseFloat(tempObjetivoVegetacion.toString()) : undefined,
-      tempObjetivoFloracion: tempObjetivoFloracion ? parseFloat(tempObjetivoFloracion.toString()) : undefined,
-      humedadObjetivoVegetacion: humedadObjetivoVegetacion ? parseFloat(humedadObjetivoVegetacion.toString()) : undefined,
-      humedadObjetivoFloracion: humedadObjetivoFloracion ? parseFloat(humedadObjetivoFloracion.toString()) : undefined,
+      tempObjetivoVegetacion: tempObjetivoVegetacion
+        ? parseFloat(tempObjetivoVegetacion.toString())
+        : undefined,
+      tempObjetivoFloracion: tempObjetivoFloracion
+        ? parseFloat(tempObjetivoFloracion.toString())
+        : undefined,
+      humedadObjetivoVegetacion: humedadObjetivoVegetacion
+        ? parseFloat(humedadObjetivoVegetacion.toString())
+        : undefined,
+      humedadObjetivoFloracion: humedadObjetivoFloracion
+        ? parseFloat(humedadObjetivoFloracion.toString())
+        : undefined,
     };
 
     try {
       await onSubmit(payload);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Error al guardar el cultivo');
+      setError(
+        submitError instanceof Error ? submitError.message : 'Error al guardar el cultivo'
+      );
     }
   }
 
@@ -273,7 +341,7 @@ export default function CultivoForm({
               <input
                 id="nombre"
                 value={nombre}
-                onChange={e => setNombre(e.target.value)}
+                onChange={(e) => setNombre(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
                 placeholder="Ej: Sala A, Lomas #1, Indoor Principal..."
                 required
@@ -287,7 +355,7 @@ export default function CultivoForm({
               <input
                 id="genetica"
                 value={genetica}
-                onChange={e => setGenetica(e.target.value)}
+                onChange={(e) => setGenetica(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
                 placeholder="Ej: 24K Gold, White Widow, OG Kush..."
               />
@@ -308,14 +376,17 @@ export default function CultivoForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="grid gap-1.5">
-              <label htmlFor="fechaComienzo" className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              <label
+                htmlFor="fechaComienzo"
+                className="text-xs font-bold text-slate-700 uppercase tracking-wide"
+              >
                 🌱 Fecha de Inicio del Cultivo (Vegetación)
               </label>
               <input
                 id="fechaComienzo"
                 type="date"
                 value={fechaComienzo}
-                onChange={e => setFechaComienzo(e.target.value)}
+                onChange={(e) => setFechaComienzo(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
               />
               <span className="text-[11px] text-slate-500">
@@ -325,7 +396,10 @@ export default function CultivoForm({
 
             <div className="grid gap-1.5">
               <div className="flex items-center justify-between gap-2">
-                <label htmlFor="fechaInicioFloracion" className="text-xs font-bold text-purple-800 uppercase tracking-wide">
+                <label
+                  htmlFor="fechaInicioFloracion"
+                  className="text-xs font-bold text-purple-800 uppercase tracking-wide"
+                >
                   🌸 Fecha de Inicio de Floración
                 </label>
                 <div className="flex items-center gap-1.5">
@@ -353,7 +427,7 @@ export default function CultivoForm({
                 type="date"
                 value={fechaInicioFloracion}
                 min={fechaComienzo || undefined}
-                onChange={e => setFechaInicioFloracion(e.target.value)}
+                onChange={(e) => setFechaInicioFloracion(e.target.value)}
                 data-testid="cultivo-input-fecha-floracion"
                 className="w-full rounded-xl border border-purple-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
               />
@@ -372,56 +446,66 @@ export default function CultivoForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <div className="grid gap-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Sustrato</label>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Sustrato
+              </label>
               <input
                 value={sustrato}
-                onChange={e => setSustrato(e.target.value)}
+                onChange={(e) => setSustrato(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
-                placeholder="Ej: Coco+Perlita, Suelo Vivo..."
+                placeholder="Ej: Coco+Perlita, Suelo Vivo, Tierra..."
               />
             </div>
 
             <div className="grid gap-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Área de Cultivo (m²)</label>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Área de Cultivo (m²)
+              </label>
               <input
                 type="number"
                 step="0.1"
                 value={metrosCuadrados}
-                onChange={e => setMetrosCuadrados(e.target.value)}
+                onChange={(e) => setMetrosCuadrados(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
                 placeholder="Ej: 2.4"
               />
             </div>
 
             <div className="grid gap-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Número de Plantas</label>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Número de Plantas
+              </label>
               <input
                 type="number"
                 value={numeroplantas}
-                onChange={e => setNumeroplantas(e.target.value)}
+                onChange={(e) => setNumeroplantas(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
                 placeholder="Ej: 12"
               />
             </div>
 
             <div className="grid gap-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Litros por Maceta (L)</label>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Litros por Maceta (L)
+              </label>
               <input
                 type="number"
                 step="0.5"
                 value={litrosMaceta}
-                onChange={e => setLitrosMaceta(e.target.value)}
+                onChange={(e) => setLitrosMaceta(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
                 placeholder="Ej: 7"
               />
             </div>
 
             <div className="grid gap-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Potencia Lámparas (W)</label>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Potencia Lámparas (W)
+              </label>
               <input
                 type="number"
                 value={potenciaLamparas}
-                onChange={e => setPotenciaLamparas(e.target.value)}
+                onChange={(e) => setPotenciaLamparas(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
                 placeholder="Ej: 1600"
               />
@@ -429,21 +513,52 @@ export default function CultivoForm({
           </div>
         </div>
 
-        {/* SECCIÓN 4: INTELIGENCIA ARTIFICIAL & PARÁMETROS */}
+        {/* SECCIÓN 4: BASE DE CONOCIMIENTO AGRONÓMICA & PARÁMETROS ASISTIDOS POR IA */}
         <div className="bg-emerald-50/50 p-5 sm:p-6 rounded-2xl border border-emerald-200/70 space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/60 pb-3">
-            <h4 className="text-sm font-extrabold uppercase tracking-wider text-emerald-950 flex items-center gap-2">
-              <span>🤖</span> Objetivos Nutricionales & Clima (Asistido por IA)
-            </h4>
-            <span className="text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full border border-emerald-200">
-              Recomendaciones Automáticas
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-200/60 pb-3">
+            <div>
+              <h4 className="text-sm font-extrabold uppercase tracking-wider text-emerald-950 flex items-center gap-2">
+                <span>🤖</span> Objetivos Nutricionales & Clima (Asistido por IA)
+              </h4>
+              <p className="text-xs text-emerald-800/80 mt-0.5">
+                {diagnosticoKB.resumenExplicativo}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold bg-white text-emerald-800 px-2.5 py-1 rounded-full border border-emerald-200">
+                📚 {diagnosticoKB.codigoProtocolo} · 0 Tokens
+              </span>
+              <button
+                type="button"
+                onClick={handleAutocompletarTodoKB}
+                data-testid="cultivo-autocompletar-kb-boton"
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+              >
+                ✨ Autocompletar Todo con IA
+              </button>
+            </div>
           </div>
+
+          {protocoloAplicadoMsg && (
+            <div className="px-3.5 py-2 rounded-xl bg-emerald-100/80 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center justify-between">
+              <span>{protocoloAplicadoMsg}</span>
+              <button
+                type="button"
+                onClick={() => setProtocoloAplicadoMsg(null)}
+                className="text-emerald-700 hover:text-emerald-950 ml-2"
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {/* pH & EC */}
             <div className="bg-white p-4 rounded-xl border border-emerald-100 shadow-2xs space-y-3">
-              <h5 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">💧 Nutrición</h5>
+              <h5 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                💧 Nutrición ({diagnosticoKB.sustratoDetectado.nombre.split('/')[0].trim()})
+              </h5>
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-xs font-semibold text-slate-600">pH Objetivo</label>
@@ -451,66 +566,77 @@ export default function CultivoForm({
                     type="button"
                     onClick={handleConsultarPH}
                     disabled={cargandoPH}
-                    className="text-[11px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-md hover:bg-emerald-500 transition"
+                    className="text-[11px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-md hover:bg-emerald-500 transition cursor-pointer"
                   >
-                    {cargandoPH ? '...' : '✨ IA'}
+                    {cargandoPH ? '...' : `✨ IA (${diagnosticoKB.phObjetivo})`}
                   </button>
                 </div>
                 <input
                   type="number"
                   step="0.1"
                   value={phObjetivo}
-                  onChange={e => setPhObjetivo(e.target.value)}
+                  onChange={(e) => setPhObjetivo(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  placeholder="6.0"
+                  placeholder={diagnosticoKB.phObjetivo.toString()}
                 />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-600">EC Objetivo (ppm/mS)</label>
+                  <label className="text-xs font-semibold text-slate-600">
+                    EC Objetivo (ppm/mS)
+                  </label>
                   <button
                     type="button"
                     onClick={handleConsultarEC}
                     disabled={cargandoEC}
-                    className="text-[11px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-md hover:bg-emerald-500 transition"
+                    className="text-[11px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-md hover:bg-emerald-500 transition cursor-pointer"
                   >
-                    {cargandoEC ? '...' : '✨ IA'}
+                    {cargandoEC ? '...' : `✨ IA (${diagnosticoKB.ecObjetivo})`}
                   </button>
                 </div>
                 <input
                   type="number"
                   step="0.1"
                   value={ecObjetivo}
-                  onChange={e => setEcObjetivo(e.target.value)}
+                  onChange={(e) => setEcObjetivo(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  placeholder="1.4"
+                  placeholder={diagnosticoKB.ecObjetivo.toString()}
                 />
               </div>
             </div>
 
             {/* Clima Vegetación */}
             <div className="bg-white p-4 rounded-xl border border-emerald-100 shadow-2xs space-y-3">
-              <h5 className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">🌱 Clima Vegetación</h5>
+              <h5 className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">
+                🌱 Clima Vegetación
+              </h5>
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-xs font-semibold text-slate-600">Temperatura (°C)</label>
                   <button
                     type="button"
-                    onClick={() => wrapConsulta(setTempObjetivoVegetacion, setCargandoTempVegetacion, consultarRecomendacionTemperatura, 'vegetacion')}
+                    onClick={() =>
+                      wrapConsulta(
+                        setTempObjetivoVegetacion,
+                        setCargandoTempVegetacion,
+                        consultarRecomendacionTemperatura,
+                        'vegetacion'
+                      )
+                    }
                     disabled={cargandoTempVegetacion}
-                    className="text-[11px] font-bold bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded-md transition"
+                    className="text-[11px] font-bold bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer"
                   >
-                    {cargandoTempVegetacion ? '...' : '✨ IA'}
+                    {cargandoTempVegetacion ? '...' : `✨ IA (${diagnosticoKB.tempObjetivoVegetacion}°)`}
                   </button>
                 </div>
                 <input
                   type="number"
                   step="0.1"
                   value={tempObjetivoVegetacion}
-                  onChange={e => setTempObjetivoVegetacion(e.target.value)}
+                  onChange={(e) => setTempObjetivoVegetacion(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  placeholder="25"
+                  placeholder={diagnosticoKB.tempObjetivoVegetacion.toString()}
                 />
               </div>
               <div>
@@ -518,46 +644,64 @@ export default function CultivoForm({
                   <label className="text-xs font-semibold text-slate-600">Humedad (%)</label>
                   <button
                     type="button"
-                    onClick={() => wrapConsulta(setHumedadObjetivoVegetacion, setCargandoHumedadVegetacion, consultarRecomendacionHumedad, 'vegetacion')}
+                    onClick={() =>
+                      wrapConsulta(
+                        setHumedadObjetivoVegetacion,
+                        setCargandoHumedadVegetacion,
+                        consultarRecomendacionHumedad,
+                        'vegetacion'
+                      )
+                    }
                     disabled={cargandoHumedadVegetacion}
-                    className="text-[11px] font-bold bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded-md transition"
+                    className="text-[11px] font-bold bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer"
                   >
-                    {cargandoHumedadVegetacion ? '...' : '✨ IA'}
+                    {cargandoHumedadVegetacion
+                      ? '...'
+                      : `✨ IA (${diagnosticoKB.humedadObjetivoVegetacion}%)`}
                   </button>
                 </div>
                 <input
                   type="number"
                   step="1"
                   value={humedadObjetivoVegetacion}
-                  onChange={e => setHumedadObjetivoVegetacion(e.target.value)}
+                  onChange={(e) => setHumedadObjetivoVegetacion(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  placeholder="65"
+                  placeholder={diagnosticoKB.humedadObjetivoVegetacion.toString()}
                 />
               </div>
             </div>
 
             {/* Clima Floración */}
             <div className="bg-white p-4 rounded-xl border border-purple-100 shadow-2xs space-y-3">
-              <h5 className="text-xs font-extrabold text-purple-800 uppercase tracking-wider">🌸 Clima Floración</h5>
+              <h5 className="text-xs font-extrabold text-purple-800 uppercase tracking-wider">
+                🌸 Clima Floración
+              </h5>
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-xs font-semibold text-slate-600">Temperatura (°C)</label>
                   <button
                     type="button"
-                    onClick={() => wrapConsulta(setTempObjetivoFloracion, setCargandoTempFloracion, consultarRecomendacionTemperatura, 'floracion')}
+                    onClick={() =>
+                      wrapConsulta(
+                        setTempObjetivoFloracion,
+                        setCargandoTempFloracion,
+                        consultarRecomendacionTemperatura,
+                        'floracion'
+                      )
+                    }
                     disabled={cargandoTempFloracion}
-                    className="text-[11px] font-bold bg-slate-100 hover:bg-purple-100 text-slate-700 px-2 py-0.5 rounded-md transition"
+                    className="text-[11px] font-bold bg-slate-100 hover:bg-purple-100 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer"
                   >
-                    {cargandoTempFloracion ? '...' : '✨ IA'}
+                    {cargandoTempFloracion ? '...' : `✨ IA (${diagnosticoKB.tempObjetivoFloracion}°)`}
                   </button>
                 </div>
                 <input
                   type="number"
                   step="0.1"
                   value={tempObjetivoFloracion}
-                  onChange={e => setTempObjetivoFloracion(e.target.value)}
+                  onChange={(e) => setTempObjetivoFloracion(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  placeholder="23"
+                  placeholder={diagnosticoKB.tempObjetivoFloracion.toString()}
                 />
               </div>
               <div>
@@ -565,33 +709,53 @@ export default function CultivoForm({
                   <label className="text-xs font-semibold text-slate-600">Humedad (%)</label>
                   <button
                     type="button"
-                    onClick={() => wrapConsulta(setHumedadObjetivoFloracion, setCargandoHumedadFloracion, consultarRecomendacionHumedad, 'floracion')}
+                    onClick={() =>
+                      wrapConsulta(
+                        setHumedadObjetivoFloracion,
+                        setCargandoHumedadFloracion,
+                        consultarRecomendacionHumedad,
+                        'floracion'
+                      )
+                    }
                     disabled={cargandoHumedadFloracion}
-                    className="text-[11px] font-bold bg-slate-100 hover:bg-purple-100 text-slate-700 px-2 py-0.5 rounded-md transition"
+                    className="text-[11px] font-bold bg-slate-100 hover:bg-purple-100 text-slate-700 px-2 py-0.5 rounded-md transition cursor-pointer"
                   >
-                    {cargandoHumedadFloracion ? '...' : '✨ IA'}
+                    {cargandoHumedadFloracion
+                      ? '...'
+                      : `✨ IA (${diagnosticoKB.humedadObjetivoFloracion}%)`}
                   </button>
                 </div>
                 <input
                   type="number"
                   step="1"
                   value={humedadObjetivoFloracion}
-                  onChange={e => setHumedadObjetivoFloracion(e.target.value)}
+                  onChange={(e) => setHumedadObjetivoFloracion(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                  placeholder="50"
+                  placeholder={diagnosticoKB.humedadObjetivoFloracion.toString()}
                 />
               </div>
             </div>
           </div>
+
+          {diagnosticoKB.alertasAuditoria.length > 0 && (
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+              <div className="font-bold">💡 Sugerencia de la Base de Conocimiento Agronómica:</div>
+              {diagnosticoKB.alertasAuditoria.map((alerta, idx) => (
+                <div key={idx}>• {alerta}</div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* SECCIÓN 5: NOTAS Y ESTADO */}
         <div className="bg-slate-50/70 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-4">
           <div className="grid gap-1.5">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Notas Operativas</label>
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Notas Operativas
+            </label>
             <textarea
               value={notas}
-              onChange={e => setNotas(e.target.value)}
+              onChange={(e) => setNotas(e.target.value)}
               rows={3}
               className="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-sm text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
               placeholder="Observaciones sobre fenotipos, podas, riegos o configuración de sala..."
@@ -603,7 +767,7 @@ export default function CultivoForm({
               type="checkbox"
               id="activo"
               checked={activo}
-              onChange={e => setActivo(e.target.checked)}
+              onChange={(e) => setActivo(e.target.checked)}
               className="h-4 w-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
             />
             <label htmlFor="activo" className="text-sm font-bold text-slate-800 cursor-pointer">

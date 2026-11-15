@@ -1344,7 +1344,17 @@ function CultivoDetailContent() {
         {/* VISTA 2: CHAT CON IA */}
         {vistaActiva === 'chat' && (
           <div className="max-w-5xl mx-auto" data-testid="cultivo-tabview-chat">
-            <ChatIA cultivo={cultivo} />
+            <ChatIA
+              cultivo={cultivo}
+              onAccionEjecutada={(cultivoActualizado) => {
+                if (cultivoActualizado) {
+                  setCultivo(cultivoActualizado);
+                } else {
+                  loadCultivo();
+                }
+                planificacion.refresh();
+              }}
+            />
           </div>
         )}
 

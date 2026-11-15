@@ -1,6 +1,7 @@
 /**
- * Servicio client-side para gestión de chat con IA
- * Maneja comunicación con OpenAI y persistencia de mensajes
+ * Servicio client-side para gestión de Chat IA y Motor de Conocimiento Agronómico
+ * Integra cálculos determinísticos de 0 tokens desde la Base de Conocimiento (KB)
+ * y consultas híbridas Micro-RAG con acciones consistentes ejecutables.
  */
 
 import type {
@@ -9,38 +10,41 @@ import type {
   ApiResponseChat,
   ContextoCultivo,
   ImagenMensaje,
-  ImagenPayload
+  ImagenPayload,
+  AccionConocimiento,
 } from '@/types/chat';
 import type { Cultivo } from '@/types/cultivo';
+import {
+  calcularObjetivosAgronomicos,
+  generarRespuestaConocimientoLocal,
+  type ObjetivosCalculadosKB,
+} from '@/lib/knowledge/agronomicKnowledgeBase';
 
-// Configuración base
 const API_BASE = '/api';
 
 /**
  * Convierte una URL de imagen a base64
- * Útil para procesar imágenes de la galería
- * @param url - URL de la imagen
- * @returns Promise con string base64
  */
 export async function convertirUrlABase64(url: string): Promise<string> {
   try {
     const response = await fetch(url);
     const blob = await response.blob();
-    // Usar la misma función de compresión que para los archivos
     return compressImage(blob);
   } catch (error) {
-    throw new Error(`Error al descargar la imagen: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    throw new Error(
+      `Error al descargar la imagen: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    );
   }
 }
 
 /**
  * Redimensiona y comprime una imagen usando Canvas
- * @param source - File o Blob de imagen
- * @param maxWidth - Ancho máximo permitido
- * @param quality - Calidad JPEG (0-1)
- * @returns Promise con string base64
  */
-const compressImage = async (source: File | Blob, maxWidth: number = 1024, quality: number = 0.7): Promise<string> => {
+const compressImage = async (
+  source: File | Blob,
+  maxWidth: number = 1024,
+  quality: number = 0.7
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
@@ -54,7 +58,6 @@ const compressImage = async (source: File | Blob, maxWidth: number = 1024, quali
       let width = img.width;
       let height = img.height;
 
-      // Calcular nuevas dimensiones manteniendo aspect ratio
       if (width > maxWidth) {
         height = Math.round((height * maxWidth) / width);
         width = maxWidth;
@@ -70,14 +73,8 @@ const compressImage = async (source: File | Blob, maxWidth: number = 1024, quali
         return;
       }
 
-      // Dibujar imagen redimensionada
       ctx.drawImage(img, 0, 0, width, height);
-
-      // Obtener base64 comprimido (JPEG)
-      // data:image/jpeg;base64,...
       const base64Url = canvas.toDataURL('image/jpeg', quality);
-
-      // Remover prefijo
       const base64 = base64Url.split(',')[1];
       resolve(base64);
     };
@@ -89,18 +86,13 @@ const compressImage = async (source: File | Blob, maxWidth: number = 1024, quali
 
 /**
  * Convierte archivo de imagen a base64 con compresión automática
- * @param file - Archivo de imagen
- * @returns Promise con string base64
  */
 export async function convertirImagenABase64(file: File): Promise<string> {
-  // Usar compresión para optimizar payload a la IA
   return compressImage(file);
 }
 
 /**
  * Procesa archivos de imagen para el chat
- * @param files - FileList de imágenes seleccionadas
- * @returns Promise con array de ImagenMensaje procesadas
  */
 export async function procesarImagenes(files: FileList): Promise<ImagenMensaje[]> {
   const imagenes: ImagenMensaje[] = [];
@@ -108,12 +100,10 @@ export async function procesarImagenes(files: FileList): Promise<ImagenMensaje[]
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
 
-    // Validar que sea una imagen
     if (!file.type.startsWith('image/')) {
       throw new Error(`El archivo ${file.name} no es una imagen válida`);
     }
 
-    // Validar tamaño (máximo 10MB)
     if (file.size > 10 * 1024 * 1024) {
       throw new Error(`La imagen ${file.name} es demasiado grande (máximo 10MB)`);
     }
@@ -129,12 +119,16 @@ export async function procesarImagenes(files: FileList): Promise<ImagenMensaje[]
         base64,
         mimeType: file.type,
         size: file.size,
-        uploadedAt: new Date().toISOString()
+        uploadedAt: new Date().toISOString(),
       };
 
       imagenes.push(imagen);
     } catch (error) {
-      throw new Error(`Error al procesar la imagen ${file.name}: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      throw new Error(
+        `Error al procesar la imagen ${file.name}: ${
+          error instanceof Error ? error.message : 'Error desconocido'
+        }`
+      );
     }
   }
 
@@ -142,12 +136,114 @@ export async function procesarImagenes(files: FileList): Promise<ImagenMensaje[]
 }
 
 /**
- * Envía mensaje al chat de IA con contexto del cultivo
- * @param mensaje - Texto del mensaje del usuario
- * @param contexto - Contexto completo del cultivo
- * @param imagenes - Imágenes adjuntas (opcional)
- * @param historial - Historial reciente de mensajes (opcional)
- * @returns Promise con la respuesta de la IA
+ * Envía mensaje al motor híbrido de IA y retorna respuesta completa (texto, acciones KB y telemetría de tokens)
+ */
+export async function enviarMensajeDetalladoIA(
+  mensaje: string,
+  contexto: ContextoCultivo,
+  imagenes?: ImagenMensaje[],
+  historial?: MensajeChat[],
+  email?: string,
+  modo: PayloadOpenAI['modo'] = 'auto'
+): Promise<ApiResponseChat<string>> {
+  const tieneImagenes = Boolean(imagenes && imagenes.length > 0);
+
+  // Fast-path en cliente: si no hay imágenes y la Base de Conocimiento resuelve al 100% la consulta,
+  // devolvemos de inmediato sin latencia de red ni gasto de tokens.
+  const localKB = generarRespuestaConocimientoLocal(mensaje, contexto, tieneImagenes);
+  if ((modo === 'kb_only' || localKB.esSuficienteSinLLM) && !tieneImagenes) {
+    return {
+      success: true,
+      data: localKB.respuesta,
+      message: 'Resuelto por Base de Conocimiento Local (0 tokens)',
+      accionesSugeridas: localKB.accionesSugeridas,
+      fuentesConocimiento: localKB.fuentesConocimiento,
+      tokens: {
+        prompt: 0,
+        completion: 0,
+        total: 0,
+        fuente: 'kb_local',
+      },
+    };
+  }
+
+  try {
+    const imagenesPayload: ImagenPayload[] | undefined = imagenes
+      ?.filter((img): img is ImagenMensaje & { base64: string } => Boolean(img.base64))
+      .map((img) => ({
+        base64: img.base64,
+        mimeType: img.mimeType,
+        nombre: img.name,
+      }));
+
+    const payload: PayloadOpenAI = {
+      message: mensaje,
+      email,
+      cultivoContext: contexto,
+      imagenes: imagenesPayload,
+      historialReciente: historial?.slice(-4),
+      modo,
+    };
+
+    const response = await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      return {
+        success: true,
+        data: localKB.respuesta,
+        message: 'Resuelto por Base de Conocimiento Local (Fallback)',
+        accionesSugeridas: localKB.accionesSugeridas,
+        fuentesConocimiento: localKB.fuentesConocimiento,
+        tokens: {
+          prompt: 0,
+          completion: 0,
+          total: 0,
+          fuente: 'kb_local',
+        },
+      };
+    }
+
+    const data: ApiResponseChat<string> = await response.json();
+
+    if (!data.success || !data.data) {
+      return {
+        success: true,
+        data: localKB.respuesta,
+        accionesSugeridas: localKB.accionesSugeridas,
+        fuentesConocimiento: localKB.fuentesConocimiento,
+        tokens: {
+          prompt: 0,
+          completion: 0,
+          total: 0,
+          fuente: 'kb_local',
+        },
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.warn('Usando respuesta de Base de Conocimiento Local ante error de red:', error);
+    return {
+      success: true,
+      data: localKB.respuesta,
+      accionesSugeridas: localKB.accionesSugeridas,
+      fuentesConocimiento: localKB.fuentesConocimiento,
+      tokens: {
+        prompt: 0,
+        completion: 0,
+        total: 0,
+        fuente: 'kb_local',
+      },
+    };
+  }
+}
+
+/**
+ * Envía mensaje al chat de IA con contexto del cultivo (retorna string para compatibilidad)
  */
 export async function enviarMensajeIA(
   mensaje: string,
@@ -156,57 +252,12 @@ export async function enviarMensajeIA(
   historial?: MensajeChat[],
   email?: string
 ): Promise<string> {
-  try {
-    // Preparar payload para OpenAI
-    const imagenesPayload: ImagenPayload[] | undefined = imagenes
-      ?.filter((img): img is ImagenMensaje & { base64: string } => Boolean(img.base64))
-      .map((img) => ({
-        base64: img.base64,
-        mimeType: img.mimeType,
-        nombre: img.name
-      }));
-
-    const payload: PayloadOpenAI = {
-      message: mensaje,
-      email,
-      cultivoContext: contexto,
-      imagenes: imagenesPayload,
-      historialReciente: historial
-    };
-
-    // Enviar petición a la API
-    const response = await fetch(`${API_BASE}/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}: Error en la petición`);
-    }
-
-    const data: ApiResponseChat<string> = await response.json();
-
-    if (!data.success || !data.data) {
-      throw new Error(data.error || 'La IA no pudo generar una respuesta');
-    }
-
-    return data.data;
-  } catch (error) {
-    console.error('Error al enviar mensaje a IA:', error);
-    throw error;
-  }
+  const res = await enviarMensajeDetalladoIA(mensaje, contexto, imagenes, historial, email);
+  return res.data || '';
 }
 
 /**
  * Crea un nuevo mensaje de chat del usuario
- * @param cultivoId - ID del cultivo
- * @param contenido - Contenido del mensaje
- * @param imagenes - Imágenes adjuntas (opcional)
- * @returns Nuevo mensaje de chat
  */
 export function crearMensajeUsuario(
   cultivoId: string,
@@ -214,33 +265,34 @@ export function crearMensajeUsuario(
   imagenes?: ImagenMensaje[]
 ): MensajeChat {
   return {
-    id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
     cultivoId,
     tipo: 'user',
     contenido,
     imagenes,
-    tipoContenido: imagenes && imagenes.length > 0 ?
-      (contenido.trim() ? 'mixed' : 'image') : 'text',
+    tipoContenido:
+      imagenes && imagenes.length > 0 ? (contenido.trim() ? 'mixed' : 'image') : 'text',
     timestamp: new Date().toISOString(),
     procesando: false,
-    activo: true
+    activo: true,
   };
 }
 
 /**
- * Crea un nuevo mensaje de respuesta de la IA
- * @param cultivoId - ID del cultivo
- * @param contenido - Respuesta de la IA
- * @param mensajeUsuarioId - ID del mensaje del usuario al que responde
- * @returns Nuevo mensaje de chat de la IA
+ * Crea un nuevo mensaje de respuesta de la IA enriquecido con acciones y fuentes de la KB
  */
 export function crearMensajeIA(
   cultivoId: string,
   contenido: string,
-  mensajeUsuarioId?: string
+  mensajeUsuarioId?: string,
+  extras?: {
+    accionesSugeridas?: AccionConocimiento[];
+    fuentesConocimiento?: string[];
+    tokensUsados?: MensajeChat['tokensUsados'];
+  }
 ): MensajeChat {
   return {
-    id: `ai_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `ai_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
     cultivoId,
     tipo: 'assistant',
     contenido,
@@ -248,42 +300,31 @@ export function crearMensajeIA(
     timestamp: new Date().toISOString(),
     procesando: false,
     respuestaA: mensajeUsuarioId,
-    activo: true
+    accionesSugeridas: extras?.accionesSugeridas,
+    fuentesConocimiento: extras?.fuentesConocimiento,
+    tokensUsados: extras?.tokensUsados,
+    activo: true,
   };
 }
 
 /**
  * Crea un mensaje del sistema (ej: "Analizando imagen...")
- * @param cultivoId - ID del cultivo
- * @param contenido - Mensaje del sistema
- * @returns Nuevo mensaje del sistema
  */
-export function crearMensajeSistema(
-  cultivoId: string,
-  contenido: string
-): MensajeChat {
+export function crearMensajeSistema(cultivoId: string, contenido: string): MensajeChat {
   return {
-    id: `sys_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `sys_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
     cultivoId,
     tipo: 'system',
     contenido,
     tipoContenido: 'text',
     timestamp: new Date().toISOString(),
     procesando: true,
-    activo: true
+    activo: true,
   };
 }
 
 /**
- * Gestiona la conversación completa con la IA
- * Incluye crear mensajes del usuario, del sistema, y obtener respuesta de IA
- * @param cultivoId - ID del cultivo
- * @param mensaje - Mensaje del usuario
- * @param contexto - Contexto del cultivo
- * @param imagenes - Imágenes adjuntas
- * @param historial - Historial de mensajes
- * @param onMensajeCreado - Callback cuando se crea un nuevo mensaje
- * @returns Promise con el mensaje de respuesta de la IA
+ * Gestiona la conversación completa con la IA y adjunta las Acciones de la Base de Conocimiento
  */
 export async function gestionarConversacionIA(
   cultivoId: string,
@@ -294,51 +335,46 @@ export async function gestionarConversacionIA(
   onMensajeCreado: (mensaje: MensajeChat) => void,
   email?: string
 ): Promise<MensajeChat> {
-  // 1. Crear y enviar mensaje del usuario
   const mensajeUsuario = crearMensajeUsuario(cultivoId, mensaje, imagenes);
   onMensajeCreado(mensajeUsuario);
 
-  // 2. Crear mensaje del sistema si hay imágenes
-  let mensajeSistema: MensajeChat | undefined;
   if (imagenes && imagenes.length > 0) {
-    mensajeSistema = crearMensajeSistema(
+    const mensajeSistema = crearMensajeSistema(
       cultivoId,
-      `Analizando ${imagenes.length} imagen${imagenes.length > 1 ? 'es' : ''}...`
+      `Analizando ${imagenes.length} imagen${imagenes.length > 1 ? 'es' : ''} contra Base de Conocimiento...`
     );
     onMensajeCreado(mensajeSistema);
   }
 
   try {
-    // 3. Obtener respuesta de la IA
-    const respuestaIA = await enviarMensajeIA(mensaje, contexto, imagenes, historial, email);
+    const respuestaDetallada = await enviarMensajeDetalladoIA(
+      mensaje,
+      contexto,
+      imagenes,
+      historial,
+      email
+    );
 
-    // 4. Crear mensaje de respuesta de la IA
-    const mensajeIA = crearMensajeIA(cultivoId, respuestaIA, mensajeUsuario.id);
-
-    // 5. Remover mensaje del sistema si existe
-    if (mensajeSistema) {
-      // El componente debe manejar la remoción del mensaje del sistema
-    }
-
-    return mensajeIA;
+    return crearMensajeIA(cultivoId, respuestaDetallada.data || '', mensajeUsuario.id, {
+      accionesSugeridas: respuestaDetallada.accionesSugeridas,
+      fuentesConocimiento: respuestaDetallada.fuentesConocimiento,
+      tokensUsados: respuestaDetallada.tokens,
+    });
   } catch (error) {
-    // Crear mensaje de error
     const mensajeError = crearMensajeIA(
       cultivoId,
       `❌ Error: ${error instanceof Error ? error.message : 'No se pudo obtener respuesta de la IA'}`
     );
     mensajeError.error = error instanceof Error ? error.message : 'Error desconocido';
-
     return mensajeError;
   }
 }
 
 /**
  * Libera recursos de imágenes (URLs temporales)
- * @param imagenes - Array de imágenes a limpiar
  */
 export function limpiarImagenes(imagenes: ImagenMensaje[]): void {
-  imagenes.forEach(imagen => {
+  imagenes.forEach((imagen) => {
     if (imagen.url.startsWith('blob:')) {
       URL.revokeObjectURL(imagen.url);
     }
@@ -347,8 +383,6 @@ export function limpiarImagenes(imagenes: ImagenMensaje[]): void {
 
 /**
  * Valida el contexto del cultivo antes de enviar a IA
- * @param contexto - Contexto a validar
- * @returns true si es válido, false en caso contrario
  */
 export function validarContextoCultivo(contexto: ContextoCultivo): boolean {
   return !!(contexto.id && contexto.nombre);
@@ -356,11 +390,8 @@ export function validarContextoCultivo(contexto: ContextoCultivo): boolean {
 
 /**
  * Prepara el contexto del cultivo desde un objeto Cultivo
- * @param cultivo - Objeto cultivo completo
- * @returns Contexto preparado para la IA
  */
 export function prepararContextoCultivo(cultivo: Cultivo): ContextoCultivo {
-  // Calcular métricas si es posible
   let diasDesdeInicio: number | undefined;
   let plantasPorM2: number | undefined;
   let wattsPorM2: number | undefined;
@@ -369,7 +400,7 @@ export function prepararContextoCultivo(cultivo: Cultivo): ContextoCultivo {
   if (cultivo.fechaComienzo) {
     const inicio = new Date(cultivo.fechaComienzo);
     const hoy = new Date();
-    const diffTime = Math.abs(hoy.getTime() - inicio.getTime());
+    const diffTime = Math.max(0, hoy.getTime() - inicio.getTime());
     diasDesdeInicio = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
@@ -385,13 +416,12 @@ export function prepararContextoCultivo(cultivo: Cultivo): ContextoCultivo {
     litrosTotales = cultivo.litrosMaceta * cultivo.numeroplantas;
   }
 
-  // Preparar información de la galería para contexto de IA (sin datos de imagen binarios)
-  const galeriaImagenes = cultivo.galeria?.map(imagen => ({
+  const galeriaImagenes = cultivo.galeria?.map((imagen) => ({
     id: imagen.id,
     nombre: imagen.nombre,
     descripcion: imagen.descripcion,
     fechaTomada: imagen.fechaTomada,
-    fechaSubida: imagen.fechaSubida
+    fechaSubida: imagen.fechaSubida,
   }));
 
   return {
@@ -400,136 +430,73 @@ export function prepararContextoCultivo(cultivo: Cultivo): ContextoCultivo {
     genetica: cultivo.genetica,
     sustrato: cultivo.sustrato,
     fechaComienzo: cultivo.fechaComienzo,
+    fechaInicioFloracion: cultivo.fechaInicioFloracion,
     metrosCuadrados: cultivo.metrosCuadrados,
     numeroplantas: cultivo.numeroplantas,
     litrosMaceta: cultivo.litrosMaceta,
     potenciaLamparas: cultivo.potenciaLamparas,
+    phObjetivo: cultivo.phObjetivo,
+    ecObjetivo: cultivo.ecObjetivo,
+    tempObjetivoVegetacion: cultivo.tempObjetivoVegetacion,
+    tempObjetivoFloracion: cultivo.tempObjetivoFloracion,
+    humedadObjetivoVegetacion: cultivo.humedadObjetivoVegetacion,
+    humedadObjetivoFloracion: cultivo.humedadObjetivoFloracion,
     diasDesdeInicio,
     plantasPorM2,
     wattsPorM2,
     litrosTotales,
     activo: cultivo.activo,
     notas: cultivo.notas,
-    galeriaImagenes
+    galeriaImagenes,
   };
 }
 
 /**
- * Consulta recomendación específica de pH a la IA
- * @param contexto - Contexto del cultivo
- * @returns Promise con la recomendación de pH
+ * Calcula todos los objetivos óptimos de nutrición, clima y riego de una sola vez
+ * directamente desde la Base de Conocimiento Agronómica (0 tokens, 0ms, sin fallos de red).
+ */
+export function consultarTodosLosObjetivosKB(
+  contexto: ContextoCultivo
+): ObjetivosCalculadosKB {
+  return calcularObjetivosAgronomicos(contexto);
+}
+
+/**
+ * Consulta recomendación específica de pH desde la Base de Conocimiento (0 tokens, consistente)
  */
 export async function consultarRecomendacionPH(contexto: ContextoCultivo): Promise<number | null> {
-  try {
-    const mensaje = `Basado en este cultivo de cannabis, ¿cuál sería el valor óptimo de pH para el agua de riego? Proporciona solo el valor numérico (ej: 6.2). Considera la genética, fase actual, sustrato y condiciones ambientales.`;
-
-    const respuesta = await enviarMensajeIA(mensaje, contexto);
-
-    // Extraer el valor numérico de la respuesta
-    const match = respuesta.match(/(\d+\.?\d*)/);
-    if (match) {
-      const valor = parseFloat(match[1]);
-      // Validar que esté en rango típico de pH (0-14)
-      if (valor >= 0 && valor <= 14) {
-        return valor;
-      }
-    }
-
-    console.warn('No se pudo extraer un valor de pH válido de la respuesta:', respuesta);
-    return null;
-  } catch (error) {
-    console.error('Error al consultar recomendación de pH:', error);
-    return null;
-  }
+  return calcularObjetivosAgronomicos(contexto).phObjetivo;
 }
 
 /**
- * Consulta recomendación específica de EC a la IA
- * @param contexto - Contexto del cultivo
- * @returns Promise con la recomendación de EC
+ * Consulta recomendación específica de EC desde la Base de Conocimiento (0 tokens, consistente)
  */
 export async function consultarRecomendacionEC(contexto: ContextoCultivo): Promise<number | null> {
-  try {
-    const mensaje = `Basado en este cultivo de cannabis, ¿cuál sería el valor óptimo de EC (conductividad eléctrica) en mS para el agua de riego? Proporciona solo el valor numérico (ej: 1.8). Considera la genética, fase actual, sustrato y condiciones ambientales.`;
-
-    const respuesta = await enviarMensajeIA(mensaje, contexto);
-
-    // Extraer el valor numérico de la respuesta
-    const match = respuesta.match(/(\d+\.?\d*)/);
-    if (match) {
-      const valor = parseFloat(match[1]);
-      // Validar que esté en rango típico de EC para cannabis (0.8-3.0)
-      if (valor >= 0.1 && valor <= 5.0) {
-        return valor;
-      }
-    }
-
-    console.warn('No se pudo extraer un valor de EC válido de la respuesta:', respuesta);
-    return null;
-  } catch (error) {
-    console.error('Error al consultar recomendación de EC:', error);
-    return null;
-  }
+  return calcularObjetivosAgronomicos(contexto).ecObjetivo;
 }
 
 /**
- * Consulta recomendación de temperatura para una fase específica
- * @param contexto - Contexto del cultivo
- * @param fase - Fase del cultivo ('vegetacion' | 'floracion')
- * @returns Promise con la recomendación de temperatura
+ * Consulta recomendación de temperatura para una fase específica desde la Base de Conocimiento (0 tokens)
  */
-export async function consultarRecomendacionTemperatura(contexto: ContextoCultivo, fase: 'vegetacion' | 'floracion'): Promise<number | null> {
-  try {
-    const nombreFase = fase === 'vegetacion' ? 'vegetación' : 'floración';
-    const mensaje = `Basado en este cultivo de cannabis en fase de ${nombreFase}, ¿cuál sería la temperatura ambiente óptima en grados Celsius? Proporciona solo el valor numérico (ej: 25). Considera la genética, fase actual, sustrato y otras condiciones ambientales.`;
-
-    const respuesta = await enviarMensajeIA(mensaje, contexto);
-
-    // Extraer el valor numérico de la respuesta
-    const match = respuesta.match(/(\d+\.?\d*)/);
-    if (match) {
-      const valor = parseFloat(match[1]);
-      // Validar que esté en rango típico de temperatura para cannabis (15-35°C)
-      if (valor >= 10 && valor <= 40) {
-        return valor;
-      }
-    }
-
-    console.warn('No se pudo extraer un valor de temperatura válido de la respuesta:', respuesta);
-    return null;
-  } catch (error) {
-    console.error('Error al consultar recomendación de temperatura:', error);
-    return null;
-  }
+export async function consultarRecomendacionTemperatura(
+  contexto: ContextoCultivo,
+  fase: 'vegetacion' | 'floracion'
+): Promise<number | null> {
+  const objetivos = calcularObjetivosAgronomicos(contexto);
+  return fase === 'vegetacion'
+    ? objetivos.tempObjetivoVegetacion
+    : objetivos.tempObjetivoFloracion;
 }
 
 /**
- * Consulta recomendación de humedad para una fase específica
- * @param contexto - Contexto del cultivo
- * @param fase - Fase del cultivo ('vegetacion' | 'floracion')
- * @returns Promise con la recomendación de humedad
+ * Consulta recomendación de humedad para una fase específica desde la Base de Conocimiento (0 tokens)
  */
-export async function consultarRecomendacionHumedad(contexto: ContextoCultivo, fase: 'vegetacion' | 'floracion'): Promise<number | null> {
-  try {
-    const nombreFase = fase === 'vegetacion' ? 'vegetación' : 'floración';
-    const mensaje = `Basado en este cultivo de cannabis en fase de ${nombreFase}, ¿cuál sería el porcentaje óptimo de humedad relativa del ambiente? Proporciona solo el valor numérico (ej: 65). Considera la genética, fase actual, sustrato y otras condiciones ambientales.`;
-
-    const respuesta = await enviarMensajeIA(mensaje, contexto);
-
-    // Extraer el valor numérico de la respuesta
-    const match = respuesta.match(/(\d+\.?\d*)/);
-    if (match) {
-      const valor = parseFloat(match[1]);
-      // Validar que esté en rango de humedad (0-100%)
-      if (valor >= 0 && valor <= 100) {
-        return valor;
-      }
-    }
-
-    console.warn('No se pudo extraer un valor de humedad válido de la respuesta:', respuesta);
-    return null;
-  } catch (error) {
-    console.error('Error al consultar recomendación de humedad:', error);
-    return null;
-  }
+export async function consultarRecomendacionHumedad(
+  contexto: ContextoCultivo,
+  fase: 'vegetacion' | 'floracion'
+): Promise<number | null> {
+  const objetivos = calcularObjetivosAgronomicos(contexto);
+  return fase === 'vegetacion'
+    ? objetivos.humedadObjetivoVegetacion
+    : objetivos.humedadObjetivoFloracion;
 }

@@ -3,9 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { enviarMensajeIA, procesarImagenes } from '@/lib/services/chat';
+import { enviarMensajeDetalladoIA, procesarImagenes, prepararContextoCultivo } from '@/lib/services/chat';
+import { createTarea } from '@/lib/services/planificacion';
 import { useCultivos } from '@/lib/hooks/useCultivos';
-import type { ContextoCultivo, ImagenMensaje } from '@/types/chat';
+import type { ContextoCultivo, ImagenMensaje, AccionConocimiento } from '@/types/chat';
 
 type EtapaCultivo = 'esquejes' | 'vegetacion' | 'floracion_temprana' | 'floracion_tardia';
 
@@ -60,6 +61,10 @@ export default function SimuladorPage() {
   const [sintomas, setSintomas] = useState('');
   const [analizando, setAnalizando] = useState(false);
   const [diagnostico, setDiagnostico] = useState<string | null>(null);
+  const [accionesDiagnostico, setAccionesDiagnostico] = useState<AccionConocimiento[]>([]);
+  const [fuentesDiagnostico, setFuentesDiagnostico] = useState<string[]>([]);
+  const [tokensDiagnostico, setTokensDiagnostico] = useState<{ total: number; fuente?: string } | null>(null);
+  const [accionesAplicadas, setAccionesAplicadas] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
 
   // Cálculo agronómico real en tiempo real (Ecuación de Tetens para SVP y VPD)
@@ -171,37 +176,37 @@ export default function SimuladorPage() {
     setAnalizando(true);
     setError(null);
     setDiagnostico(null);
+    setAccionesDiagnostico([]);
+    setFuentesDiagnostico([]);
+    setTokensDiagnostico(null);
 
     try {
-      const dummyContext: ContextoCultivo = {
-        id: 'diagnostic-session',
-        nombre: 'Consulta Doctor IA',
-        genetica: 'No especificada',
-        sustrato: 'General',
-        fechaComienzo: new Date().toISOString(),
-        activo: true,
-        notas: 'Sesión de diagnóstico rápido en el laboratorio.',
-      };
+      const cultivoTarget = cultivos.find((c) => c.id === cultivoSeleccionadoId) || cultivos[0];
+      const contextoReal: ContextoCultivo = cultivoTarget
+        ? prepararContextoCultivo(cultivoTarget)
+        : {
+            id: 'diagnostic-session',
+            nombre: 'Consulta Doctor IA',
+            genetica: 'Híbrido',
+            sustrato: 'Coco / Tierra',
+            fechaComienzo: new Date().toISOString(),
+            activo: true,
+            notas: 'Sesión de diagnóstico clínico en el laboratorio.',
+          };
 
-      const prompt = `ACTÚA COMO UN EXPERTO AGRÓNOMO ("DOCTOR CULTIVO").
-      Analiza la imagen adjunta (si la hay) y los siguientes síntomas descritos por el usuario: "${sintomas}".
-      
-      Por favor proporciona un diagnóstico estructurado que incluya:
-      1. **Posible Problema**: (Deficiencia, Plaga, Hongo, Estrés ambiental, etc.) y nivel de certeza.
-      2. **Causa Probable**: Por qué está pasando esto.
-      3. **Solución Recomendada**: Pasos concretos para corregirlo (orgánico y mineral si aplica).
-      4. **Prevención**: Cómo evitar que vuelva a pasar.
-      
-      Sé claro, directo y empático.`;
+      const consulta = sintomas.trim() || 'Diagnosticar estado foliar de la planta en la imagen adjunta y recomendar acciones.';
 
-      const respuesta = await enviarMensajeIA(
-        prompt,
-        dummyContext,
-        imagenSeleccionada ? [imagenSeleccionada] : [],
+      const respuesta = await enviarMensajeDetalladoIA(
+        consulta,
+        contextoReal,
+        imagenSeleccionada ? [imagenSeleccionada] : undefined,
         []
       );
 
-      setDiagnostico(respuesta);
+      setDiagnostico(respuesta.data || '');
+      setAccionesDiagnostico(respuesta.accionesSugeridas || []);
+      setFuentesDiagnostico(respuesta.fuentesConocimiento || []);
+      setTokensDiagnostico(respuesta.tokens || { total: 0, fuente: 'kb_local' });
     } catch (err) {
       console.error('Error en diagnóstico:', err);
       setError(err instanceof Error ? err.message : 'Error al conectar con el Doctor IA');
@@ -387,9 +392,85 @@ export default function SimuladorPage() {
 
               {diagnostico ? (
                 <div className="prose prose-invert max-w-none flex-grow overflow-y-auto space-y-4">
+                  <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-800">
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
+                      {tokensDiagnostico?.fuente === 'kb_local'
+                        ? '⚡ Base de Conocimiento Clínica · 0 Tokens'
+                        : `🧠 Micro-RAG · ${tokensDiagnostico?.total ?? 220} tokens`}
+                    </span>
+                    {fuentesDiagnostico.map((f, i) => (
+                      <span
+                        key={i}
+                        className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-[11px] font-semibold"
+                      >
+                        📚 {f}
+                      </span>
+                    ))}
+                  </div>
+
                   <div className="whitespace-pre-wrap leading-relaxed text-slate-200 text-sm sm:text-base">
                     {diagnostico}
                   </div>
+
+                  {accionesDiagnostico.length > 0 && (
+                    <div className="pt-4 border-t border-slate-800 space-y-2.5">
+                      <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                        ⚡ Acciones Correctivas Estandarizadas (Base de Conocimiento):
+                      </div>
+                      {accionesDiagnostico.map((acc) => {
+                        const targetCrop =
+                          cultivos.find((c) => c.id === cultivoSeleccionadoId) || cultivos[0];
+                        const yaAplicada = Boolean(accionesAplicadas[acc.id]);
+
+                        return (
+                          <div
+                            key={acc.id}
+                            className="p-3.5 rounded-xl bg-slate-800/90 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                          >
+                            <div>
+                              <div className="text-xs font-bold text-white">
+                                [{acc.codigoKB}] {acc.titulo}
+                              </div>
+                              <div className="text-[11px] text-slate-400 mt-0.5">
+                                {acc.descripcion}
+                              </div>
+                            </div>
+                            {targetCrop && (
+                              <button
+                                type="button"
+                                disabled={yaAplicada}
+                                onClick={async () => {
+                                  if (acc.tipoAccion === 'actualizar_parametros' && acc.parametrosObjetivo) {
+                                    await update(targetCrop.id, acc.parametrosObjetivo);
+                                  } else {
+                                    await createTarea({
+                                      cultivoId: targetCrop.id,
+                                      titulo: acc.titulo,
+                                      descripcion: acc.descripcion,
+                                      tipo: acc.categoriaTarea || 'mantenimiento',
+                                      estado: 'pendiente',
+                                      prioridad: acc.prioridad || 'urgente',
+                                      fechaProgramada: new Date().toISOString().split('T')[0],
+                                      duracionEstimada: acc.duracionEstimada || 30,
+                                      esRecurrente: false,
+                                      recordatorioActivado: true,
+                                      minutosRecordatorio: 15,
+                                    });
+                                  }
+                                  setAccionesAplicadas((prev) => ({ ...prev, [acc.id]: true }));
+                                }}
+                                className="shrink-0 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                              >
+                                {yaAplicada
+                                  ? `✓ Aplicada en ${targetCrop.nombre}`
+                                  : `➕ Aplicar en ${targetCrop.nombre}`}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex-grow flex flex-col items-center justify-center text-center text-slate-500 p-8">

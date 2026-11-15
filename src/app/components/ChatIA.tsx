@@ -1,63 +1,78 @@
 /**
- * Componente de Chat con IA especializada en Cannabis Medicinal
- * Interfaz completa para conversar con la IA, subir imágenes y recibir consejos
- * expertos basados en el contexto específico del cultivo
+ * Componente de Chat con IA especializada en Cannabis Medicinal + Base de Conocimiento Agronómica
+ * - Prioriza respuestas determinísticas de 0 tokens desde la Base de Conocimiento (KB).
+ * - Utiliza Micro-RAG comprimido cuando requiere LLM o análisis de visión.
+ * - Permite ejecutar acciones consistentes (crear tareas o aplicar parámetros objetivos) con 1 clic.
  */
 
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import type {
   MensajeChat,
   ContextoCultivo,
-  ImagenMensaje
+  ImagenMensaje,
+  AccionConocimiento,
 } from '@/types/chat';
 import type { Cultivo } from '@/types/cultivo';
 import {
   gestionarConversacionIA,
   procesarImagenes,
   limpiarImagenes,
-  prepararContextoCultivo
+  prepararContextoCultivo,
+  consultarTodosLosObjetivosKB,
 } from '@/lib/services/chat';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { createTarea } from '@/lib/services/planificacion';
+import { updateCultivo } from '@/lib/services/cultivos';
 
-/**
- * Props del componente ChatIA
- */
 interface ChatIAProps {
   /** Datos completos del cultivo para contexto */
   cultivo: Cultivo;
   /** Clase CSS adicional para el contenedor */
   className?: string;
+  /** Callback opcional cuando se aplica una acción que modifica el cultivo o sus tareas */
+  onAccionEjecutada?: (cultivoActualizado?: Cultivo) => void;
 }
 
-/**
- * Componente principal del chat con IA
- * Maneja toda la lógica de conversación, subida de imágenes y renderizado
- */
-const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
-  // Estados principales
+const CONSULTAS_RAPIDAS_KB = [
+  {
+    label: '📊 Auditar pH, EC y Clima',
+    prompt: 'Audita los parámetros óptimos de pH, EC, temperatura, humedad y riego para mi cultivo actual según su sustrato y etapa.',
+  },
+  {
+    label: '📅 Plan de acciones de esta semana',
+    prompt: '¿Qué tareas y acciones operativas debo realizar esta semana según la etapa fenológica actual?',
+  },
+  {
+    label: '🍂 Hojas con manchas óxido / amarillas',
+    prompt: 'Observo manchas color óxido en hojas medias y ligero amarilleamiento inferior. ¿Qué deficiencia es y qué acción aplico?',
+  },
+  {
+    label: '🔥 Puntas quemadas / Exceso de EC',
+    prompt: 'Las puntas de las hojas superiores están quemadas y en forma de garra. ¿Cómo corrijo el bloqueo de sales?',
+  },
+];
+
+const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '', onAccionEjecutada }) => {
   const [mensajes, setMensajes] = useState<MensajeChat[]>([]);
   const [mensaje, setMensaje] = useState('');
   const [imagenes, setImagenes] = useState<ImagenMensaje[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accionesEjecutadasIds, setAccionesEjecutadasIds] = useState<Record<string, boolean>>({});
+  const [ejecutandoAccionId, setEjecutandoAccionId] = useState<string | null>(null);
 
-  // Hook de autenticación
   const { user } = useAuth();
 
-  // Referencias para el DOM
   const inputFileRef = useRef<HTMLInputElement>(null);
   const mensajesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Contexto del cultivo preparado para la IA
-  const contexto: ContextoCultivo = prepararContextoCultivo(cultivo);
+  const contexto: ContextoCultivo = useMemo(() => prepararContextoCultivo(cultivo), [cultivo]);
+  const infoKB = useMemo(() => consultarTodosLosObjetivosKB(contexto), [contexto]);
 
-  /**
-   * Auto-scroll al último mensaje cuando se agregan nuevos mensajes
-   */
   const scrollToBottom = useCallback(() => {
     if (mensajesContainerRef.current) {
       const container = mensajesContainerRef.current;
@@ -65,14 +80,10 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
     }
   }, []);
 
-  // Scroll automático cuando cambian los mensajes
   useEffect(() => {
     scrollToBottom();
   }, [mensajes, scrollToBottom]);
 
-  /**
-   * Ajusta automáticamente la altura del textarea según el contenido
-   */
   const ajustarAlturaTextarea = useCallback(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -80,17 +91,11 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
     }
   }, []);
 
-  /**
-   * Maneja el cambio en el texto del mensaje
-   */
   const handleMensajeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMensaje(e.target.value);
     ajustarAlturaTextarea();
   };
 
-  /**
-   * Maneja la selección de archivos de imagen
-   */
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -98,24 +103,20 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
     try {
       setError(null);
       const nuevasImagenes = await procesarImagenes(files);
-      setImagenes(prev => [...prev, ...nuevasImagenes]);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error al procesar imágenes');
+      setImagenes((prev) => [...prev, ...nuevasImagenes]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al procesar imágenes');
     }
 
-    // Limpiar input
     if (inputFileRef.current) {
       inputFileRef.current.value = '';
     }
   };
 
-  /**
-   * Elimina una imagen seleccionada
-   */
   const handleEliminarImagen = (imagenId: string) => {
-    setImagenes(prev => {
-      const imagenesActualizadas = prev.filter(img => img.id !== imagenId);
-      const imagenEliminada = prev.find(img => img.id === imagenId);
+    setImagenes((prev) => {
+      const imagenesActualizadas = prev.filter((img) => img.id !== imagenId);
+      const imagenEliminada = prev.find((img) => img.id === imagenId);
       if (imagenEliminada) {
         limpiarImagenes([imagenEliminada]);
       }
@@ -123,44 +124,26 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
     });
   };
 
-  /**
-   * Añade un nuevo mensaje al chat
-   */
   const agregarMensaje = useCallback((nuevoMensaje: MensajeChat) => {
-    setMensajes(prev => {
-      // Si es un mensaje del sistema, remover mensajes del sistema anteriores
+    setMensajes((prev) => {
       if (nuevoMensaje.tipo === 'system') {
-        return [...prev.filter(m => m.tipo !== 'system'), nuevoMensaje];
+        return [...prev.filter((m) => m.tipo !== 'system'), nuevoMensaje];
       }
-      return [...prev, nuevoMensaje];
+      return [...prev.filter((m) => m.tipo !== 'system'), nuevoMensaje];
     });
   }, []);
 
-  /**
-   * Actualiza un mensaje existente (útil para remover estado de "procesando")
-   
-  const actualizarMensaje = useCallback((mensajeId: string, cambios: Partial<MensajeChat>) => {
-    setMensajes(prev => prev.map(m => 
-      m.id === mensajeId ? { ...m, ...cambios } : m
-    ));
-  }, []);
-
-  
-   * Envía mensaje a la IA y maneja toda la conversación
-   */
-  const handleEnviarMensaje = async () => {
-    // Validaciones
+  const enviarTextoDirecto = async (textoAEnviar: string) => {
     if (enviando) return;
-    if (!mensaje.trim() && imagenes.length === 0) return;
+    if (!textoAEnviar.trim() && imagenes.length === 0) return;
 
     setEnviando(true);
     setError(null);
 
     try {
-      // Gestionar conversación completa con la IA
       const mensajeIA = await gestionarConversacionIA(
         cultivo.id,
-        mensaje,
+        textoAEnviar,
         contexto,
         imagenes.length > 0 ? imagenes : undefined,
         mensajes,
@@ -168,29 +151,65 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
         user?.email
       );
 
-      // Agregar respuesta de la IA
       agregarMensaje(mensajeIA);
-
-      // Limpiar inputs
       setMensaje('');
       limpiarImagenes(imagenes);
       setImagenes([]);
 
-      // Resetear altura del textarea
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
-
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Error al enviar mensaje');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al enviar mensaje');
     } finally {
       setEnviando(false);
     }
   };
 
-  /**
-   * Maneja el envío con Enter (Shift+Enter para nueva línea)
-   */
+  const handleEnviarMensaje = async () => {
+    await enviarTextoDirecto(mensaje);
+  };
+
+  const handleEjecutarAccionKB = async (accion: AccionConocimiento) => {
+    if (accionesEjecutadasIds[accion.id] || ejecutandoAccionId) return;
+    setEjecutandoAccionId(accion.id);
+    setError(null);
+
+    try {
+      if (accion.tipoAccion === 'actualizar_parametros' && accion.parametrosObjetivo) {
+        const actualizado = await updateCultivo(cultivo.id, accion.parametrosObjetivo);
+        setAccionesEjecutadasIds((prev) => ({ ...prev, [accion.id]: true }));
+        onAccionEjecutada?.(actualizado);
+      } else if (accion.tipoAccion === 'crear_tarea') {
+        const fechaTarget = new Date();
+        fechaTarget.setDate(fechaTarget.getDate() + (accion.diasOffset ?? 0));
+        const fechaStr = fechaTarget.toISOString().split('T')[0];
+
+        await createTarea({
+          cultivoId: cultivo.id,
+          titulo: accion.titulo,
+          descripcion: accion.descripcion,
+          tipo: accion.categoriaTarea || 'mantenimiento',
+          estado: 'pendiente',
+          prioridad: accion.prioridad || 'alta',
+          fechaProgramada: fechaStr,
+          duracionEstimada: accion.duracionEstimada || 30,
+          esRecurrente: false,
+          recordatorioActivado: true,
+          minutosRecordatorio: 15,
+        });
+        setAccionesEjecutadasIds((prev) => ({ ...prev, [accion.id]: true }));
+        onAccionEjecutada?.();
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'No se pudo ejecutar la acción automáticamente'
+      );
+    } finally {
+      setEjecutandoAccionId(null);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -198,10 +217,6 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
     }
   };
 
-
-  /**
-   * Renderiza un mensaje individual
-   */
   const renderMensaje = (msg: MensajeChat) => {
     const isUser = msg.tipo === 'user';
     const isSystem = msg.tipo === 'system';
@@ -212,13 +227,37 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
         className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6`}
       >
         <div
-          className={`max-w-[85%] rounded-2xl px-5 py-3.5 shadow-2xs transition-all duration-200 ${isUser
-            ? 'bg-emerald-600 text-white rounded-br-none'
-            : isSystem
-              ? 'bg-amber-50 text-amber-900 border border-amber-200'
-              : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'
-            }`}
+          className={`max-w-[90%] sm:max-w-[85%] rounded-2xl px-5 py-4 shadow-2xs transition-all duration-200 ${
+            isUser
+              ? 'bg-emerald-600 text-white rounded-br-none'
+              : isSystem
+                ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'
+          }`}
         >
+          {/* Badges de Fuente de Conocimiento y Ahorro de Tokens (solo para respuestas IA) */}
+          {!isUser && !isSystem && (msg.fuentesConocimiento || msg.tokensUsados) && (
+            <div className="flex flex-wrap items-center gap-1.5 mb-2.5 pb-2 border-b border-slate-100">
+              {msg.tokensUsados?.fuente === 'kb_local' ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                  ⚡ Base de Conocimiento · 0 Tokens
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-[11px] font-bold">
+                  🧠 Micro-RAG · {msg.tokensUsados?.total ?? 240} tokens
+                </span>
+              )}
+              {msg.fuentesConocimiento?.slice(0, 2).map((fuente, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold"
+                >
+                  📚 {fuente}
+                </span>
+              ))}
+            </div>
+          )}
+
           {/* Mostrar imágenes si las hay */}
           {msg.imagenes && msg.imagenes.length > 0 && (
             <div className="mb-3 grid gap-2 grid-cols-2">
@@ -237,37 +276,97 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
           )}
 
           {/* Contenido del mensaje */}
-          <div className="whitespace-pre-wrap text-[15px] leading-relaxed font-normal">
+          <div className="whitespace-pre-wrap text-sm sm:text-[15px] leading-relaxed font-normal">
             {msg.contenido}
           </div>
 
-          {/* Timestamp */}
-          <div className={`text-xs mt-2 opacity-70 font-medium ${isUser ? 'text-green-100' : 'text-gray-400'
-            }`}>
-            {new Date(msg.timestamp).toLocaleTimeString('es-ES', {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          </div>
-
-          {/* Indicador de procesando */}
-          {msg.procesando && (
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex space-x-1">
-                <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce"></div>
-                <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          {/* Acciones Estandarizadas de la Base de Conocimiento (1-Click Execution) */}
+          {!isUser && msg.accionesSugeridas && msg.accionesSugeridas.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-slate-100 space-y-2">
+              <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <span>⚡</span>
+                <span>Acciones Estandarizadas de la Base de Conocimiento:</span>
               </div>
-              <span className="text-xs font-medium">Pensando...</span>
+              <div className="grid gap-2">
+                {msg.accionesSugeridas.map((accion) => {
+                  const yaEjecutada = Boolean(accionesEjecutadasIds[accion.id]);
+                  const cargandoEsta = ejecutandoAccionId === accion.id;
+
+                  return (
+                    <div
+                      key={accion.id}
+                      className="p-3 rounded-xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                            {accion.codigoKB}
+                          </span>
+                          <span className="text-xs font-bold text-slate-900">{accion.titulo}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 leading-snug">
+                          {accion.descripcion}
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={yaEjecutada || cargandoEsta}
+                        onClick={() => handleEjecutarAccionKB(accion)}
+                        className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          yaEjecutada
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-default'
+                            : accion.tipoAccion === 'actualizar_parametros'
+                              ? 'bg-slate-900 hover:bg-emerald-600 text-white'
+                              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                        }`}
+                      >
+                        {yaEjecutada
+                          ? '✓ Aplicada en Sala'
+                          : cargandoEsta
+                            ? 'Aplicando...'
+                            : accion.tipoAccion === 'actualizar_parametros'
+                              ? '⚡ Aplicar Parámetros'
+                              : '📅 Agendar en Tareas'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* Indicador de error */}
+          {/* Timestamp */}
+          <div
+            className={`text-xs mt-2 opacity-70 font-medium ${
+              isUser ? 'text-green-100' : 'text-gray-400'
+            }`}
+          >
+            {new Date(msg.timestamp).toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </div>
+
+          {msg.procesando && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" />
+                <div
+                  className="w-1.5 h-1.5 bg-current rounded-full animate-bounce"
+                  style={{ animationDelay: '0.1s' }}
+                />
+                <div
+                  className="w-1.5 h-1.5 bg-current rounded-full animate-bounce"
+                  style={{ animationDelay: '0.2s' }}
+                />
+              </div>
+              <span className="text-xs font-medium">Consultando Base de Conocimiento...</span>
+            </div>
+          )}
+
           {msg.error && (
             <div className="text-xs text-red-500 mt-2 flex items-center gap-1 font-medium bg-red-50 px-2 py-1 rounded">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
               Error al enviar
             </div>
           )}
@@ -277,28 +376,46 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
   };
 
   return (
-    <div className={`bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col ${className}`} data-testid="chat-ia-component">
+    <div
+      className={`bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col ${className}`}
+      data-testid="chat-ia-component"
+    >
       <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-teal-500" />
       {/* Header del chat */}
       <div className="p-5 border-b border-slate-100 bg-slate-900 text-white" data-testid="chat-header">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
               </svg>
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-white" data-testid="chat-title">Asistente Agronómico IA</h3>
-              <p className="text-emerald-300 text-xs font-medium flex items-center gap-1.5 mt-0.5" data-testid="chat-subtitle">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                Conectado al contexto de {cultivo.nombre}
+              <h3 className="text-base font-extrabold text-white" data-testid="chat-title">
+                Asistente Agronómico IA + Base de Conocimiento
+              </h3>
+              <p
+                className="text-emerald-300 text-xs font-medium flex items-center gap-1.5 mt-0.5"
+                data-testid="chat-subtitle"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Protocolo activo: {infoKB.codigoProtocolo} ({infoKB.sustratoDetectado.nombre})
               </p>
             </div>
           </div>
-          <span className="hidden sm:inline-flex px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-semibold">
-            🧬 {cultivo.genetica || 'Cultivo Activo'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold">
+              ⚡ Modo Low-Token RAG
+            </span>
+            <span className="hidden sm:inline-flex px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-semibold">
+              🧬 {cultivo.genetica || 'Cultivo Activo'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -309,14 +426,35 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
         data-testid="chat-messages-container"
       >
         {mensajes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-8" data-testid="chat-empty-state">
-            <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl mb-4 text-3xl">
+          <div
+            className="flex flex-col items-center justify-center h-full text-center p-4 sm:p-8"
+            data-testid="chat-empty-state"
+          >
+            <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl mb-3 text-3xl">
               🤖
             </div>
-            <p className="font-extrabold text-slate-800 text-lg mb-1">Asistente IA de {cultivo.nombre}</p>
-            <p className="text-sm text-slate-500 max-w-sm">
-              Consulta sobre nutrición, riego, VPD, plagas o sube fotos de las plantas para un diagnóstico en tiempo real.
+            <p className="font-extrabold text-slate-800 text-lg mb-1">
+              Motor Agronómico de {cultivo.nombre}
             </p>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-md mb-5">
+              Conectado a la Base de Conocimiento Oficial ({infoKB.codigoProtocolo}). Las consultas de parámetros,
+              planes de tareas y patologías se resuelven al instante con <strong>0 tokens</strong> y generan acciones ejecutables.
+            </p>
+
+            {/* Botones rápidos de Base de Conocimiento */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-xl w-full text-left">
+              {CONSULTAS_RAPIDAS_KB.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => enviarTextoDirecto(item.prompt)}
+                  className="p-3 rounded-xl bg-white hover:bg-emerald-50/80 border border-slate-200 hover:border-emerald-300 text-xs font-bold text-slate-700 hover:text-emerald-900 transition-all shadow-2xs cursor-pointer flex items-center justify-between gap-2"
+                >
+                  <span>{item.label}</span>
+                  <span className="text-emerald-600">→</span>
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           mensajes.map(renderMensaje)
@@ -359,10 +497,29 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
         </div>
       )}
 
+      {/* Barra de consultas rápidas cuando ya hay conversación */}
+      {mensajes.length > 0 && (
+        <div className="px-4 py-2 bg-slate-50 border-t border-slate-200/80 flex items-center gap-2 overflow-x-auto">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 shrink-0">
+            📚 KB Rápida:
+          </span>
+          {CONSULTAS_RAPIDAS_KB.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              disabled={enviando}
+              onClick={() => enviarTextoDirecto(item.prompt)}
+              className="shrink-0 px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 border border-slate-200 text-[11px] font-bold text-slate-700 hover:text-emerald-800 transition-colors cursor-pointer"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Input de mensaje */}
       <div className="p-4 sm:p-5 border-t border-slate-200 bg-white" data-testid="chat-input-section">
         <div className="flex items-end gap-2.5">
-          {/* Botón para agregar imágenes */}
           <button
             onClick={() => inputFileRef.current?.click()}
             disabled={enviando}
@@ -371,18 +528,22 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
             title="Agregar imágenes"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
           </button>
 
-          {/* Textarea del mensaje */}
           <div className="flex-grow">
             <textarea
               ref={textareaRef}
               value={mensaje}
               onChange={handleMensajeChange}
               onKeyDown={handleKeyDown}
-              placeholder="Escribe tu consulta agronómica..."
+              placeholder="Consulta parámetros, pide tareas de la semana o describe un síntoma..."
               disabled={enviando}
               data-testid="chat-message-input"
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-4 py-2.5 text-sm placeholder-slate-400 disabled:opacity-50 min-h-[44px] max-h-32 text-slate-800 outline-none transition-all"
@@ -390,7 +551,6 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
             />
           </div>
 
-          {/* Botón de enviar */}
           <button
             onClick={handleEnviarMensaje}
             disabled={enviando || (!mensaje.trim() && imagenes.length === 0)}
@@ -399,16 +559,20 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
             title="Enviar mensaje"
           >
             {enviando ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                />
               </svg>
             )}
           </button>
         </div>
 
-        {/* Input file oculto */}
         <input
           ref={inputFileRef}
           type="file"
@@ -418,9 +582,8 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '' }) => {
           className="hidden"
         />
 
-        {/* Ayuda sobre controles */}
         <div className="flex justify-between items-center mt-2.5 px-1 text-[11px] font-semibold text-slate-400">
-          <span>Enter para enviar · Shift + Enter para nueva línea</span>
+          <span>Enter para enviar · Basado en {infoKB.codigoProtocolo} (Consistencia 100%)</span>
           <span>Máx 10MB por foto</span>
         </div>
       </div>
