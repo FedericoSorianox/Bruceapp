@@ -107,5 +107,19 @@ describe('CanopIA Agronomic Knowledge Base — Dr. Bruce Bugbee (USU) + Athena A
     expect(resTemp.respuesta).not.toContain('| :--- |');
     expect(resTemp.accionesSugeridas.length).toBe(2);
     expect(resTemp.accionesSugeridas[0].titulo).toContain('25°C');
+
+    // Turno 2 de conversación: el usuario responde "tengo CO2 1200ppm en el cultivo, y la humedad esta en 75"
+    const resTurno2 = generarRespuestaConocimientoLocal(
+      'tengo CO2 1200ppm en el cultivo, y la humedad esta en 75',
+      lomas,
+      false,
+      [{ tipo: 'user', contenido: 'la temperatura esta en 28' }]
+    );
+
+    expect(resTurno2.respuesta).toContain('28°C');
+    expect(resTurno2.respuesta).toContain('75% HR');
+    expect(resTurno2.respuesta).toContain('1200 ppm');
+    expect(resTurno2.respuesta).toContain('0.63 kPa');
+    expect(resTurno2.accionesSugeridas[0].titulo).toContain('28°C / 60% HR');
   });
 });

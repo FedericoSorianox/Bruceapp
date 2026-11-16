@@ -60,7 +60,8 @@ export async function POST(request: NextRequest) {
     const resultadoKB = generarRespuestaConocimientoLocal(
       payload.message,
       payload.cultivoContext,
-      tieneImagenes
+      tieneImagenes,
+      payload.historialReciente
     );
 
     if (payload.modo === 'kb_only') {

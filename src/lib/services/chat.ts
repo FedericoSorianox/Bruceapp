@@ -146,7 +146,7 @@ export async function enviarMensajeDetalladoIA(
   modo: PayloadOpenAI['modo'] = 'auto'
 ): Promise<ApiResponseChat<string>> {
   const tieneImagenes = Boolean(imagenes && imagenes.length > 0);
-  const localKB = generarRespuestaConocimientoLocal(mensaje, contexto, tieneImagenes);
+  const localKB = generarRespuestaConocimientoLocal(mensaje, contexto, tieneImagenes, historial);
 
     // Solo si se solicita explícitamente modo 'kb_only' (sin LLM) se resuelve en cliente.
     // Para todas las consultas del usuario en Chat IA y Doctor IA ('auto' o 'diagnostico'),
