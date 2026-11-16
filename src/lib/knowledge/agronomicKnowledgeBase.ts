@@ -1,14 +1,14 @@
 /**
- * Base de Conocimiento Agronómica Estructurada (CanopIA Knowledge Engine)
+ * Base de Conocimiento Agronómica Estructurada — Protocolo Unificado:
+ * 1. Dr. Bruce Bugbee — "The Science and Technology of Medical Cannabis Cultivation" (Utah State University)
+ * 2. Athena Ag Official Best Practices — Athena Handbook (Pro Line, Blended Line & Crop Steering)
  *
- * Propósito:
- * 1. Garantizar consistencia científica 100% en recomendaciones de pH, EC, Temperatura, Humedad, VPD y Riego.
- * 2. Reducir drásticamente el consumo de tokens (0 tokens en cálculos determinísticos y autocompletado;
- *    Micro-RAG comprimido <200 tokens en consultas abiertas al LLM).
- * 3. Proveer un catálogo único de Acciones Estandarizadas (Tareas y Ajustes de Sala) para que las acciones
- *    sugeridas al usuario siempre salgan de esta fuente de verdad.
+ * ¿De dónde salen los datos y cómo editarlos?
+ * - Archivo Fuente Editable en Código: `src/lib/knowledge/bruceBugbeeCorpus.json`
+ * - Panel Interactivo en la Web App: `/laboratorio` ("Base de Conocimiento: Bruce Bugbee + Athena Ag")
  */
 
+import bruceBugbeeCorpus from './bruceBugbeeCorpus.json';
 import type { ContextoCultivo, AccionConocimiento } from '@/types/chat';
 
 export type TipoSustratoKB = 'coco' | 'hidro' | 'living_soil' | 'tierra';
@@ -29,7 +29,7 @@ export interface PerfilSustrato {
   phPorEtapa: Record<SubEtapaFenologicaKB, number>;
   ecPorEtapa: Record<SubEtapaFenologicaKB, number>; // en mS/cm
   frecuenciaRiegoNota: string;
-  factorRetencionAgua: number; // Multiplicador de volumen por litro de maceta
+  factorRetencionAgua: number;
 }
 
 export interface ObjetivosCalculadosKB {
@@ -41,6 +41,8 @@ export interface ObjetivosCalculadosKB {
   humedadObjetivoFloracion: number;
   vpdObjetivoActual: number;
   aguaDiariaObjetivo: number;
+  ppfdEstimadoSala?: number;
+  dliEstimadoSala?: number;
   sustratoDetectado: PerfilSustrato;
   geneticaDetectada: PerfilGeneticoKB;
   subEtapaActual: SubEtapaFenologicaKB;
@@ -70,158 +72,94 @@ export interface ProtocoloEtapaKB {
   codigoKB: string;
   titulo: string;
   objetivoPrincipal: string;
+  tipoSteeringAthena: 'Propagación' | 'Vegetativo (Bulking)' | 'Generativo (Stacking/Ripening)';
   vpdRango: [number, number];
   tempDiaNoche: { dia: [number, number]; noche: [number, number] };
   humedadRango: [number, number];
   fotoperiodo: string;
   ppfdRecomendado: string;
+  dliRecomendado: string;
   reglasCriticas: string[];
   tareasEstandar: AccionConocimiento[];
 }
 
-/**
- * 1. TABLA MAESTRA DE SUSTRATOS (Fuente de Verdad de pH y EC base en mS/cm)
- */
-export const PERFILES_SUSTRATO_KB: Record<TipoSustratoKB, PerfilSustrato> = {
-  coco: {
-    id: 'coco',
-    nombre: 'Fibra de Coco / Coco + Perlita',
-    descripcion: 'Medio inerte de alta oxigenación radicular. Requiere aporte constante de Calcio/Magnesio y pH ligeramente más ácido.',
-    phPorEtapa: {
-      germinacion_esquejes: 5.7,
-      vegetacion_temprana: 5.8,
-      vegetacion_avanzada: 5.9,
-      stretch_preflora: 6.0,
-      floracion_temprana: 6.0,
-      floracion_engorde: 6.1,
-      lavado_maduracion: 6.2,
-    },
-    ecPorEtapa: {
-      germinacion_esquejes: 0.6,
-      vegetacion_temprana: 1.1,
-      vegetacion_avanzada: 1.4,
-      stretch_preflora: 1.6,
-      floracion_temprana: 1.8,
-      floracion_engorde: 2.1,
-      lavado_maduracion: 0.4,
-    },
-    frecuenciaRiegoNota: 'Riego frecuente (1 a 3 pulsos diarios en flora) asegurando 15-20% de drenaje (runoff) para evitar acumulación de sales.',
-    factorRetencionAgua: 0.22,
-  },
-  hidro: {
-    id: 'hidro',
-    nombre: 'Hidroponía (DWC / RDWC / NFT / Lana de Roca)',
-    descripcion: 'Asimilación directa en solución nutritiva. Exige control estricto de pH (5.5 - 6.0) y temperatura de agua (18-20°C).',
-    phPorEtapa: {
-      germinacion_esquejes: 5.6,
-      vegetacion_temprana: 5.7,
-      vegetacion_avanzada: 5.8,
-      stretch_preflora: 5.8,
-      floracion_temprana: 5.9,
-      floracion_engorde: 6.0,
-      lavado_maduracion: 6.0,
-    },
-    ecPorEtapa: {
-      germinacion_esquejes: 0.5,
-      vegetacion_temprana: 1.0,
-      vegetacion_avanzada: 1.3,
-      stretch_preflora: 1.5,
-      floracion_temprana: 1.6,
-      floracion_engorde: 1.9,
-      lavado_maduracion: 0.3,
-    },
-    frecuenciaRiegoNota: 'Recirculación continua o pulsos automatizados. Cambiar solución del reservorio cada 7-10 días.',
-    factorRetencionAgua: 0.25,
-  },
-  living_soil: {
-    id: 'living_soil',
-    nombre: 'Suelo Vivo / Orgánico (Living Soil / Super Soil)',
-    descripcion: 'Ecosistema microbiológico activo. El pH se autorregula parcialmente pero el agua declorada entre 6.2 y 6.6 maximiza la vida microbiana.',
-    phPorEtapa: {
-      germinacion_esquejes: 6.3,
-      vegetacion_temprana: 6.4,
-      vegetacion_avanzada: 6.4,
-      stretch_preflora: 6.5,
-      floracion_temprana: 6.5,
-      floracion_engorde: 6.6,
-      lavado_maduracion: 6.5,
-    },
-    ecPorEtapa: {
-      germinacion_esquejes: 0.4,
-      vegetacion_temprana: 0.7,
-      vegetacion_avanzada: 0.9,
-      stretch_preflora: 1.1,
-      floracion_temprana: 1.2,
-      floracion_engorde: 1.4,
-      lavado_maduracion: 0.3,
-    },
-    frecuenciaRiegoNota: 'Mantener humedad constante (30-40% capacidad de campo) sin drenaje excesivo para no lavar microbiología; usar tés aireados y top-dress.',
-    factorRetencionAgua: 0.12,
-  },
-  tierra: {
-    id: 'tierra',
-    nombre: 'Sustrato Tradicional / Turba + Perlita (Light/All Mix)',
-    descripcion: 'Capacidad tampón media-alta. Permite alternar riegos con fertilizante y riegos de agua ajustada.',
-    phPorEtapa: {
-      germinacion_esquejes: 6.0,
-      vegetacion_temprana: 6.1,
-      vegetacion_avanzada: 6.2,
-      stretch_preflora: 6.3,
-      floracion_temprana: 6.4,
-      floracion_engorde: 6.5,
-      lavado_maduracion: 6.4,
-    },
-    ecPorEtapa: {
-      germinacion_esquejes: 0.5,
-      vegetacion_temprana: 0.9,
-      vegetacion_avanzada: 1.2,
-      stretch_preflora: 1.4,
-      floracion_temprana: 1.6,
-      floracion_engorde: 1.8,
-      lavado_maduracion: 0.4,
-    },
-    frecuenciaRiegoNota: 'Ciclo húmedo-seco controlado: regar al 15-20% del volumen de maceta cuando los primeros 3 cm estén secos.',
-    factorRetencionAgua: 0.16,
-  },
-};
+const CUSTOM_KB_STORAGE_KEY = 'canopia_bruce_bugbee_custom_notes_v1';
 
 /**
- * 2. PROTOCOLOS OPERATIVOS Y CLIMÁTICOS POR SUB-ETAPA FENOLÓGICA
+ * Permite al usuario leer sus apuntes/reglas adicionales guardados desde la UI
+ */
+export function obtenerApuntesPersonalizadosBugbee(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    return localStorage.getItem(CUSTOM_KB_STORAGE_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Permite al usuario guardar apuntes o reglas específicas de Bruce Bugbee / Athena desde la UI
+ */
+export function guardarApuntesPersonalizadosBugbee(apuntes: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(CUSTOM_KB_STORAGE_KEY, apuntes);
+  } catch (e) {
+    console.error('Error al guardar apuntes en KB:', e);
+  }
+}
+
+export const METADATA_CORPUS_BUGBEE = bruceBugbeeCorpus.metadata;
+export const PRINCIPIOS_CARDINALES_BUGBEE: string[] = bruceBugbeeCorpus.principiosCardinalesBugbee;
+
+/**
+ * 1. TABLA MAESTRA DE SUSTRATOS CARGADA DESDE `bruceBugbeeCorpus.json`
+ */
+export const PERFILES_SUSTRATO_KB: Record<TipoSustratoKB, PerfilSustrato> =
+  bruceBugbeeCorpus.perfilesSustrato as Record<TipoSustratoKB, PerfilSustrato>;
+
+/**
+ * 2. PROTOCOLOS FENOLÓGICOS UNIFICADOS: DR. BRUCE BUGBEE (USU) + ATHENA AG (CROP STEERING)
  */
 export const PROTOCOLOS_ETAPA_KB: Record<SubEtapaFenologicaKB, ProtocoloEtapaKB> = {
   germinacion_esquejes: {
     etapa: 'germinacion_esquejes',
-    codigoKB: 'KB-STG-01-GERM',
-    titulo: 'Germinación y Enraizamiento de Esquejes (Días 1-10)',
-    objetivoPrincipal: 'Desarrollo radicular explosivo bajo baja demanda evaporativa (VPD bajo).',
+    codigoKB: 'USU-ATH-01-PROP',
+    titulo: 'Propagación, Germinación y Enraizamiento (Días 1-10)',
+    objetivoPrincipal:
+      'Minimizar pérdida de vapor foliar (VPD 0.4-0.7 kPa) e inducir callo radicular con pre-soak equilibrado (Athena Cuts / Solución USU a pH 5.6-5.8).',
+    tipoSteeringAthena: 'Propagación',
     vpdRango: [0.4, 0.7],
-    tempDiaNoche: { dia: [23, 26], noche: [20, 22] },
-    humedadRango: [70, 80],
+    tempDiaNoche: { dia: [25, 27], noche: [22, 24] },
+    humedadRango: [75, 85],
     fotoperiodo: '18/6',
-    ppfdRecomendado: '150 - 300 µmol/m²/s',
+    ppfdRecomendado: '150 - 250 µmol·m⁻²·s⁻¹',
+    dliRecomendado: '10 - 16 mol·m⁻²·d⁻¹',
     reglasCriticas: [
-      'Evitar encharcamiento del medio para prevenir Pythium / Damping-off.',
-      'Aplicar estimulador radicular (micorrizas / trichodermas) con EC muy baja (0.4 - 0.6 mS).',
-      'Mantener humedad relativa alta (70-80%) hasta observar raíces activas.',
+      'Bruce Bugbee (USU) + Athena: Nunca hidratar cubos/sustrato con agua pura. Pre-hidratar (pre-soak) con solución completa (Athena Core + Grow + Cleanse 2 mL/gal) a EC 1.0-1.2 mS y pH 5.6-5.8.',
+      'Mantener temperatura de la zona radicular en 25°C para acelerar formación de raíces.',
+      'Orden de mezcla Athena: 1º Athena Balance (Silicio) -> 2º Core -> 3º Grow -> 4º Cleanse.',
     ],
     tareasEstandar: [
       {
-        id: 'act-germ-micorrizas',
-        codigoKB: 'KB-ACT-GERM-01',
+        id: 'act-usu-germ-01',
+        codigoKB: 'USU-ATH-PROP-01',
         tipoAccion: 'crear_tarea',
-        titulo: 'Inoculación radicular (Micorrizas y Trichodermas)',
-        descripcion: 'Protocolo KB-STG-01: Aplicar bioestimulante radicular en riego ligero alrededor del tallo con pH ajustado y EC <= 0.6 mS.',
+        titulo: 'Pre-Soak Athena + USU (pH 5.8 · EC 1.2 mS + Athena Cleanse)',
+        descripcion:
+          'Protocolo Bugbee + Athena: Hidratar medio con Athena Balance -> Core -> Grow + Cleanse (2 mL/gal) a pH 5.8 y EC 1.2 mS/cm antes de plantar.',
         categoriaTarea: 'fertilizacion',
         prioridad: 'alta',
         diasOffset: 0,
         duracionEstimada: 20,
       },
       {
-        id: 'act-germ-domo',
-        codigoKB: 'KB-ACT-GERM-02',
+        id: 'act-usu-germ-02',
+        codigoKB: 'USU-ATH-PROP-02',
         tipoAccion: 'crear_tarea',
-        titulo: 'Control de humedad y ventilación de plántulas/esquejes',
-        descripcion: 'Protocolo KB-STG-01: Verificar HR en 75% y temperatura en 24-25°C (VPD 0.5-0.7 kPa).',
+        titulo: 'Calibración de PPFD (200 µmol/m²/s) y VPD de Propagación (0.5 kPa)',
+        descripcion:
+          'Protocolo Bugbee + Athena: Verificar temperatura de domo/sala en 25-26°C y HR en 75-80% hasta observar raíces blancas activas.',
         categoriaTarea: 'monitoreo',
         prioridad: 'media',
         diasOffset: 1,
@@ -231,157 +169,177 @@ export const PROTOCOLOS_ETAPA_KB: Record<SubEtapaFenologicaKB, ProtocoloEtapaKB>
   },
   vegetacion_temprana: {
     etapa: 'vegetacion_temprana',
-    codigoKB: 'KB-STG-02-VEG1',
-    titulo: 'Vegetación Temprana (Semanas 2-3)',
-    objetivoPrincipal: 'Construcción de estructura nodal, masa foliar inicial y colonización de maceta.',
+    codigoKB: 'USU-ATH-02-VEG1',
+    titulo: 'Vegetación Temprana y Establecimiento Radicular (Semanas 2-3)',
+    objetivoPrincipal:
+      'Colonizar el sustrato tras el trasplante y acelerar expansión foliar bajo LED (26-28°C) con Athena Pro Grow / Blended.',
+    tipoSteeringAthena: 'Vegetativo (Bulking)',
     vpdRango: [0.8, 1.0],
-    tempDiaNoche: { dia: [24, 27], noche: [20, 22] },
+    tempDiaNoche: { dia: [26, 28], noche: [21, 23] },
     humedadRango: [60, 70],
     fotoperiodo: '18/6',
-    ppfdRecomendado: '350 - 550 µmol/m²/s',
+    ppfdRecomendado: '400 - 600 µmol·m⁻²·s⁻¹',
+    dliRecomendado: '26 - 38 mol·m⁻²·d⁻¹',
     reglasCriticas: [
-      'Incrementar nitrógeno y calcio progresivamente según tabla de sustrato.',
-      'Iniciar preventivo biológico foliar (Aceite de Neem / Jabón Potásico / Beauveria) cada 7-10 días.',
-      'Preparar primera poda apical o entrenamiento LST a partir del 4º-5º nudo real.',
+      'Bruce Bugbee (USU): Bajo LED las hojas están ~1.5-2°C más frías que el aire por falta de radiación NIR; operar el aire en 26-28°C maximiza la tasa fotosintética.',
+      'Athena Best Practice: Agregar siempre Athena Balance (Silicato de Potasio) PRIMERO al agua RO antes de Pro Core (60% del peso de Pro Grow) para aportar silicio y evitar precipitación.',
+      'Athena IPM: Pulverizar preventivo foliar (Athena IPM + Mildew Control en rotación) con luces apagadas cada 5-7 días.',
     ],
     tareasEstandar: [
       {
-        id: 'act-veg1-preventivo',
-        codigoKB: 'KB-ACT-VEG1-01',
+        id: 'act-usu-veg1-01',
+        codigoKB: 'USU-ATH-VEG1-01',
         tipoAccion: 'crear_tarea',
-        titulo: 'Aplicación de Preventivo Entomológico Foliar (MIP)',
-        descripcion: 'Protocolo KB-STG-02: Pulverizar envés y haz de hojas con preventivo biológico antes del apagado de luces para prevenir Trips y Araña Roja.',
-        categoriaTarea: 'mantenimiento',
+        titulo: 'Preparación de Tanque Athena Vegetación (Balance -> Core -> Grow -> Cleanse)',
+        descripcion:
+          'Protocolo Athena + Bugbee: Mezclar 1º Balance, 2º Core, 3º Grow y 4º Cleanse (2-5 mL/gal) ajustando a pH 5.8 y EC objetivo de la etapa.',
+        categoriaTarea: 'fertilizacion',
         prioridad: 'alta',
         diasOffset: 0,
-        duracionEstimada: 30,
+        duracionEstimada: 25,
       },
       {
-        id: 'act-veg1-poda',
-        codigoKB: 'KB-ACT-VEG1-02',
+        id: 'act-usu-veg1-02',
+        codigoKB: 'USU-ATH-VEG1-02',
         tipoAccion: 'crear_tarea',
-        titulo: 'Poda Apical / Inicio de LST (4º-5º nudo)',
-        descripcion: 'Protocolo KB-STG-02: Realizar corte apical limpio con tijera desinfectada o sujetar ramas laterales para homogeneizar la canopia.',
-        categoriaTarea: 'poda',
-        prioridad: 'media',
+        titulo: 'Aplicación Preventiva Athena IPM (Con luces apagadas)',
+        descripcion:
+          'Protocolo Athena Handbook: Pulverizar envés y haz foliar con Athena IPM antes del ciclo nocturno para erradicar presión temprana de Trips y Ácaros.',
+        categoriaTarea: 'mantenimiento',
+        prioridad: 'alta',
         diasOffset: 2,
-        duracionEstimada: 40,
+        duracionEstimada: 30,
       },
     ],
   },
   vegetacion_avanzada: {
     etapa: 'vegetacion_avanzada',
-    codigoKB: 'KB-STG-03-VEG2',
-    titulo: 'Vegetación Avanzada y Pre-transición (Semana 4+)',
-    objetivoPrincipal: 'Cerrar el 75-80% de la malla/espacio de cultivo y sanear bajos antes de pasar a 12/12.',
-    vpdRango: [0.9, 1.2],
-    tempDiaNoche: { dia: [24, 27], noche: [19, 22] },
-    humedadRango: [55, 65],
+    codigoKB: 'USU-ATH-03-VEG2',
+    titulo: 'Vegetación Avanzada y Direccionamiento Vegetativo (Semana 4+)',
+    objetivoPrincipal:
+      'Cerrar el 85% de la canopia (LAI óptimo USU) aplicando Crop Steering Vegetativo (Dryback 20-25% VWC) antes del paso a 12/12.',
+    tipoSteeringAthena: 'Vegetativo (Bulking)',
+    vpdRango: [0.9, 1.15],
+    tempDiaNoche: { dia: [25, 27], noche: [20, 22] },
+    humedadRango: [58, 65],
     fotoperiodo: '18/6',
-    ppfdRecomendado: '500 - 700 µmol/m²/s',
+    ppfdRecomendado: '550 - 700 µmol·m⁻²·s⁻¹',
+    dliRecomendado: '35 - 45 mol·m⁻²·d⁻¹',
     reglasCriticas: [
-      'Realizar limpieza de tercio inferior (Lollipopping ligero) 5-7 días antes de pasar a floración.',
-      'Medir EC y pH del drenaje (runoff) para confirmar ausencia de sales acumuladas antes del cambio a 12/12.',
-      'Cuando la canopia cubra el 75% del área útil, programar el cambio a fotoperíodo 12/12.',
+      'Athena Crop Steering Vegetativo: Iniciar primer riego (P1) 1 a 1.5h después de encender las luces hasta lograr 15-20% de drenaje (runoff), manteniendo un Dryback nocturno moderado (20-25%).',
+      'Bruce Bugbee (Pour-Through) + Athena Runoff: Verificar que el pH del drenaje se mantenga en 5.7-6.2 y que la EC de drenaje no supere en más de +0.5 mS la EC de entrada.',
+      'Realizar poda de bajos (Lollipopping del tercio basal en sombra <50 µmol/m²/s) 4-5 días antes de cambiar a 12/12.',
     ],
     tareasEstandar: [
       {
-        id: 'act-veg2-lollipop',
-        codigoKB: 'KB-ACT-VEG2-01',
+        id: 'act-usu-veg2-01',
+        codigoKB: 'USU-ATH-VEG2-01',
         tipoAccion: 'crear_tarea',
-        titulo: 'Poda de bajos pre-floración y colocación de red SCROG',
-        descripcion: 'Protocolo KB-STG-03: Despejar el 25-30% inferior de las plantas para mejorar flujo de aire intracanopia y distribuir puntas en la red.',
-        categoriaTarea: 'poda',
-        prioridad: 'alta',
-        diasOffset: 0,
-        duracionEstimada: 45,
-      },
-      {
-        id: 'act-veg2-runoff',
-        codigoKB: 'KB-ACT-VEG2-02',
-        tipoAccion: 'crear_tarea',
-        titulo: 'Auditoría de pH y EC de drenaje (Runoff Pre-Flora)',
-        descripcion: 'Protocolo KB-STG-03: Verificar que la EC de salida no supere en más de +0.3 mS la EC de entrada antes de cambiar a 12/12.',
+        titulo: 'Auditoría de Runoff Athena + USU (pH y EC de Entrada vs. Drenaje)',
+        descripcion:
+          'Protocolo Athena & Bugbee: Medir EC y pH de salida tras el pulso P1; si la EC de sustrato está acumulada, dar pulso extra con Athena Cleanse (5 mL/gal) hasta 25% runoff.',
         categoriaTarea: 'riego',
         prioridad: 'alta',
-        diasOffset: 1,
+        diasOffset: 0,
         duracionEstimada: 25,
+      },
+      {
+        id: 'act-usu-veg2-02',
+        codigoKB: 'USU-ATH-VEG2-02',
+        tipoAccion: 'crear_tarea',
+        titulo: 'Limpieza Basal Pre-Floración y Nivelación de Canopia',
+        descripcion:
+          'Protocolo USU + Athena: Retirar brotes bajos sombreados para concentrar energía en los ápices principales antes del paso a 12/12.',
+        categoriaTarea: 'poda',
+        prioridad: 'media',
+        diasOffset: 1,
+        duracionEstimada: 40,
       },
     ],
   },
   stretch_preflora: {
     etapa: 'stretch_preflora',
-    codigoKB: 'KB-STG-04-STRETCH',
-    titulo: 'Transición y Estiramiento / Stretch (Semanas 1-2 de Floración)',
-    objetivoPrincipal: 'Sostener la duplicación vegetativa de altura e inducir botones florales sin deficiencias de Ca/Mg/N.',
+    codigoKB: 'USU-ATH-04-GEN1',
+    titulo: 'Semanas 1-3 de Floración: Direccionamiento Generativo (Stretch & Stacking)',
+    objetivoPrincipal:
+      'Controlar el estiramiento internodal e inducir máxima densidad de botones florales mediante Crop Steering Generativo (Athena) y compensación de DLI (Bugbee).',
+    tipoSteeringAthena: 'Generativo (Stacking/Ripening)',
     vpdRango: [1.0, 1.3],
-    tempDiaNoche: { dia: [23, 26], noche: [19, 21] },
-    humedadRango: [50, 60],
+    tempDiaNoche: { dia: [25, 27], noche: [20, 22] },
+    humedadRango: [52, 60],
     fotoperiodo: '12/12',
-    ppfdRecomendado: '650 - 850 µmol/m²/s',
+    ppfdRecomendado: '750 - 950 µmol·m⁻²·s⁻¹',
+    dliRecomendado: '32 - 41 mol·m⁻²·d⁻¹',
     reglasCriticas: [
-      'NO cortar el nitrógeno de golpe en las semanas 1-2 de 12/12; usar nutrición de transición más refuerzo de CaMg.',
-      'Mantener diferencial térmico día/noche bajo (2-4°C) para evitar elongación internodal excesiva.',
-      'Última ventana para aplicar preventivos foliares antes de que cierren los botones florales.',
+      'Athena Crop Steering Generativo (Sem 1-3): Cambiar a Pro Bloom + Pro Core desde el Día 1 de 12/12. Retrasar el primer riego (P1) a 2-3h tras encender luces y cortar riegos 3-4h antes del apagado para lograr un Dryback nocturno fuerte (40-50% VWC) y subir la EC de poro (3.5-5.5 mS). Esto frena el espigamiento y multiplica sitios florales.',
+      'Bruce Bugbee (USU): Al bajar de 18h a 12h cae el DLI un 33%; subir el PPFD un 25-30% desde el Día 1 de 12/12 y verificar oscuridad nocturna absoluta (<0.01 µmol/m²/s).',
+      'Athena IPM: Última aplicación foliar preventiva en Día 14 de Floración; en Día 21 realizar deshoje selectivo de hojas abanico que tapen botones medios.',
     ],
     tareasEstandar: [
       {
-        id: 'act-stretch-guiado',
-        codigoKB: 'KB-ACT-STR-01',
+        id: 'act-usu-trans-01',
+        codigoKB: 'USU-ATH-GEN-01',
         tipoAccion: 'crear_tarea',
-        titulo: 'Guiado de ramas en malla SCROG y ajuste de altura de luminarias',
-        descripcion: 'Protocolo KB-STG-04: Nivelar puntas principales durante el estiramiento y mantener distancia óptima de paneles LED.',
-        categoriaTarea: 'mantenimiento',
-        prioridad: 'alta',
+        titulo: 'Activar Crop Steering Generativo Athena (Dryback 40-50% + Cambio a Pro Bloom)',
+        descripcion:
+          'Protocolo Athena Handbook: Pasar a fórmula Pro Bloom + Core + Balance + Cleanse (pH 5.8-5.9) y espaciar ventana de riego para inducir estrés generativo controlado y compactar nudos.',
+        categoriaTarea: 'riego',
+        prioridad: 'urgente',
         diasOffset: 0,
-        duracionEstimada: 35,
+        duracionEstimada: 30,
       },
       {
-        id: 'act-stretch-defoliacion21',
-        codigoKB: 'KB-ACT-STR-02',
+        id: 'act-usu-trans-02',
+        codigoKB: 'USU-ATH-GEN-02',
         tipoAccion: 'crear_tarea',
-        titulo: 'Defoliación Estratégica Día 21 de Floración (Schwazzing moderado)',
-        descripcion: 'Protocolo KB-STG-04: Retirar hojas satélite grandes que tapen cogollos medios y limpiar brotes bajos improductivos.',
+        titulo: 'Compensación de PPFD/DLI (USU) y Defoliación Selectiva Día 21',
+        descripcion:
+          'Protocolo Bugbee + Athena: Subir PPFD a 800-900 µmol/m²/s al pasar a 12/12 y despejar hojas que sombrean sitios florales internos.',
         categoriaTarea: 'poda',
         prioridad: 'alta',
-        diasOffset: 3,
-        duracionEstimada: 50,
+        diasOffset: 2,
+        duracionEstimada: 45,
       },
     ],
   },
   floracion_temprana: {
     etapa: 'floracion_temprana',
-    codigoKB: 'KB-STG-05-FLORA1',
-    titulo: 'Floración Plena y Formación de Cálices (Semanas 3-5 de Floración)',
-    objetivoPrincipal: 'Maximizar formación de cálices, producción temprana de tricomas y asimilación de Fósforo y Potasio.',
-    vpdRango: [1.1, 1.4],
-    tempDiaNoche: { dia: [22, 26], noche: [18, 21] },
-    humedadRango: [45, 55],
+    codigoKB: 'USU-ATH-05-BULK1',
+    titulo: 'Semanas 4-5 de Floración: Cambio a Direccionamiento Vegetativo (Bulking / Hinchazón)',
+    objetivoPrincipal:
+      'Maximizar hinchazón de cálices y asimilación fotosintética cambiando de riego Generativo a riego Vegetativo frecuente (Athena Bulking).',
+    tipoSteeringAthena: 'Vegetativo (Bulking)',
+    vpdRango: [1.1, 1.35],
+    tempDiaNoche: { dia: [25, 27], noche: [19, 21] },
+    humedadRango: [48, 55],
     fotoperiodo: '12/12',
-    ppfdRecomendado: '800 - 1000 µmol/m²/s',
+    ppfdRecomendado: '850 - 1050 µmol·m⁻²·s⁻¹',
+    dliRecomendado: '36 - 45 mol·m⁻²·d⁻¹',
     reglasCriticas: [
-      'Prohibido pulverizar flores. Toda aplicación debe ser vía radicular.',
-      'Introducir estimulador de floración y base de flora aumentando relación P-K.',
-      'Reducir humedad relativa al 48-52% para mantener VPD en 1.2 - 1.4 kPa.',
+      'Athena Crop Steering Vegetativo (Bulking Sem 4-6): Una vez formados los botones florales, reducir el Dryback nocturno a 20-30% VWC e incrementar la frecuencia de pulsos (P1 + pulsos de mantenimiento P2 con 15-25% de runoff) para que la planta hinche las flores sin estrés hídrico.',
+      'Bruce Bugbee (USU) + Athena: No abusar de PK boosters desbalanceados; mantener proporción equilibrada de Pro Core + Pro Bloom (o Blended + PK moderado) a pH 5.9.',
+      'Mantener velocidad de viento intracanopia en 0.8-1.0 m/s para sostener intercambio de CO2 bajo alto PPFD.',
     ],
     tareasEstandar: [
       {
-        id: 'act-flora1-pk',
-        codigoKB: 'KB-ACT-FLO1-01',
+        id: 'act-usu-flo1-01',
+        codigoKB: 'USU-ATH-BULK-01',
         tipoAccion: 'crear_tarea',
-        titulo: 'Riego con Base de Floración + Bioestimulador Floral',
-        descripcion: 'Protocolo KB-STG-05: Ajustar solución nutritiva a la EC y pH objetivo de floración plena y medir drenaje.',
-        categoriaTarea: 'fertilizacion',
+        titulo: 'Transición a Riego Vegetativo de Engorde (Athena Bulking: Dryback 20-30%)',
+        descripcion:
+          'Protocolo Athena Handbook: Aumentar frecuencia de pulsos diurnos y volumen de drenaje (20% runoff) para estabilizar la EC del sustrato e impulsar el llenado celular.',
+        categoriaTarea: 'riego',
         prioridad: 'alta',
         diasOffset: 0,
-        duracionEstimada: 30,
+        duracionEstimada: 25,
       },
       {
-        id: 'act-flora1-clima',
-        codigoKB: 'KB-ACT-FLO1-02',
+        id: 'act-usu-flo1-02',
+        codigoKB: 'USU-ATH-BULK-02',
         tipoAccion: 'crear_tarea',
-        titulo: 'Inspección de ventilación intracanopia y deshumidificación',
-        descripcion: 'Protocolo KB-STG-05: Verificar que no existan bolsas de humedad >55% entre las colas florales.',
+        titulo: 'Control de pH (5.9) y EC de Drenaje + Flujo de Aire Intracanopia (USU)',
+        descripcion:
+          'Protocolo Bugbee + Athena: Verificar que el drenaje no supere en más de +0.6 mS la entrada y asegurar turbulencia de aire uniforme.',
         categoriaTarea: 'monitoreo',
         prioridad: 'media',
         diasOffset: 2,
@@ -391,77 +349,87 @@ export const PROTOCOLOS_ETAPA_KB: Record<SubEtapaFenologicaKB, ProtocoloEtapaKB>
   },
   floracion_engorde: {
     etapa: 'floracion_engorde',
-    codigoKB: 'KB-STG-06-FLORA2',
-    titulo: 'Engorde Floral y Densificación (Semanas 6-7 de Floración)',
-    objetivoPrincipal: 'Máximo peso seco, densidad de cogollos y síntesis de terpenos previniendo Botrytis.',
-    vpdRango: [1.2, 1.5],
-    tempDiaNoche: { dia: [20, 24], noche: [17, 20] },
-    humedadRango: [40, 48],
+    codigoKB: 'USU-ATH-06-BULK2',
+    titulo: 'Semanas 6-7 de Floración: Pico de Biomasa y Preparación para Athena Fade',
+    objetivoPrincipal:
+      'Consolidar densidad floral máxima previniendo Botrytis cinerea (HR <= 45-48%) y preparando el retorno a direccionamiento generativo.',
+    tipoSteeringAthena: 'Vegetativo (Bulking)',
+    vpdRango: [1.2, 1.45],
+    tempDiaNoche: { dia: [22, 25], noche: [18, 20] },
+    humedadRango: [42, 48],
     fotoperiodo: '12/12',
-    ppfdRecomendado: '800 - 950 µmol/m²/s',
+    ppfdRecomendado: '800 - 950 µmol·m⁻²·s⁻¹',
+    dliRecomendado: '35 - 41 mol·m⁻²·d⁻¹',
     reglasCriticas: [
-      'Pico de demanda de Potasio y Fósforo (PK Booster) y carbohidratos; vigilar puntas de hojas para no quemar por exceso de sales.',
-      'CRÍTICO: Humedad relativa estrictamente <= 45-48% (especialmente en período nocturno) para impedir Botrytis cinerea.',
-      'Reducir temperatura diurna a 21-24°C para preservar monoterpenos volátiles.',
+      'Bruce Bugbee (USU) + Athena: A medida que la planta madura en semana 6-7 disminuye su transpiración y consumo mineral; monitorear el drenaje a diario para que la EC de poro no se dispare y queme puntas.',
+      'Control Fúngico Crítico: Mantener HR <= 45-48% (especialmente en el pico de humedad al apagarse las luces) para impedir Botrytis cinerea en colas densas.',
+      'Al finalizar la semana 6 / iniciar semana 7, preparar el cambio de Pro Core a Athena Fade (0% Nitrógeno, manteniendo Calcio y microelementos).',
     ],
     tareasEstandar: [
       {
-        id: 'act-flora2-botrytis',
-        codigoKB: 'KB-ACT-FLO2-01',
+        id: 'act-usu-flo2-01',
+        codigoKB: 'USU-ATH-BULK2-01',
         tipoAccion: 'crear_tarea',
-        titulo: 'Inspección preventiva de Botrytis en colas principales y control HR <45%',
-        descripcion: 'Protocolo KB-STG-06: Revisar visualmente las flores más densas y asegurar extracción/deshumidificación nocturna activa.',
+        titulo: 'Auditoría de Punto de Rocío Nocturno y Prevención de Botrytis (HR <= 45%)',
+        descripcion:
+          'Protocolo Bugbee + Athena: Asegurar deshumidificación continua en la transición día/noche y ventilación 24h entre colas principales.',
         categoriaTarea: 'monitoreo',
         prioridad: 'urgente',
         diasOffset: 0,
         duracionEstimada: 25,
       },
       {
-        id: 'act-flora2-pkbooster',
-        codigoKB: 'KB-ACT-FLO2-02',
+        id: 'act-usu-flo2-02',
+        codigoKB: 'USU-ATH-BULK2-02',
         tipoAccion: 'crear_tarea',
-        titulo: 'Aplicación de Engorde PK y control de EC de salida',
-        descripcion: 'Protocolo KB-STG-06: Suministrar pico de PK según tabla del sustrato evitando sobrepasar la EC máxima.',
+        titulo: 'Ajuste de EC de Entrada y Limpieza de Líneas con Athena Cleanse',
+        descripcion:
+          'Protocolo Athena Handbook: Si la EC de drenaje sube por menor consumo en semana 7, reducir EC de entrada a 1.8-2.0 mS con Athena Cleanse (5 mL/gal).',
         categoriaTarea: 'fertilizacion',
         prioridad: 'alta',
         diasOffset: 1,
-        duracionEstimada: 30,
+        duracionEstimada: 25,
       },
     ],
   },
   lavado_maduracion: {
     etapa: 'lavado_maduracion',
-    codigoKB: 'KB-STG-07-FLUSH',
-    titulo: 'Maduración de Tricomas y Lavado de Raíces (Semana 8+ de Floración)',
-    objetivoPrincipal: 'Senescencia limpia, degradación de clorofila/nitratos residuales y cosecha en el punto exacto de tricomas.',
-    vpdRango: [1.3, 1.6],
-    tempDiaNoche: { dia: [18, 22], noche: [15, 18] },
-    humedadRango: [35, 45],
+    codigoKB: 'USU-ATH-07-FADE',
+    titulo: 'Semanas 8-9: Finalización con Athena Fade + Reducción Osmótica USU',
+    objetivoPrincipal:
+      'Eliminar el Nitrógeno en las últimas 2 semanas manteniendo Calcio/Micros (Athena Fade) para evitar podredumbre floral, y reducir EC + temperatura (20-22°C) en los últimos 5-7 días (Bugbee).',
+    tipoSteeringAthena: 'Generativo (Stacking/Ripening)',
+    vpdRango: [1.25, 1.55],
+    tempDiaNoche: { dia: [20, 22], noche: [16, 18] },
+    humedadRango: [40, 45],
     fotoperiodo: '12/12',
-    ppfdRecomendado: '600 - 750 µmol/m²/s (Reducir 20% intensidad)',
+    ppfdRecomendado: '650 - 800 µmol·m⁻²·s⁻¹ (Atenuar 15-20%)',
+    dliRecomendado: '28 - 34 mol·m⁻²·d⁻¹',
     reglasCriticas: [
-      'Suspender fertilizantes minerales 10-14 días antes del corte; regar solo con agua osmotizada/declorada a pH ajustado (EC < 0.4 mS).',
-      'Monitorear tricomas en cáliz (no en hojas de azúcar): punto óptimo general 80% lechosos / 15-20% ámbar.',
-      'Bajar temperatura nocturna a 16-18°C para estimular antocianinas y preservar perfil terpénico.',
+      'Athena Best Practice (Athena Fade + Pro Bloom): En las últimas 2 semanas sustituir Pro Core por Athena Fade (aporta Calcio y microelementos con 0% Nitrógeno). Esto fuerza la senescencia limpia de clorofila sin provocar deficiencia de Calcio (que causa Botrytis).',
+      'Bruce Bugbee (USU): En los últimos 5 a 7 días antes del corte, bajar la EC a 0.4-0.6 mS/cm (agua + Athena Cleanse 5-10 mL/gal a pH 5.8-6.0) y enfriar la sala a 20-22°C para preservar monoterpenos volátiles y estimular antocianinas.',
+      'Retornar a Crop Steering Generativo (mayor Dryback) para acelerar maduración de tricomas.',
     ],
     tareasEstandar: [
       {
-        id: 'act-flush-riego',
-        codigoKB: 'KB-ACT-FLU-01',
+        id: 'act-usu-mat-01',
+        codigoKB: 'USU-ATH-FADE-01',
         tipoAccion: 'crear_tarea',
-        titulo: 'Lavado de raíces / Riego de limpieza final (EC < 0.4 mS)',
-        descripcion: 'Protocolo KB-STG-07: Regar únicamente con agua a pH ajustado hasta que el drenaje marque < 0.5 mS.',
+        titulo: 'Protocolo Final Athena Fade + Cleanse y Reducción Osmótica USU (pH 6.0)',
+        descripcion:
+          'Protocolo Athena + Bugbee: Aplicar Athena Fade + Pro Bloom (0% Nitrógeno) y en los últimos 5-7 días regar con agua + Athena Cleanse (5-10 mL/gal, EC 0.4-0.6 mS, pH 6.0).',
         categoriaTarea: 'riego',
         prioridad: 'alta',
         diasOffset: 0,
-        duracionEstimada: 35,
+        duracionEstimada: 30,
       },
       {
-        id: 'act-flush-tricomas',
-        codigoKB: 'KB-ACT-FLU-02',
+        id: 'act-usu-mat-02',
+        codigoKB: 'USU-ATH-FADE-02',
         tipoAccion: 'crear_tarea',
-        titulo: 'Muestreo óptico de Tricomas (60x) y programación de cosecha',
-        descripcion: 'Protocolo KB-STG-07: Evaluar proporción de tricomas transparentes, lechosos y ámbar en cálices superiores y medios.',
+        titulo: 'Enfriamiento de Sala (20-22°C / 42% HR) e Inspección de Tricomas en Cáliz',
+        descripcion:
+          'Protocolo Bugbee + Athena: Reducir temperatura y PPFD (-15%) para proteger terpenos y verificar punto de cosecha (80% tricomas lechosos / 15-20% ámbar).',
         categoriaTarea: 'cosecha',
         prioridad: 'urgente',
         diasOffset: 2,
@@ -472,34 +440,49 @@ export const PROTOCOLOS_ETAPA_KB: Record<SubEtapaFenologicaKB, ProtocoloEtapaKB>
 };
 
 /**
- * 3. CATÁLOGO CLÍNICO DE PATOLOGÍAS, DEFICIENCIAS, EXCESOS Y PLAGAS (Doctor IA & Chat IA)
+ * 3. CATÁLOGO CLÍNICO DE PATOLOGÍAS Y FISIOPATÍAS (DR. BRUCE BUGBEE + ATHENA AG)
  */
 export const PATOLOGIAS_KB: PatologiaKB[] = [
   {
-    id: 'deficiencia_calcio_magnesio',
-    codigoKB: 'KB-PAT-CALMAG',
-    nombre: 'Deficiencia de Calcio y/o Magnesio (Ca/Mg)',
+    id: 'bloqueo_ph_hierro_micronutrientes',
+    codigoKB: 'USU-ATH-PAT-PH',
+    nombre: 'Bloqueo de Hierro/Micronutrientes (pH > 6.5) o Deficiencia de Calcio/Magnesio',
     categoria: 'deficiencia',
-    keywords: ['manchas oxido', 'óxido', 'marrones', 'clorosis intervenal', 'calcio', 'magnesio', 'calmag', 'nervaduras verdes', 'hojas medias'],
-    sintomasVisuales: 'Manchas necróticas color óxido/marrón en hojas de la zona media-alta (Calcio) acompañadas de amarilleamiento entre las venas manteniendo las nervaduras verdes en hojas medias-bajas (Magnesio).',
-    causaRaiz: 'Muy frecuente en sustrato Coco o bajo paneles LED de alta eficiencia, o por pH por debajo de 5.7 en tierra/coco que bloquea la absorción de Ca y Mg.',
+    keywords: [
+      'manchas oxido',
+      'óxido',
+      'marrones',
+      'clorosis intervenal',
+      'calcio',
+      'magnesio',
+      'calmag',
+      'nervaduras verdes',
+      'hojas medias',
+      'hierro',
+      'amarillas arriba',
+    ],
+    sintomasVisuales:
+      'Clorosis intervenal en hojas jóvenes superiores (Hierro/Manganeso) o manchas necróticas color óxido en hojas medias expuestas a alta radiación LED (Calcio/Magnesio).',
+    causaRaiz:
+      '1) Bruce Bugbee (USU): Cuando el pH supera 6.5 en la rizosfera, Fe, Mn, B, Cu y Zn precipitan. 2) Athena Handbook: Si se mezcla Pro Core directamente con Pro Grow/Bloom sin diluir o sin poner Athena Balance primero, el Calcio precipita como yeso insoluble (CaSO4) en el tanque y no llega a la planta.',
     tratamientoMineral: [
-      'Suplementar con CalMag en cada riego hasta llevar la EC base del agua a 0.4 mS antes de agregar nutrientes base.',
-      'Ajustar el pH de entrada a 6.0 - 6.2 (óptimo de absorción de Ca y Mg).',
-      'Revisar que el VPD no esté bloqueado (< 0.7 kPa), ya que el Calcio se transporta exclusivamente por el flujo de transpiración.',
+      'Protocolo Athena + USU: Verificar el orden de mezcla en el tanque (1º Athena Balance en agua RO -> 2º Pro Core al 60% del peso de la base -> 3º Pro Grow/Bloom -> 4º Cleanse) y ajustar el pH de entrada a 5.8.',
+      'Si usas línea Blended en Coco bajo LED de alta potencia, suplementar con Athena CaMg (2.5 - 5 mL/gal) manteniendo pH 5.8 - 6.0.',
+      'Asegurar VPD entre 0.9 y 1.2 kPa y flujo de aire de 0.5-1.0 m/s para activar el transporte xilemático de Calcio.',
     ],
     tratamientoOrganico: [
-      'Aplicar calcio soluble en agua (WCA) o dolomita/aminoácidos con calcio y sulfato de magnesio (Sales de Epsom: 0.5 g/L).',
-      'Mejorar flujo de aire para activar la transpiración estomática.',
+      'Enmendar sustrato con Yeso Agrícola (CaSO4, 1 g/L) y Sulfato de Magnesio (0.5 g/L), manteniendo el pH de riego por debajo de 6.3.',
     ],
-    prevencion: 'Taponar (buffering) siempre la fibra de coco con CalMag y mantener VPD entre 0.9 y 1.3 kPa.',
+    prevencion:
+      'Respetar siempre el orden de mezcla de Athena (Balance primero) y mantener el pH del lixiviado entre 5.6 y 6.2.',
     accionesCorrectivas: [
       {
-        id: 'act-pat-calmag-1',
-        codigoKB: 'KB-ACT-CORR-CALMAG',
+        id: 'act-usu-pat-fecalmag',
+        codigoKB: 'USU-ATH-CORR-PH58',
         tipoAccion: 'crear_tarea',
-        titulo: 'Corrección de Ca/Mg: Riego con suplemento CalMag y ajuste pH 6.1',
-        descripcion: 'Protocolo KB-PAT-CALMAG: Preparar agua base con CalMag (0.4 mS), añadir base nutricional y regar a pH 6.1 verificando drenaje.',
+        titulo: 'Corrección Athena + USU: Riego a pH 5.8 (Verificar Orden Balance -> Core)',
+        descripcion:
+          'Protocolo Bugbee + Athena: Preparar tanque nuevo respetando orden de mezcla (Balance 1º -> Core 2º), ajustar a pH 5.8 y regar con 20% de drenaje.',
         categoriaTarea: 'fertilizacion',
         prioridad: 'urgente',
         diasOffset: 0,
@@ -508,28 +491,39 @@ export const PATOLOGIAS_KB: PatologiaKB[] = [
     ],
   },
   {
-    id: 'deficiencia_nitrogeno',
-    codigoKB: 'KB-PAT-NITRO',
-    nombre: 'Deficiencia de Nitrógeno (N)',
+    id: 'deficiencia_nitrogeno_movil',
+    codigoKB: 'USU-ATH-PAT-NITRO',
+    nombre: 'Deficiencia de Nitrógeno / Subalimentación (EC de Sustrato Baja)',
     categoria: 'deficiencia',
-    keywords: ['hojas bajas amarillas', 'amarilleamiento inferior', 'amarillas abajo', 'nitrogeno', 'palidas', 'caida hojas bajas'],
-    sintomasVisuales: 'Amarilleamiento uniforme y progresivo que comienza en las hojas más viejas de la parte inferior y avanza hacia arriba (nutriente móvil).',
-    causaRaiz: 'Aporte insuficiente de base vegetativa durante el crecimiento o corte prematuro del nitrógeno durante las primeras 2 semanas de floración (stretch). Nota: En semana 7-8 de floración es senescencia natural.',
+    keywords: [
+      'hojas bajas amarillas',
+      'amarilleamiento inferior',
+      'amarillas abajo',
+      'nitrogeno',
+      'palidas',
+      'caida hojas bajas',
+    ],
+    sintomasVisuales:
+      'Amarilleamiento uniforme en hojas viejas de la zona basal que progresa hacia arriba por removilización de Nitrógeno hacia los brotes nuevos.',
+    causaRaiz:
+      'EC de entrada o proporción de Athena Pro Core / Pro Grow insuficiente para el PPFD instalado en la sala, o corte prematuro de Pro Core antes de la semana 7 de floración.',
     tratamientoMineral: [
-      'Si está en vegetación o semanas 1-3 de flora: aumentar 0.2 - 0.3 mS la EC con fertilizante base rico en Nitrógeno nítrico/amoniacal.',
-      'Verificar que el pH esté entre 5.8 y 6.3.',
+      'Protocolo Athena + Bugbee: Mantener Pro Core (60% en peso respecto a Pro Grow/Bloom) hasta el final de la semana 6 de floración antes de pasar a Athena Fade.',
+      'Subir la EC de entrada al objetivo del protocolo (1.8 - 2.4 mS/cm en Athena Coco/Hidro o 1.5 - 1.8 mS/cm en Turba) con pH 5.8.',
     ],
     tratamientoOrganico: [
-      'Aplicar hidrolizado de pescado, humus de lombriz líquido o aminoácidos libres en riego.',
+      'Aplicar aminoácidos libres o hidrolizado nitrogenado de rápida asimilación radicular.',
     ],
-    prevencion: 'Mantener aporte de nitrógeno durante las primeras 2 semanas del paso a 12/12.',
+    prevencion:
+      'No sustituir Pro Core por Athena Fade antes de las últimas 2-3 semanas del ciclo.',
     accionesCorrectivas: [
       {
-        id: 'act-pat-nitro-1',
-        codigoKB: 'KB-ACT-CORR-NITRO',
+        id: 'act-usu-pat-nitro',
+        codigoKB: 'USU-ATH-CORR-CORE',
         tipoAccion: 'crear_tarea',
-        titulo: 'Refuerzo nutricional de Nitrógeno y verificación de pH',
-        descripcion: 'Protocolo KB-PAT-NITRO: Aplicar riego con incremento de +0.2 mS de base rica en N o aminoácidos asimilables.',
+        titulo: 'Restablecer Proporción Athena Pro Core + Base y Subir EC Objetivo',
+        descripcion:
+          'Protocolo Athena + USU: Verificar relación exacta 0.6:1 de Pro Core respecto a Base y regar a pH 5.8 hasta alcanzar 15-20% de drenaje.',
         categoriaTarea: 'fertilizacion',
         prioridad: 'alta',
         diasOffset: 0,
@@ -538,29 +532,88 @@ export const PATOLOGIAS_KB: PatologiaKB[] = [
     ],
   },
   {
-    id: 'exceso_nutrientes_bloqueo',
-    codigoKB: 'KB-PAT-OVERFERT',
-    nombre: 'Exceso de Sales / Sobrefertilización (Toxicidad N o Bloqueo por EC)',
+    id: 'toxicidad_sales_fosforo_ec',
+    codigoKB: 'USU-ATH-PAT-SALT',
+    nombre: 'Acumulación de Sales en Sustrato / Tip Burn (EC de Drenaje Excesiva)',
     categoria: 'exceso',
-    keywords: ['puntas quemadas', 'garra', 'hojas en garra', 'verde muy oscuro', 'sobrefertilizacion', 'exceso', 'bloqueo', 'sales'],
-    sintomasVisuales: 'Puntas de las hojas nuevas quemadas (amarillas/marrones), hojas verde oscuro brillante con las puntas curvadas hacia abajo en forma de "garra" (toxicidad por N) y bordes aserrados levantados.',
-    causaRaiz: 'EC de riego demasiado alta o falta de drenaje (runoff < 15%) que provoca acumulación de sales en el sustrato y deshidratación osmótica.',
+    keywords: [
+      'puntas quemadas',
+      'garra',
+      'hojas en garra',
+      'verde muy oscuro',
+      'sobrefertilizacion',
+      'exceso',
+      'bloqueo',
+      'sales',
+      'pk',
+    ],
+    sintomasVisuales:
+      'Puntas de las hojas quemadas ("tip burn"), bordes curvados, hojas oscuras rígidas y caída del pH en el drenaje.',
+    causaRaiz:
+      'Athena Handbook + Bruce Bugbee: Falta de drenaje (runoff < 10%) o Drybacks excesivos durante la fase de engorde que concentran las sales en el poro del sustrato (EC de drenaje > 3.5 - 4.0 mS/cm) y acidifican la rizosfera.',
     tratamientoMineral: [
-      'Realizar riego de lavado suave con agua a pH ajustado y EC baja (0.4 - 0.5 mS con enzimas) asegurando 30% de drenaje.',
-      'Medir la EC del drenaje; en el siguiente riego reanudar nutrición al 70% de la dosis anterior.',
+      'Protocolo de Reset Radicular Athena Cleanse: Realizar un riego de arrastre (Flush/Reset) con agua ajustada a pH 5.8-6.0 + Athena Cleanse a dosis alta (5 - 10 mL/gal) con 25-30% de drenaje para oxidar biofilm y disolver sales precipitadas.',
+      'Reducir el Dryback nocturno (sumar un pulso P2 de mantenimiento) y reanudar alimentación al valor de EC objetivo.',
     ],
     tratamientoOrganico: [
-      'Regar únicamente con agua declorada + enzimas / ácido húmico durante los próximos 2 riegos.',
+      'Regar con agua declorada a pH 6.0 logrando 25% de drenaje para restaurar el equilibrio osmótico.',
     ],
-    prevencion: 'Garantizar siempre 15-20% de drenaje en cada riego en coco/tierra mineral y medir EC de salida semanalmente.',
+    prevencion:
+      'Asegurar siempre 15-25% de drenaje diario en los pulsos P1 y usar Athena Cleanse (2-5 mL/gal) en cada riego.',
     accionesCorrectivas: [
       {
-        id: 'act-pat-overfert-1',
-        codigoKB: 'KB-ACT-CORR-FLUSH',
+        id: 'act-usu-pat-leach',
+        codigoKB: 'USU-ATH-CORR-CLEANSE',
         tipoAccion: 'crear_tarea',
-        titulo: 'Lavado osmótico correctivo con Enzimas y medición de Runoff',
-        descripcion: 'Protocolo KB-PAT-OVERFERT: Regar con agua a pH óptimo + enzimas (EC 0.4 mS) con 30% de drenaje para arrastrar exceso de sales.',
+        titulo: 'Reset Radicular con Athena Cleanse (5-10 mL/gal · pH 5.8 · 30% Runoff)',
+        descripcion:
+          'Protocolo Athena Handbook: Realizar riego de limpieza con Athena Cleanse y medir EC/pH del drenaje (Pour-Through) hasta normalizar la zona radicular.',
         categoriaTarea: 'riego',
+        prioridad: 'urgente',
+        diasOffset: 0,
+        duracionEstimada: 35,
+      },
+    ],
+  },
+  {
+    id: 'plaga_arana_trips_usu',
+    codigoKB: 'USU-ATH-PAT-IPM',
+    nombre: 'Presión de Plagas (Araña Roja / Trips / Mosca del Sustrato)',
+    categoria: 'plaga',
+    keywords: [
+      'puntitos blancos',
+      'puntos blancos',
+      'plateados',
+      'telaraña',
+      'araña roja',
+      'trips',
+      'plaga',
+      'bichos',
+      'enves',
+      'acaros',
+    ],
+    sintomasVisuales:
+      'Micropunteado clorótico o plateado en el haz de las hojas; presencia de ácaros o larvas de trips en el envés foliar.',
+    causaRaiz:
+      'Ambiente cálido y seco (VPD > 1.5 kPa), falta de silicio epidérmico y ausencia de rotación preventiva MIP.',
+    tratamientoMineral: [
+      'Protocolo Athena IPM: En vegetación y hasta Día 14 de floración, pulverizar Athena IPM (60-90 mL/gal) en el envés y haz foliar con las luces APAGADAS cada 3 días durante 3 aplicaciones consecutivas para romper el ciclo de eclosión.',
+      'Mantener aporte constante de Silicio soluble (Athena Balance en cada riego + Wollastonita USU en sustrato) para endurecer la pared celular epidérmica.',
+    ],
+    tratamientoOrganico: [
+      'En floración avanzada (>Día 21): Prohibido pulverizar flores; liberar ácaros depredadores (Phytoseiulus persimilis / Amblyseius swirskii) y regar sustrato con Athena Cleanse para controlar larvas radiculares.',
+    ],
+    prevencion:
+      'Pulverización semanal con Athena IPM en vegetación + Athena Balance en todos los riegos.',
+    accionesCorrectivas: [
+      {
+        id: 'act-usu-pat-mip',
+        codigoKB: 'USU-ATH-CORR-IPM',
+        tipoAccion: 'crear_tarea',
+        titulo: 'Protocolo de Choque Athena IPM (3 aplicaciones cada 72h con luces apagadas)',
+        descripcion:
+          'Protocolo Athena Handbook: Aplicar Athena IPM foliar (o biocontrol si supera semana 3 de flora) y reforzar Silicio soluble con Athena Balance.',
+        categoriaTarea: 'mantenimiento',
         prioridad: 'urgente',
         diasOffset: 0,
         duracionEstimada: 40,
@@ -568,59 +621,42 @@ export const PATOLOGIAS_KB: PatologiaKB[] = [
     ],
   },
   {
-    id: 'plaga_arana_trips',
-    codigoKB: 'KB-PAT-PLAGA',
-    nombre: 'Ataque de Ácaros (Araña Roja) o Trips',
-    categoria: 'plaga',
-    keywords: ['puntitos blancos', 'puntos blancos', 'plateados', 'telaraña', 'araña roja', 'trips', 'plaga', 'bichos', 'enves', 'acaros'],
-    sintomasVisuales: 'Micropunteado clorótico (puntos blancos o plateados) en el haz de las hojas. En el envés se observan pequeños ácaros móviles, puntos negros (deyecciones) o larvas alargadas.',
-    causaRaiz: 'Ambiente cálido (>26°C) y seco (HR < 45%, VPD > 1.5 kPa) sin aplicación regular de preventivos MIP.',
-    tratamientoMineral: [
-      'En vegetación: aplicar acaricida/insecticida específico rotando principios activos cada 3-4 días (3 aplicaciones para cortar el ciclo del huevo).',
-      'Bajar la temperatura de sala 2°C y subir ligeramente la humedad relativa.',
-    ],
-    tratamientoOrganico: [
-      'En vegetación/preflora: pulverizar Jabón Potásico + Aceite de Neem + Beauveria bassiana en el envés de las hojas al apagarse las luces.',
-      'En floración avanzada: liberar depredadores biológicos (Phytoseiulus persimilis / Amblyseius swirskii) y colocar trampas cromáticas azules/amarillas.',
-    ],
-    prevencion: 'Mantener VPD dentro de rango, cuarentena de esquejes y preventivo semanal en vegetación.',
-    accionesCorrectivas: [
-      {
-        id: 'act-pat-plaga-1',
-        codigoKB: 'KB-ACT-CORR-MIP',
-        tipoAccion: 'crear_tarea',
-        titulo: 'Tratamiento de choque MIP (Control de Plagas en Envés Foliar)',
-        descripcion: 'Protocolo KB-PAT-PLAGA: Aplicar tratamiento entomológico (Jabón Potásico/Beauveria o control biológico según fase) y colocar trampas cromáticas.',
-        categoriaTarea: 'mantenimiento',
-        prioridad: 'urgente',
-        diasOffset: 0,
-        duracionEstimada: 45,
-      },
-    ],
-  },
-  {
-    id: 'hongo_botrytis_oidio',
-    codigoKB: 'KB-PAT-HONGO',
-    nombre: 'Infección Fúngica (Oídio o Botrytis / Moho Gris)',
+    id: 'hongo_botrytis_oidio_usu',
+    codigoKB: 'USU-ATH-PAT-FUNGI',
+    nombre: 'Patógenos Fúngicos: Oídio (Powdery Mildew) o Botrytis cinerea',
     categoria: 'hongo',
-    keywords: ['polvo blanco', 'moho', 'botrytis', 'oidio', 'podredumbre', 'hongo', 'cogollo marron', 'ceniza'],
-    sintomasVisuales: 'Oídio: manchas circulares de polvo blanco harinoso sobre las hojas. Botrytis: hoja pequeña del cogollo ("sugar leaf") que se seca de golpe y interior del cogollo marrón/algodonoso.',
-    causaRaiz: 'Humedad relativa alta (>55% en floración), picos de humedad al apagarse las luces (punto de rocío) y falta de ventilación intracanopia.',
+    keywords: [
+      'polvo blanco',
+      'moho',
+      'botrytis',
+      'oidio',
+      'podredumbre',
+      'hongo',
+      'cogollo marron',
+      'ceniza',
+    ],
+    sintomasVisuales:
+      'Manchas de polvo blanco superficial en hojas (Oídio) o necrosis gris/marrón dentro de las colas florales más compactas (Botrytis).',
+    causaRaiz:
+      'Picos de humedad nocturna (>55-60% HR al apagarse las luces), flujo de aire intracanopia insuficiente (<0.5 m/s), déficit de Silicio o deficiencia de Calcio al final de floración.',
     tratamientoMineral: [
-      'Si hay Botrytis en un cogollo: apagar ventiladores temporalmente, embolsar y amputar la zona afectada 3 cm por debajo con tijera esterilizada.',
-      'Bajar inmediatamente la HR a 40-45% e incrementar ventilación oscilante.',
+      'Protocolo Athena Mildew Control + Bugbee: En vegetación/inicio de flora aplicar Athena Mildew Control con luces apagadas. Si hay Botrytis en flor avanzada, embolsar y amputar inmediatamente la cola afectada.',
+      'En las últimas 2 semanas usar Athena Fade (que mantiene el suministro de Calcio con 0% Nitrógeno) en lugar de dejar la planta sin Calcio.',
+      'Fijar HR nocturna en <= 45% y ventilación oscilante continua las 24h.',
     ],
     tratamientoOrganico: [
-      'Para Oídio en vegetación/inicio flora: aplicar Trichoderma harzianum, Bacillus subtilis o agua oxigenada diluida / bicarbonato potásico.',
+      'Aportar Silicio soluble (Wollastonita / Athena Balance) y aplicar Bacillus subtilis / Trichoderma en etapas tempranas.',
     ],
-    prevencion: 'Deshumidificación activa en el cambio día/noche y defoliación estratégica para flujo de aire.',
+    prevencion:
+      'Athena Balance en cada tanque + HR nocturna < 48% + flujo de aire > 0.8 m/s en canopia.',
     accionesCorrectivas: [
       {
-        id: 'act-pat-hongo-1',
-        codigoKB: 'KB-ACT-CORR-HONGO',
+        id: 'act-usu-pat-fungi',
+        codigoKB: 'USU-ATH-CORR-FUNGI',
         tipoAccion: 'crear_tarea',
-        titulo: 'Saneamiento antifúngico urgente y ajuste de HR <= 45%',
-        descripcion: 'Protocolo KB-PAT-HONGO: Aislar/retirar tejido afectado sin dispersar esporas, desinfectar herramientas y fijar deshumidificador al 45%.',
+        titulo: 'Protocolo Antifúngico Athena + USU: Deshumidificación Nocturna (<45% HR) y Saneamiento',
+        descripcion:
+          'Protocolo Bugbee + Athena: Aislar tejido afectado, aplicar Athena Mildew Control (si está en vege/preflora) y asegurar HR <= 45% en el apagado de luces.',
         categoriaTarea: 'mantenimiento',
         prioridad: 'urgente',
         diasOffset: 0,
@@ -636,11 +672,29 @@ export const PATOLOGIAS_KB: PatologiaKB[] = [
 export function detectarTipoSustrato(sustratoRaw?: string): TipoSustratoKB {
   if (!sustratoRaw) return 'tierra';
   const s = sustratoRaw.toLowerCase();
-  if (s.includes('coco')) return 'coco';
-  if (s.includes('hidro') || s.includes('dwc') || s.includes('rdwc') || s.includes('nft') || s.includes('lana') || s.includes('aero')) {
+  if (
+    s.includes('hidro') ||
+    s.includes('dwc') ||
+    s.includes('rdwc') ||
+    s.includes('nft') ||
+    s.includes('lana') ||
+    s.includes('rockwool') ||
+    s.includes('aero')
+  ) {
     return 'hidro';
   }
-  if (s.includes('vivo') || s.includes('living') || s.includes('organico') || s.includes('orgánico') || s.includes('super soil') || s.includes('humus') || s.includes('bokashi')) {
+  if (s.includes('coco') || s.includes('vermiculita') || s.includes('usu') || s.includes('athena')) {
+    return 'coco';
+  }
+  if (
+    s.includes('vivo') ||
+    s.includes('living') ||
+    s.includes('organico') ||
+    s.includes('orgánico') ||
+    s.includes('super soil') ||
+    s.includes('humus') ||
+    s.includes('bokashi')
+  ) {
     return 'living_soil';
   }
   return 'tierra';
@@ -652,7 +706,7 @@ export function detectarTipoSustrato(sustratoRaw?: string): TipoSustratoKB {
 export function detectarPerfilGenetico(geneticaRaw?: string): PerfilGeneticoKB {
   if (!geneticaRaw) return 'hibrido';
   const g = geneticaRaw.toLowerCase();
-  if (g.includes('auto') || g.includes('fast')) return 'auto';
+  if (g.includes('auto') || g.includes('fast') || g.includes('day-neutral')) return 'auto';
   if (
     g.includes('haze') ||
     g.includes('sativa') ||
@@ -696,19 +750,42 @@ export function determinarSubEtapa(contexto: Partial<ContextoCultivo>): {
     const inicioFlora = new Date(contexto.fechaInicioFloracion);
     inicioFlora.setHours(0, 0, 0, 0);
     if (!isNaN(inicioFlora.getTime()) && inicioFlora <= hoy) {
-      const diasFlora = Math.max(1, Math.floor((hoy.getTime() - inicioFlora.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+      const diasFlora = Math.max(
+        1,
+        Math.floor((hoy.getTime() - inicioFlora.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      );
       const semanaFlora = Math.max(1, Math.ceil(diasFlora / 7));
 
-      if (semanaFlora <= 2) {
-        return { subEtapa: 'stretch_preflora', faseGeneral: 'floracion', semanaFase: semanaFlora, diasFase: diasFlora };
+      if (semanaFlora <= 3) {
+        return {
+          subEtapa: 'stretch_preflora',
+          faseGeneral: 'floracion',
+          semanaFase: semanaFlora,
+          diasFase: diasFlora,
+        };
       }
       if (semanaFlora <= 5) {
-        return { subEtapa: 'floracion_temprana', faseGeneral: 'floracion', semanaFase: semanaFlora, diasFase: diasFlora };
+        return {
+          subEtapa: 'floracion_temprana',
+          faseGeneral: 'floracion',
+          semanaFase: semanaFlora,
+          diasFase: diasFlora,
+        };
       }
       if (semanaFlora <= 7) {
-        return { subEtapa: 'floracion_engorde', faseGeneral: 'floracion', semanaFase: semanaFlora, diasFase: diasFlora };
+        return {
+          subEtapa: 'floracion_engorde',
+          faseGeneral: 'floracion',
+          semanaFase: semanaFlora,
+          diasFase: diasFlora,
+        };
       }
-      return { subEtapa: 'lavado_maduracion', faseGeneral: 'floracion', semanaFase: semanaFlora, diasFase: diasFlora };
+      return {
+        subEtapa: 'lavado_maduracion',
+        faseGeneral: 'floracion',
+        semanaFase: semanaFlora,
+        diasFase: diasFlora,
+      };
     }
   }
 
@@ -717,127 +794,147 @@ export function determinarSubEtapa(contexto: Partial<ContextoCultivo>): {
     const inicioVege = new Date(contexto.fechaComienzo);
     inicioVege.setHours(0, 0, 0, 0);
     if (!isNaN(inicioVege.getTime())) {
-      diasVege = Math.max(1, Math.floor((hoy.getTime() - inicioVege.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+      diasVege = Math.max(
+        1,
+        Math.floor((hoy.getTime() - inicioVege.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      );
     }
   }
   const semanaVege = Math.max(1, Math.ceil(diasVege / 7));
 
   if (diasVege <= 10) {
-    return { subEtapa: 'germinacion_esquejes', faseGeneral: 'vegetacion', semanaFase: semanaVege, diasFase: diasVege };
+    return {
+      subEtapa: 'germinacion_esquejes',
+      faseGeneral: 'vegetacion',
+      semanaFase: semanaVege,
+      diasFase: diasVege,
+    };
   }
   if (diasVege <= 24) {
-    return { subEtapa: 'vegetacion_temprana', faseGeneral: 'vegetacion', semanaFase: semanaVege, diasFase: diasVege };
+    return {
+      subEtapa: 'vegetacion_temprana',
+      faseGeneral: 'vegetacion',
+      semanaFase: semanaVege,
+      diasFase: diasVege,
+    };
   }
-  return { subEtapa: 'vegetacion_avanzada', faseGeneral: 'vegetacion', semanaFase: semanaVege, diasFase: diasVege };
+  return {
+    subEtapa: 'vegetacion_avanzada',
+    faseGeneral: 'vegetacion',
+    semanaFase: semanaVege,
+    diasFase: diasVege,
+  };
 }
 
 /**
- * MOTOR DETERMINÍSTICO DE CÁLCULO DE OBJETIVOS (0 TOKENS, INSTANTÁNEO, 100% CONSISTENTE)
- * Utilizado por los botones "✨ IA" del formulario de cultivo, alertas y chat.
+ * MOTOR CIENTÍFICO DETERMINÍSTICO UNIFICADO: DR. BRUCE BUGBEE (USU) + ATHENA AG (0 TOKENS)
  */
-export function calcularObjetivosAgronomicos(contexto: Partial<ContextoCultivo>): ObjetivosCalculadosKB {
+export function calcularObjetivosAgronomicos(
+  contexto: Partial<ContextoCultivo>
+): ObjetivosCalculadosKB {
   const tipoSustrato = detectarTipoSustrato(contexto.sustrato);
   const perfilSustrato = PERFILES_SUSTRATO_KB[tipoSustrato];
   const genetica = detectarPerfilGenetico(contexto.genetica);
   const { subEtapa, faseGeneral, semanaFase } = determinarSubEtapa(contexto);
   const protocoloEtapa = PROTOCOLOS_ETAPA_KB[subEtapa];
 
-  // 1. pH base según sustrato y sub-etapa
+  // 1. pH base según sustrato y protocolo Bugbee + Athena (5.8 - 6.0 ideal en coco/lana de roca)
   const phObjetivo = Number(perfilSustrato.phPorEtapa[subEtapa].toFixed(1));
 
-  // 2. EC base según sustrato y sub-etapa + ajuste por genética e intensidad lumínica (W/m²)
-  let ecBase = perfilSustrato.ecPorEtapa[subEtapa];
-
-  // Ajuste por genética: Autoflorecientes y Sativas puras requieren ~15% menos sales
-  if (genetica === 'auto' && subEtapa !== 'lavado_maduracion') {
-    ecBase -= 0.25;
-  } else if (genetica === 'sativa' && subEtapa !== 'lavado_maduracion') {
-    ecBase -= 0.15;
-  } else if (genetica === 'indica' && (subEtapa === 'floracion_temprana' || subEtapa === 'floracion_engorde')) {
-    ecBase += 0.1;
-  }
-
-  // Ajuste por densidad lumínica (PPFD / W/m²)
+  // 2. Cálculo de PPFD y DLI estimados según potencia LED instalada (Regla de conversión cuántica USU)
   const wattsM2 =
     contexto.wattsPorM2 ||
     (contexto.potenciaLamparas && contexto.metrosCuadrados
       ? contexto.potenciaLamparas / contexto.metrosCuadrados
       : undefined);
 
+  const ppfdEstimadoSala = wattsM2 ? Math.round(wattsM2 * 2.2) : undefined;
+  const horasLuz = faseGeneral === 'floracion' ? 12 : 18;
+  const dliEstimadoSala = ppfdEstimadoSala
+    ? Number(((ppfdEstimadoSala * horasLuz * 3600) / 1_000_000).toFixed(1))
+    : undefined;
+
+  // 3. EC objetivo según curva Athena + Bruce Bugbee ajustada a PPFD y genética
+  let ecBase = perfilSustrato.ecPorEtapa[subEtapa];
+
+  if (genetica === 'auto' && subEtapa !== 'lavado_maduracion') {
+    ecBase -= 0.3;
+  } else if (genetica === 'sativa' && subEtapa !== 'lavado_maduracion') {
+    ecBase -= 0.2;
+  }
+
   if (wattsM2 && subEtapa !== 'lavado_maduracion') {
     if (wattsM2 >= 450) {
-      // Alta demanda metabólica por alta densidad lumínica
-      ecBase += 0.15;
+      ecBase += 0.2;
     } else if (wattsM2 < 250) {
-      // Baja intensidad lumínica -> reducir EC para evitar toxicidad por baja fotosíntesis
-      ecBase -= 0.15;
+      ecBase -= 0.2;
     }
   }
 
-  const ecObjetivo = Number(Math.max(0.3, Math.min(2.4, ecBase)).toFixed(1));
+  const ecObjetivo = Number(Math.max(0.4, Math.min(2.8, ecBase)).toFixed(1));
 
-  // 3. Clima Vegetación y Floración (ajustado a iluminación LED e genética)
-  let tempObjetivoVegetacion = 25;
-  let humedadObjetivoVegetacion = 65;
-  let tempObjetivoFloracion = 23;
-  let humedadObjetivoFloracion = 48;
+  // 4. Clima Vegetación y Floración según física foliar bajo LED (Bruce Bugbee + Athena Handbook)
+  const tempObjetivoVegetacion = wattsM2 && wattsM2 >= 350 ? 27 : 26;
+  const humedadObjetivoVegetacion = 65;
 
-  // Con LED de alta potencia (>400 W/m²), en vegetación rinde mejor 26°C para compensar menor radiación IR foliar
-  if (wattsM2 && wattsM2 >= 420) {
-    tempObjetivoVegetacion = 26;
-    humedadObjetivoVegetacion = 65;
-  }
-
-  // En floración avanzada / engorde o cepas índicas densas, bajar HR objetivo a 45%
-  if (subEtapa === 'floracion_engorde' || subEtapa === 'lavado_maduracion' || genetica === 'indica') {
-    tempObjetivoFloracion = subEtapa === 'lavado_maduracion' ? 21 : 23;
-    humedadObjetivoFloracion = 45;
-  } else if (genetica === 'sativa') {
-    tempObjetivoFloracion = 24;
-    humedadObjetivoFloracion = 50;
-  }
+  const tempObjetivoFloracion =
+    subEtapa === 'floracion_engorde' || subEtapa === 'lavado_maduracion' ? 22 : 25;
+  const humedadObjetivoFloracion =
+    subEtapa === 'floracion_engorde' || subEtapa === 'lavado_maduracion' ? 45 : 52;
 
   const vpdObjetivoActual = Number(
     ((protocoloEtapa.vpdRango[0] + protocoloEtapa.vpdRango[1]) / 2).toFixed(2)
   );
 
-  // 4. Volumen de agua diario estimado para la sala (L/día)
+  // 5. Volumen de agua diario estimado (incluyendo 15-25% de fracción de lixiviado Athena/USU)
   const numPlantas = contexto.numeroplantas || 6;
   const litrosMaceta = contexto.litrosMaceta || 10;
   const factorFase = faseGeneral === 'floracion' ? 1.15 : 0.85;
   const aguaDiariaObjetivo = Number(
-    Math.max(1, numPlantas * litrosMaceta * perfilSustrato.factorRetencionAgua * factorFase).toFixed(1)
+    Math.max(
+      1,
+      numPlantas * litrosMaceta * perfilSustrato.factorRetencionAgua * factorFase
+    ).toFixed(1)
   );
 
-  // 5. Auditoría de discrepancias frente a los valores actuales del cultivo
+  // 6. Auditoría científica según Bruce Bugbee (USU) y Athena Handbook
   const alertasAuditoria: string[] = [];
-  if (contexto.phObjetivo && Math.abs(contexto.phObjetivo - phObjetivo) >= 0.4) {
+  if (contexto.phObjetivo && contexto.phObjetivo > 6.4) {
     alertasAuditoria.push(
-      `El pH configurado (${contexto.phObjetivo}) se desvía del rango ideal para ${perfilSustrato.nombre} en esta etapa (óptimo: ${phObjetivo}).`
+      `Alerta Bugbee & Athena: Tu pH objetivo (${contexto.phObjetivo}) supera 6.4, lo que insolubiliza Hierro (Fe), Manganeso (Mn) y Zinc. Usa Athena Balance primero y ajusta el pH a ${phObjetivo}.`
     );
-  }
-  if (contexto.ecObjetivo && contexto.ecObjetivo <= 10 && Math.abs(contexto.ecObjetivo - ecObjetivo) >= 0.4) {
+  } else if (contexto.phObjetivo && Math.abs(contexto.phObjetivo - phObjetivo) >= 0.35) {
     alertasAuditoria.push(
-      `La EC configurada (${contexto.ecObjetivo} mS) difiere del objetivo de la Base de Conocimiento (${ecObjetivo} mS) para ${protocoloEtapa.titulo}.`
-    );
-  }
-  if (wattsM2 && wattsM2 > 600) {
-    alertasAuditoria.push(
-      `Densidad lumínica muy alta (${Math.round(wattsM2)} W/m²). Vigila distancia de lámparas para evitar fotoblanqueo y asegura suplemento de Ca/Mg.`
+      `Criterio USU + Athena: El pH configurado (${contexto.phObjetivo}) difiere del óptimo (${phObjetivo}) para ${perfilSustrato.nombre}.`
     );
   }
 
-  const resumenExplicativo = `Protocolo ${protocoloEtapa.codigoKB} (${perfilSustrato.nombre} · Sem ${semanaFase} ${
+  if (
+    contexto.ecObjetivo &&
+    contexto.ecObjetivo <= 10 &&
+    Math.abs(contexto.ecObjetivo - ecObjetivo) >= 0.5
+  ) {
+    alertasAuditoria.push(
+      `Ajuste Nutricional Athena + USU: Para ${protocoloEtapa.titulo} (${protocoloEtapa.tipoSteeringAthena}), la EC recomendada es ${ecObjetivo} mS/cm (actual: ${contexto.ecObjetivo} mS/cm).`
+    );
+  }
+
+  if (ppfdEstimadoSala && ppfdEstimadoSala > 950) {
+    alertasAuditoria.push(
+      `Criterio Fotobiológico Bugbee + Athena: Con ${Math.round(wattsM2 || 0)} W/m² (~${ppfdEstimadoSala} µmol/m²/s PPFD, DLI ~${dliEstimadoSala}), asegúrate de aportar CO2 (1000-1200 ppm) y flujo de aire >0.8 m/s o atenúa paneles al 80%.`
+    );
+  }
+
+  const resumenExplicativo = `Protocolo Bugbee + Athena (${protocoloEtapa.codigoKB} · Steering ${protocoloEtapa.tipoSteeringAthena} · Sem ${semanaFase} ${
     faseGeneral === 'floracion' ? 'Flora' : 'Vege'
-  }${wattsM2 ? ` · ${Math.round(wattsM2)} W/m²` : ''}): pH ${phObjetivo} · EC ${ecObjetivo} mS · VPD ${vpdObjetivoActual} kPa.`;
+  }): pH ${phObjetivo} · EC ${ecObjetivo} mS · VPD ${vpdObjetivoActual} kPa.`;
 
-  // Acción directa para aplicar estos parámetros + tareas de la etapa actual
   const accionActualizarParametros: AccionConocimiento = {
     id: `kb-sync-params-${subEtapa}`,
     codigoKB: protocoloEtapa.codigoKB,
     tipoAccion: 'actualizar_parametros',
-    titulo: `Aplicar metas de ${protocoloEtapa.codigoKB} (pH ${phObjetivo} · EC ${ecObjetivo} mS)`,
-    descripcion: `Actualiza los objetivos del cultivo según la Base de Conocimiento para ${perfilSustrato.nombre}: pH ${phObjetivo}, EC ${ecObjetivo} mS, Vege ${tempObjetivoVegetacion}°C/${humedadObjetivoVegetacion}%, Flora ${tempObjetivoFloracion}°C/${humedadObjetivoFloracion}%.`,
+    titulo: `Aplicar Metas Bugbee + Athena (${protocoloEtapa.codigoKB}: pH ${phObjetivo} · EC ${ecObjetivo} mS)`,
+    descripcion: `Sincroniza la sala con el protocolo Dr. Bruce Bugbee (USU) + Athena Ag (${protocoloEtapa.tipoSteeringAthena}): pH ${phObjetivo}, EC ${ecObjetivo} mS/cm, Vege ${tempObjetivoVegetacion}°C/${humedadObjetivoVegetacion}%, Flora ${tempObjetivoFloracion}°C/${humedadObjetivoFloracion}%.`,
     parametrosObjetivo: {
       phObjetivo,
       ecObjetivo,
@@ -858,6 +955,8 @@ export function calcularObjetivosAgronomicos(contexto: Partial<ContextoCultivo>)
     humedadObjetivoFloracion,
     vpdObjetivoActual,
     aguaDiariaObjetivo,
+    ppfdEstimadoSala,
+    dliEstimadoSala,
     sustratoDetectado: perfilSustrato,
     geneticaDetectada: genetica,
     subEtapaActual: subEtapa,
@@ -900,10 +999,6 @@ export function buscarPatologiasKB(texto: string): PatologiaKB[] {
   return puntuadas.slice(0, 2).map((item) => item.pat);
 }
 
-/**
- * Detecta la intención principal del mensaje del usuario para decidir si se puede
- * responder con 0 tokens directamente desde la Base de Conocimiento o comprimir el prompt RAG.
- */
 export type IntencionConsultaKB =
   | 'parametros_nutricion_clima'
   | 'plan_tareas_acciones'
@@ -911,7 +1006,10 @@ export type IntencionConsultaKB =
   | 'auditoria_general'
   | 'consulta_abierta';
 
-export function detectarIntencionConsulta(mensaje: string, tieneImagenes: boolean): IntencionConsultaKB {
+export function detectarIntencionConsulta(
+  mensaje: string,
+  tieneImagenes: boolean
+): IntencionConsultaKB {
   if (tieneImagenes) return 'diagnostico_sintomas';
   const m = mensaje
     .toLowerCase()
@@ -926,7 +1024,9 @@ export function detectarIntencionConsulta(mensaje: string, tieneImagenes: boolea
     m.includes('planifica') ||
     m.includes('calendario') ||
     m.includes('checklist') ||
-    m.includes('semana')
+    m.includes('semana') ||
+    m.includes('steering') ||
+    m.includes('dryback')
   ) {
     return 'plan_tareas_acciones';
   }
@@ -953,6 +1053,14 @@ export function detectarIntencionConsulta(mensaje: string, tieneImagenes: boolea
     m.includes('temperatura') ||
     m.includes('humedad') ||
     m.includes('vpd') ||
+    m.includes('ppfd') ||
+    m.includes('dli') ||
+    m.includes('bugbee') ||
+    m.includes('athena') ||
+    m.includes('mezcla') ||
+    m.includes('cleanse') ||
+    m.includes('fade') ||
+    m.includes('balance') ||
     m.includes('riego') ||
     m.includes('litros') ||
     m.includes('agua') ||
@@ -962,7 +1070,13 @@ export function detectarIntencionConsulta(mensaje: string, tieneImagenes: boolea
     return 'parametros_nutricion_clima';
   }
 
-  if (m.includes('audita') || m.includes('como ves') || m.includes('estado') || m.includes('resumen') || m.includes('recomendacion')) {
+  if (
+    m.includes('audita') ||
+    m.includes('como ves') ||
+    m.includes('estado') ||
+    m.includes('resumen') ||
+    m.includes('recomendacion')
+  ) {
     return 'auditoria_general';
   }
 
@@ -970,8 +1084,7 @@ export function detectarIntencionConsulta(mensaje: string, tieneImagenes: boolea
 }
 
 /**
- * Construye una respuesta determinística completa desde la Base de Conocimiento (0 Tokens LLM)
- * y adjunta las Acciones Estandarizadas listas para ejecutar con 1 clic.
+ * Construye una respuesta determinística completa desde el Corpus Bruce Bugbee + Athena Ag (0 Tokens)
  */
 export function generarRespuestaConocimientoLocal(
   mensaje: string,
@@ -988,78 +1101,84 @@ export function generarRespuestaConocimientoLocal(
   const protocolo = PROTOCOLOS_ETAPA_KB[objetivos.subEtapaActual];
   const patologiasCoincidentes = buscarPatologiasKB(mensaje);
   const intencion = detectarIntencionConsulta(mensaje, tieneImagenes);
+  const apuntesUsuario = obtenerApuntesPersonalizadosBugbee();
 
   const fuentesConocimiento: string[] = [
-    `${protocolo.codigoKB}: ${protocolo.titulo}`,
-    `Tabla Sustrato: ${objetivos.sustratoDetectado.nombre}`,
+    `Bruce Bugbee (USU) + Athena Ag: ${protocolo.codigoKB}`,
+    `Steering: ${protocolo.tipoSteeringAthena}`,
   ];
   for (const pat of patologiasCoincidentes) {
     fuentesConocimiento.push(`${pat.codigoKB}: ${pat.nombre}`);
   }
 
-  // CASO 1: Diagnóstico de síntomas conocidos en la Base de Conocimiento
+  // CASO 1: Diagnóstico de síntomas según fisiología vegetal de Bruce Bugbee + Athena Handbook
   if (intencion === 'diagnostico_sintomas' && patologiasCoincidentes.length > 0) {
     const pat = patologiasCoincidentes[0];
     const acciones = [...pat.accionesCorrectivas, objetivos.accionesSugeridas[0]];
     const respuesta = [
-      `🩺 **Diagnóstico Basado en Conocimiento Clínico (${pat.codigoKB})**`,
+      `🩺 **Diagnóstico Clínico — Protocolo Dr. Bruce Bugbee (USU) & Athena Ag (${pat.codigoKB})**`,
       ``,
       `### 1. Problema Identificado: **${pat.nombre}**`,
-      `- **Síntomas asociados:** ${pat.sintomasVisuales}`,
-      `- **Causa probable en ${contexto.nombre}:** ${pat.causaRaiz}`,
+      `- **Cuadro clínico:** ${pat.sintomasVisuales}`,
+      `- **Causa raíz (USU + Athena):** ${pat.causaRaiz}`,
       ``,
-      `### 2. Protocolo de Corrección para ${objetivos.sustratoDetectado.nombre}`,
-      `**Opción Mineral / Precisión:**`,
+      `### 2. Protocolo de Corrección (${objetivos.sustratoDetectado.nombre})`,
+      `**Intervención Athena Ag & Precisión USU:**`,
       ...pat.tratamientoMineral.map((p) => `- ${p}`),
       ``,
-      `**Opción Orgánica / Biológica:**`,
+      `**Alternativa Orgánica / Biológica:**`,
       ...pat.tratamientoOrganico.map((p) => `- ${p}`),
       ``,
       `### 3. Parámetros Objetivos de Control (${protocolo.codigoKB})`,
-      `- **pH de entrada:** ${objetivos.phObjetivo} | **EC objetivo:** ${objetivos.ecObjetivo} mS/cm`,
-      `- **Clima ideal ahora:** VPD ${objetivos.vpdObjetivoActual} kPa (${
+      `- **pH Entrada:** ${objetivos.phObjetivo} | **EC Objetivo:** ${objetivos.ecObjetivo} mS/cm | **Crop Steering:** ${protocolo.tipoSteeringAthena}`,
+      `- **Clima y VPD:** ${objetivos.vpdObjetivoActual} kPa (${
         objetivos.subEtapaActual.includes('flora') || objetivos.subEtapaActual === 'stretch_preflora'
           ? `${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR`
           : `${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR`
       })`,
       `- **Prevención:** ${pat.prevencion}`,
+      apuntesUsuario ? `\n📌 **Tus Apuntes Activos de la KB:** ${apuntesUsuario}` : '',
       ``,
-      `👇 *Puedes agendar la tarea correctiva o sincronizar los parámetros recomendados directamente con los botones de abajo:*`,
-    ].join('\n');
+      `👇 *Ejecuta o agenda las acciones oficiales del protocolo con 1 clic:*`,
+    ]
+      .filter(Boolean)
+      .join('\n');
 
     return {
       respuesta,
       accionesSugeridas: acciones,
       fuentesConocimiento,
       intencion,
-      esSuficienteSinLLM: !tieneImagenes, // Si subió foto y hay LLM disponible, el LLM puede complementar la visión
+      esSuficienteSinLLM: !tieneImagenes,
     };
   }
 
-  // CASO 2: Solicitud de Plan de Tareas / Acciones de la Semana
+  // CASO 2: Plan de Tareas / Crop Steering de la Etapa según Bruce Bugbee + Athena
   if (intencion === 'plan_tareas_acciones') {
     const respuesta = [
-      `📅 **Plan Operativo Estandarizado — ${protocolo.titulo} (${protocolo.codigoKB})**`,
+      `📅 **Protocolo Operativo — ${protocolo.titulo} (${protocolo.codigoKB})**`,
+      `*Fuentes: Dr. Bruce Bugbee (Utah State University) & Athena Ag Official Handbook*`,
       ``,
-      `Para **${contexto.nombre}** (${contexto.genetica || 'Genética activa'} en **${objetivos.sustratoDetectado.nombre}**), la Base de Conocimiento establece el siguiente protocolo de acciones:`,
-      ``,
-      `### 🎯 Objetivo de la Etapa`,
+      `### 🧭 Direccionamiento de Cultivo (Athena Crop Steering): **${protocolo.tipoSteeringAthena}**`,
       `${protocolo.objetivoPrincipal}`,
       ``,
-      `### ✅ Reglas Agronómicas Críticas`,
+      `### 🔬 Directrices Científicas (Bugbee USU + Athena Ag)`,
       ...protocolo.reglasCriticas.map((r) => `- ${r}`),
       ``,
-      `### 🛠️ Acciones Lista para Ejecutar / Agendar`,
+      `### 🛠️ Acciones Estandarizadas para ${contexto.nombre}`,
       ...protocolo.tareasEstandar.map(
         (t, idx) => `${idx + 1}. **[${t.codigoKB}] ${t.titulo}** — *${t.descripcion}*`
       ),
       ``,
-      `### 💧 Parámetros de Riego y Clima Vinculados`,
-      `- **pH:** ${objetivos.phObjetivo} · **EC:** ${objetivos.ecObjetivo} mS/cm · **Volumen estimado sala:** ~${objetivos.aguaDiariaObjetivo} L/día`,
-      `- **Nota de sustrato:** ${objetivos.sustratoDetectado.frecuenciaRiegoNota}`,
+      `### 🧪 Orden de Mezcla y Parámetros de Tanque Athena`,
+      `- **Orden estricto:** 1º **Athena Balance** -> 2º **Pro Core** (o **Athena Fade** en sem 8-9) -> 3º **Pro Grow/Bloom** -> 4º **Athena Cleanse** (2-5 mL/gal).`,
+      `- **Metas:** pH **${objetivos.phObjetivo}** · EC **${objetivos.ecObjetivo} mS/cm** · PPFD **${protocolo.ppfdRecomendado}** (${protocolo.dliRecomendado}).`,
+      apuntesUsuario ? `\n📌 **Tus Apuntes Activos de la KB:** ${apuntesUsuario}` : '',
       ``,
-      `👇 *Haz clic en cualquiera de las acciones de abajo para agendarla en tu Calendario o actualizar los objetivos de la sala:*`,
-    ].join('\n');
+      `👇 *Haz clic abajo para agendar estas tareas en tu Calendario o sincronizar los parámetros de la sala:*`,
+    ]
+      .filter(Boolean)
+      .join('\n');
 
     return {
       respuesta,
@@ -1070,31 +1189,52 @@ export function generarRespuestaConocimientoLocal(
     };
   }
 
-  // CASO 3: Consulta de Parámetros (pH, EC, Temperatura, Humedad, VPD, Riego) o Auditoría
+  // CASO 3: Auditoría de Parámetros (Bruce Bugbee 9 Cardinal Parameters + Athena Handbook)
   if (intencion === 'parametros_nutricion_clima' || intencion === 'auditoria_general') {
     const respuesta = [
-      `📊 **Ficha Técnica de Parámetros — ${contexto.nombre} (${protocolo.codigoKB})**`,
+      `📊 **Auditoría Técnica Dr. Bruce Bugbee (USU) + Athena Ag (${protocolo.codigoKB})**`,
       ``,
-      `Calculado desde la Base de Conocimiento Agronómica para **${objetivos.sustratoDetectado.nombre}** en **${protocolo.titulo}**:`,
+      `Análisis para **${contexto.nombre}** en **${objetivos.sustratoDetectado.nombre}** (${protocolo.titulo}):`,
       ``,
-      `| Parámetro | Valor Óptimo KB | Configuración Actual |`,
+      `| Parámetro (Bugbee USU / Athena) | Meta Oficial KB | Configuración Actual |`,
       `| :--- | :--- | :--- |`,
-      `| **pH Objetivo** | **${objetivos.phObjetivo}** | ${contexto.phObjetivo ?? 'Sin definir'} |`,
-      `| **EC Objetivo** | **${objetivos.ecObjetivo} mS/cm** | ${contexto.ecObjetivo ?? 'Sin definir'} |`,
-      `| **Clima Vegetación** | **${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR** | ${
-        contexto.tempObjetivoVegetacion ? `${contexto.tempObjetivoVegetacion}°C / ${contexto.humedadObjetivoVegetacion}%` : 'Sin definir'
+      `| **pH de Entrada (Athena Balance)** | **${objetivos.phObjetivo}** *(rango 5.6–6.2)* | ${contexto.phObjetivo ?? 'Sin definir'} |`,
+      `| **EC Objetivo (Athena / USU)** | **${objetivos.ecObjetivo} mS/cm** | ${contexto.ecObjetivo ?? 'Sin definir'} |`,
+      `| **Modo Crop Steering Athena** | **${protocolo.tipoSteeringAthena}** | ${
+        protocolo.tipoSteeringAthena.includes('Generativo')
+          ? 'Dryback 40–50% VWC'
+          : 'Dryback 20–30% VWC'
       } |`,
-      `| **Clima Floración** | **${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR** | ${
-        contexto.tempObjetivoFloracion ? `${contexto.tempObjetivoFloracion}°C / ${contexto.humedadObjetivoFloracion}%` : 'Sin definir'
+      `| **Clima Vegetación (Bajo LED)** | **${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR** | ${
+        contexto.tempObjetivoVegetacion
+          ? `${contexto.tempObjetivoVegetacion}°C / ${contexto.humedadObjetivoVegetacion}%`
+          : 'Sin definir'
       } |`,
-      `| **VPD Meta / PPFD** | **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa** (${protocolo.ppfdRecomendado}) | Fotoperíodo ${protocolo.fotoperiodo} |`,
-      `| **Agua Estimada Sala** | **~${objetivos.aguaDiariaObjetivo} L/día** | ${contexto.numeroplantas || '-'} plantas × ${contexto.litrosMaceta || '-'}L |`,
+      `| **Clima Floración (Bajo LED)** | **${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR** | ${
+        contexto.tempObjetivoFloracion
+          ? `${contexto.tempObjetivoFloracion}°C / ${contexto.humedadObjetivoFloracion}%`
+          : 'Sin definir'
+      } |`,
+      `| **PPFD / DLI (Física USU)** | **${protocolo.ppfdRecomendado}** (${protocolo.dliRecomendado}) | ${
+        objetivos.ppfdEstimadoSala
+          ? `~${objetivos.ppfdEstimadoSala} µmol/m²/s (DLI ~${objetivos.dliEstimadoSala})`
+          : 'Sin datos de W/m²'
+      } |`,
+      `| **VPD Meta / Fotoperíodo** | **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa** | ${protocolo.fotoperiodo} |`,
+      `| **Volumen Riego (15-25% Runoff)** | **~${objetivos.aguaDiariaObjetivo} L/día** | ${contexto.numeroplantas || '-'} plantas × ${contexto.litrosMaceta || '-'}L |`,
+      ``,
+      `### 🧪 Regla de Tanque Athena & Riego USU`,
+      `- **Orden de mezcla:** 1º Athena Balance (Silicio) -> 2º Pro Core (60% de Base, o Athena Fade en sem finales) -> 3º Pro Grow/Bloom -> 4º Athena Cleanse (2-5 mL/gal).`,
+      `- **Manejo del sustrato:** ${objetivos.sustratoDetectado.frecuenciaRiegoNota}`,
       ``,
       objetivos.alertasAuditoria.length > 0
         ? `### ⚠️ Observaciones de Auditoría\n${objetivos.alertasAuditoria.map((a) => `- ${a}`).join('\n')}\n`
-        : `✅ **Criterio del Sustrato:** ${objetivos.sustratoDetectado.frecuenciaRiegoNota}\n`,
-      `👇 *Puedes aplicar estos parámetros o agendar las tareas del protocolo con 1 clic:*`,
-    ].join('\n');
+        : '',
+      apuntesUsuario ? `📌 **Tus Apuntes Activos de la KB:** ${apuntesUsuario}\n` : '',
+      `👇 *Aplica los parámetros de Bruce Bugbee + Athena o agenda las tareas del protocolo con 1 clic:*`,
+    ]
+      .filter(Boolean)
+      .join('\n');
 
     return {
       respuesta,
@@ -1105,20 +1245,23 @@ export function generarRespuestaConocimientoLocal(
     };
   }
 
-  // CASO 4: Consulta abierta (igualmente preparamos respuesta completa de respaldo + acciones de etapa)
+  // CASO 4: Consulta abierta
   const respuestaFallback = [
-    `🤖 **Consulta Agronómica Basada en Protocolo ${protocolo.codigoKB}**`,
+    `🎓 **Motor Agronómico CanopIA — Dr. Bruce Bugbee (USU) + Athena Ag (${protocolo.codigoKB})**`,
     ``,
-    `Analizando **${contexto.nombre}** (${contexto.genetica || 'Híbrido'} en **${objetivos.sustratoDetectado.nombre}**, etapa actual: **${protocolo.titulo}**):`,
+    `Para **${contexto.nombre}** (${objetivos.sustratoDetectado.nombre}, etapa **${protocolo.titulo}**):`,
     ``,
-    `- **Parámetros Oficiales para tu Sala:** pH **${objetivos.phObjetivo}** · EC **${objetivos.ecObjetivo} mS/cm** · VPD **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa** (${protocolo.tempDiaNoche.dia[0]}–${protocolo.tempDiaNoche.dia[1]}°C día).`,
-    `- **Manejo de Riego (${objetivos.sustratoDetectado.nombre}):** ${objetivos.sustratoDetectado.frecuenciaRiegoNota}`,
+    `- **Parámetros Oficiales:** pH **${objetivos.phObjetivo}** · EC **${objetivos.ecObjetivo} mS/cm** · Steering **${protocolo.tipoSteeringAthena}** · VPD **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa**.`,
+    `- **Orden de Mezcla Athena:** 1º Balance -> 2º Core (o Fade en sem 8-9) -> 3º Grow/Bloom -> 4º Cleanse (2-5 mL/gal).`,
     ``,
-    `### 📋 Directrices Clave en esta Fase`,
+    `### 📋 Reglas Críticas (USU + Athena Handbook)`,
     ...protocolo.reglasCriticas.map((r) => `- ${r}`),
+    apuntesUsuario ? `\n📌 **Tus Apuntes Activos de la KB:** ${apuntesUsuario}` : '',
     ``,
-    `👇 *Acciones recomendadas desde la Base de Conocimiento para ejecutar ahora:*`,
-  ].join('\n');
+    `👇 *Acciones recomendadas desde la Base de Conocimiento:*`,
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   return {
     respuesta: respuestaFallback,
@@ -1130,10 +1273,13 @@ export function generarRespuestaConocimientoLocal(
 }
 
 /**
- * Construye un prompt ultra-comprimido (<180 tokens de contexto) inyectando únicamente
- * la ficha exacta de la Base de Conocimiento que aplica al cultivo y a la pregunta.
+ * Construye un prompt ultra-comprimido (<190 tokens) inyectando estrictamente la doctrina de
+ * Dr. Bruce Bugbee (Utah State University) + Athena Ag Official Handbook.
  */
-export function construirPromptComprimidoRAG(mensaje: string, contexto: ContextoCultivo): {
+export function construirPromptComprimidoRAG(
+  mensaje: string,
+  contexto: ContextoCultivo
+): {
   systemPrompt: string;
   userPrompt: string;
   accionesKB: AccionConocimiento[];
@@ -1142,10 +1288,11 @@ export function construirPromptComprimidoRAG(mensaje: string, contexto: Contexto
   const objetivos = calcularObjetivosAgronomicos(contexto);
   const protocolo = PROTOCOLOS_ETAPA_KB[objetivos.subEtapaActual];
   const patologias = buscarPatologiasKB(mensaje);
+  const apuntesUsuario = obtenerApuntesPersonalizadosBugbee();
 
   const patologiaSnippet =
     patologias.length > 0
-      ? `PATOLOGIA_KB(${patologias[0].codigoKB}): ${patologias[0].nombre} | Causa: ${patologias[0].causaRaiz} | Mineral: ${patologias[0].tratamientoMineral[0]} | Organico: ${patologias[0].tratamientoOrganico[0]}`
+      ? `PATOLOGIA_KB(${patologias[0].codigoKB}): ${patologias[0].nombre} | Causa: ${patologias[0].causaRaiz} | Solucion: ${patologias[0].tratamientoMineral[0]}`
       : '';
 
   const accionesDisponibles = [
@@ -1154,19 +1301,19 @@ export function construirPromptComprimidoRAG(mensaje: string, contexto: Contexto
   ];
 
   const systemPrompt = [
-    `Eres el Motor Agronómico de CanopIA. Responde SIEMPRE basándote ESTRICTAMENTE en la siguiente Base de Conocimiento Oficial (KB) para ser 100% consistente y conciso (máx 180 palabras).`,
-    `SALAS_CTX: "${contexto.nombre}" | Gen:${contexto.genetica || 'N/A'}(${objetivos.geneticaDetectada}) | Sust:${objetivos.sustratoDetectado.nombre} | Etapa:${protocolo.codigoKB}(${protocolo.titulo}) | Area:${contexto.metrosCuadrados || '?'}m2 | Plantas:${contexto.numeroplantas || '?'}x${contexto.litrosMaceta || '?'}L | Luz:${contexto.potenciaLamparas || '?'}W.`,
-    `METAS_KB: pH=${objetivos.phObjetivo}, EC=${objetivos.ecObjetivo}mS, Vege=${objetivos.tempObjetivoVegetacion}C/${objetivos.humedadObjetivoVegetacion}%, Flora=${objetivos.tempObjetivoFloracion}C/${objetivos.humedadObjetivoFloracion}%, VPD=${protocolo.vpdRango[0]}-${protocolo.vpdRango[1]}kPa, Agua=${objetivos.aguaDiariaObjetivo}L/dia.`,
-    `REGLAS_KB: ${protocolo.reglasCriticas.join(' | ')}`,
+    `Motor CanopIA basado 100% en Dr. Bruce Bugbee (USU) y Manual Athena Ag (Pro/Blended & Crop Steering). Máx 160 palabras.`,
+    `SALA: "${contexto.nombre}" | Sust:${objetivos.sustratoDetectado.id} | Etapa:${protocolo.codigoKB} | Steering:${protocolo.tipoSteeringAthena} | PPFD:${objetivos.ppfdEstimadoSala || '?'}umol.`,
+    `METAS: pH=${objetivos.phObjetivo} (Mezcla Athena: 1ºBalance->2ºCore->3ºGrow/Bloom/Fade->4ºCleanse), EC=${objetivos.ecObjetivo}mS (Runoff 15-25%), Vege=${objetivos.tempObjetivoVegetacion}C/${objetivos.humedadObjetivoVegetacion}%, Flora=${objetivos.tempObjetivoFloracion}C/${objetivos.humedadObjetivoFloracion}%, VPD=${protocolo.vpdRango[0]}-${protocolo.vpdRango[1]}kPa.`,
+    `REGLAS: ${protocolo.reglasCriticas.map((r) => r.substring(0, 120)).join(' | ')}`,
     patologiaSnippet,
-    `ACCIONES_KB: ${accionesDisponibles.map((a) => `[${a.codigoKB}] ${a.titulo}`).join('; ')}`,
+    apuntesUsuario ? `APUNTES_USUARIO: ${apuntesUsuario.substring(0, 200)}` : '',
   ]
     .filter(Boolean)
     .join('\n');
 
   const fuentesKB = [
-    `${protocolo.codigoKB}: ${protocolo.titulo}`,
-    `Tabla Sustrato: ${objetivos.sustratoDetectado.nombre}`,
+    `Bruce Bugbee (USU) + Athena Ag: ${protocolo.codigoKB}`,
+    `Steering: ${protocolo.tipoSteeringAthena}`,
     ...patologias.map((p) => `${p.codigoKB}: ${p.nombre}`),
   ];
 

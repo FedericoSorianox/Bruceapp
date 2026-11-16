@@ -1,0 +1,119 @@
+{
+  "metadata": {
+    "fuentePrincipal": "The Science and Technology of Medical Cannabis Cultivation (Dr. Bruce Bugbee, Utah State University) + Athena Ag Official Handbook (Pro Line, Blended Line & Crop Steering)",
+    "institucion": "Utah State University (USU) Crop Physiology Lab & Athena Ag Precision Fertility",
+    "version": "3.0.0-USU-ATHENA",
+    "comoEditar": "Puedes editar directamente este archivo JSON (src/lib/knowledge/bruceBugbeeCorpus.json) o agregar apuntes adicionales desde la interfaz del Laboratorio en CanopIA."
+  },
+  "principiosCardinalesBugbee": [
+    "1. [Bruce Bugbee - USU] Los 9 Parámetros Cardinales (Ley del Factor Limitante): Luz (PPFD/DLI/Fotoperíodo), Temperatura Foliar, Humedad/VPD, CO2, Velocidad del Viento (Capa Límite), Oxígeno Radicular, Agua, Nutrientes (EC) y pH de la Rizosfera.",
+    "2. [Bruce Bugbee + Athena] pH de la Zona Radicular (5.6 - 6.2, óptimo 5.8 - 6.0): Por encima de pH 6.5 precipitan Hierro (Fe), Manganeso (Mn), Boro (B), Cobre (Cu) y Zinc (Zn). Usar Athena Balance (Silicato de Potasio) siempre primero en el tanque para estabilizar el agua RO y amortiguar el pH.",
+    "3. [Athena Ag - Orden Estricto de Mezcla]: 1º Athena Balance (Silicio, mezclar bien en agua RO) -> 2º Athena Pro Core (60% de la dosis de Base, disolver al 100%) -> 3º Athena Pro Grow / Pro Bloom / Fade -> 4º Athena Cleanse (2-5 mL/gal de ácido hipocloroso HOCl para ORP >350 mV y raíces limpias) -> 5º Ajuste final de pH (5.8-6.0). Nunca mezclar concentrados puros entre sí para evitar precipitación de sulfato/fosfato de calcio (yeso).",
+    "4. [Athena Ag - Crop Steering (Direccionamiento Vegetativo vs. Generativo)]: En Semanas 1-3 de Flora (Stretch) aplicar Riego Generativo (Dryback nocturno 40-50% VWC, primer riego 2-3h tras encender luces, menor volumen de drenaje) para compactar entrenudos e inducir sitios florales. En Semanas 4-6 (Bulking/Engorde) aplicar Riego Vegetativo (Dryback 20-30% VWC, pulsos frecuentes P1/P2 desde 1h tras encender luces, 15-25% runoff) para maximizar calibre y peso floral.",
+    "5. [Bruce Bugbee + Athena Fade] Nutrición Balanceada y Finalización sin Bloqueo: Evitar excesos desbalanceados de Fósforo que bloquean Fe/Zn. En las últimas 2 semanas (Semanas 7-9), sustituir Pro Core/Bloom por Athena Fade (libre de Nitrógeno pero manteniendo Calcio y microelementos esenciales) y reducir la EC gradualmente los últimos 5-7 días para degradar clorofila y nitratos sin necrosar el cáliz.",
+    "6. [Bruce Bugbee + Athena] Física Térmica Bajo LED: Los paneles LED emiten poca radiación infrarroja cercana (NIR), por lo que la hoja está ~1.5°C a 2°C más fría que el aire. En Vegetación y Semanas 1-5 de Floración mantener temperatura ambiente en 26-28°C (VPD 0.9-1.3 kPa), bajando a 20-23°C y HR 45% en las semanas finales para preservar monoterpenos y estimular antocianinas.",
+    "7. [Athena Ag + USU] Control de EC de Entrada vs. EC de Poro/Drenaje (Runoff): Medir siempre pH y EC de entrada y de drenaje (método Pour-Through / sensores TDR). Si la EC del drenaje sube más de +0.5 a +0.8 mS/cm sobre la entrada no deseada, realizar riegos de refresco con Athena Cleanse (5-10 mL/gal) e incrementar la fracción de lixiviado al 20-25%."
+  ],
+  "perfilesSustrato": {
+    "coco": {
+      "id": "coco",
+      "nombre": "Fibra de Coco / Coco + Perlita / Mezcla USU (Protocolo Athena + Bugbee)",
+      "descripcion": "Medio de alta oxigenación ideal para Crop Steering por pulsos. Hidratar inicialmente (pre-soak) con solución Athena (EC 2.0-2.5 mS o 1.5 mS USU, pH 5.8 + Athena Cleanse 2-5 mL/gal).",
+      "phPorEtapa": {
+        "germinacion_esquejes": 5.8,
+        "vegetacion_temprana": 5.8,
+        "vegetacion_avanzada": 5.8,
+        "stretch_preflora": 5.9,
+        "floracion_temprana": 5.9,
+        "floracion_engorde": 6.0,
+        "lavado_maduracion": 6.0
+      },
+      "ecPorEtapa": {
+        "germinacion_esquejes": 1.2,
+        "vegetacion_temprana": 1.8,
+        "vegetacion_avanzada": 2.2,
+        "stretch_preflora": 2.4,
+        "floracion_temprana": 2.4,
+        "floracion_engorde": 2.2,
+        "lavado_maduracion": 0.6
+      },
+      "frecuenciaRiegoNota": "Protocolo Athena + USU: Riego por pulsos según Crop Steering (Dryback 20-30% en Vege/Bulking con 15-25% runoff; Dryback 40-50% en Stretch Sem 1-3). Añadir Athena Balance primero y Athena Cleanse (2-5 mL/gal) en cada tanque.",
+      "factorRetencionAgua": 0.22
+    },
+    "hidro": {
+      "id": "hidro",
+      "nombre": "Lana de Roca (Rockwool) / Hidroponía Recirculante (Athena + USU)",
+      "descripcion": "Máxima precisión en direccionamiento de cultivo (Crop Steering). Control estricto de pH (5.6 - 5.9), ORP >350 mV con Athena Cleanse y temperatura de solución en 19-20°C.",
+      "phPorEtapa": {
+        "germinacion_esquejes": 5.6,
+        "vegetacion_temprana": 5.7,
+        "vegetacion_avanzada": 5.8,
+        "stretch_preflora": 5.8,
+        "floracion_temprana": 5.8,
+        "floracion_engorde": 5.9,
+        "lavado_maduracion": 5.9
+      },
+      "ecPorEtapa": {
+        "germinacion_esquejes": 1.2,
+        "vegetacion_temprana": 1.8,
+        "vegetacion_avanzada": 2.2,
+        "stretch_preflora": 2.4,
+        "floracion_temprana": 2.4,
+        "floracion_engorde": 2.1,
+        "lavado_maduracion": 0.4
+      },
+      "frecuenciaRiegoNota": "Protocolo Athena Rockwool: Saturar cubos a pH 5.6 y EC 2.0 mS. Aplicar disparos de 3-6% VWC manteniendo ORP limpio con Athena Cleanse (2-5 mL/gal).",
+      "factorRetencionAgua": 0.25
+    },
+    "living_soil": {
+      "id": "living_soil",
+      "nombre": "Suelo Vivo / Orgánico (USU Mineralización Biológica)",
+      "descripcion": "Ecosistema microbiológico activo. Según Bruce Bugbee, mantener humedad constante a capacidad de campo (22-25°C) y pH de riego en 6.1-6.3 para no insolubilizar Fe y Mn.",
+      "phPorEtapa": {
+        "germinacion_esquejes": 6.1,
+        "vegetacion_temprana": 6.2,
+        "vegetacion_avanzada": 6.2,
+        "stretch_preflora": 6.2,
+        "floracion_temprana": 6.3,
+        "floracion_engorde": 6.3,
+        "lavado_maduracion": 6.2
+      },
+      "ecPorEtapa": {
+        "germinacion_esquejes": 0.6,
+        "vegetacion_temprana": 1.0,
+        "vegetacion_avanzada": 1.2,
+        "stretch_preflora": 1.4,
+        "floracion_temprana": 1.5,
+        "floracion_engorde": 1.4,
+        "lavado_maduracion": 0.3
+      },
+      "frecuenciaRiegoNota": "Protocolo USU: Mantener humedad estable sin lixiviación excesiva y enmendar con Wollastonita (1-2 g/L) para aporte de Silicio y Calcio.",
+      "factorRetencionAgua": 0.14
+    },
+    "tierra": {
+      "id": "tierra",
+      "nombre": "Sustrato Base Turba (Peat-Lite / Mezcla Turba + Perlita — USU & Athena Blended)",
+      "descripcion": "Alta capacidad tampón. Amortiguar con cal dolomítica y wollastonita (USU) y regar con alimentación constante (Athena Blended / Pro Line moderada) verificando EC de drenaje.",
+      "phPorEtapa": {
+        "germinacion_esquejes": 5.8,
+        "vegetacion_temprana": 5.9,
+        "vegetacion_avanzada": 6.0,
+        "stretch_preflora": 6.0,
+        "floracion_temprana": 6.1,
+        "floracion_engorde": 6.1,
+        "lavado_maduracion": 6.0
+      },
+      "ecPorEtapa": {
+        "germinacion_esquejes": 0.9,
+        "vegetacion_temprana": 1.4,
+        "vegetacion_avanzada": 1.7,
+        "stretch_preflora": 1.9,
+        "floracion_temprana": 2.0,
+        "floracion_engorde": 1.8,
+        "lavado_maduracion": 0.4
+      },
+      "frecuenciaRiegoNota": "Protocolo USU + Athena Blended: Regar con alimentación constante asegurando 15-20% de drenaje (Pour-Through) y usando Athena Cleanse (2 mL/gal) para evitar acumulación de sales.",
+      "factorRetencionAgua": 0.18
+    }
+  }
+}
