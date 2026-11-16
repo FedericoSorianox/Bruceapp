@@ -74,6 +74,7 @@ describe('CanopIA Agronomic Knowledge Base — Dr. Bruce Bugbee (USU) + Athena A
     const rag = construirPromptComprimidoRAG('¿Cómo optimizo el engorde con Athena?', contexto);
     expect(rag.systemPrompt).toContain('Bruce Bugbee');
     expect(rag.systemPrompt).toContain('Athena');
-    expect(rag.systemPrompt.length).toBeLessThan(1100);
+    expect(rag.systemPrompt).toContain('CONTEXTO COMPLETO DEL CULTIVO ACTUAL');
+    expect(rag.systemPrompt.length).toBeLessThan(2200);
   });
 });

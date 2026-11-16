@@ -14,6 +14,7 @@ import type {
   ContextoCultivo,
   ImagenMensaje,
   AccionConocimiento,
+  ComentarioCultivo,
 } from '@/types/chat';
 import type { Cultivo } from '@/types/cultivo';
 import {
@@ -23,6 +24,7 @@ import {
   prepararContextoCultivo,
   consultarTodosLosObjetivosKB,
 } from '@/lib/services/chat';
+import { obtenerComentarios } from '@/lib/services/comentarios';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { createTarea } from '@/lib/services/planificacion';
 import { updateCultivo } from '@/lib/services/cultivos';
@@ -63,6 +65,7 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '', onAccionEjecut
   const [error, setError] = useState<string | null>(null);
   const [accionesEjecutadasIds, setAccionesEjecutadasIds] = useState<Record<string, boolean>>({});
   const [ejecutandoAccionId, setEjecutandoAccionId] = useState<string | null>(null);
+  const [comentariosRecientes, setComentariosRecientes] = useState<ComentarioCultivo[]>([]);
 
   const { user } = useAuth();
 
@@ -70,7 +73,20 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '', onAccionEjecut
   const mensajesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const contexto: ContextoCultivo = useMemo(() => prepararContextoCultivo(cultivo), [cultivo]);
+  useEffect(() => {
+    if (!cultivo.id) return;
+    obtenerComentarios({ cultivoId: cultivo.id, _limit: 5 })
+      .then((lista) => setComentariosRecientes(lista.slice(0, 5)))
+      .catch(() => setComentariosRecientes([]));
+  }, [cultivo.id]);
+
+  const contexto: ContextoCultivo = useMemo(
+    () => ({
+      ...prepararContextoCultivo(cultivo),
+      comentariosRecientes,
+    }),
+    [cultivo, comentariosRecientes]
+  );
   const infoKB = useMemo(() => consultarTodosLosObjetivosKB(contexto), [contexto]);
 
   const scrollToBottom = useCallback(() => {
@@ -227,13 +243,12 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '', onAccionEjecut
         className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6`}
       >
         <div
-          className={`max-w-[90%] sm:max-w-[85%] rounded-2xl px-5 py-4 shadow-2xs transition-all duration-200 ${
-            isUser
+          className={`max-w-[90%] sm:max-w-[85%] rounded-2xl px-5 py-4 shadow-2xs transition-all duration-200 ${isUser
               ? 'bg-emerald-600 text-white rounded-br-none'
               : isSystem
                 ? 'bg-amber-50 text-amber-900 border border-amber-200'
                 : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'
-          }`}
+            }`}
         >
           {/* Badges de Fuente de Conocimiento y Ahorro de Tokens (solo para respuestas IA) */}
           {!isUser && !isSystem && (msg.fuentesConocimiento || msg.tokensUsados) && (
@@ -313,13 +328,12 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '', onAccionEjecut
                         type="button"
                         disabled={yaEjecutada || cargandoEsta}
                         onClick={() => handleEjecutarAccionKB(accion)}
-                        className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          yaEjecutada
+                        className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${yaEjecutada
                             ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-default'
                             : accion.tipoAccion === 'actualizar_parametros'
                               ? 'bg-slate-900 hover:bg-emerald-600 text-white'
                               : 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                        }`}
+                          }`}
                       >
                         {yaEjecutada
                           ? '✓ Aplicada en Sala'
@@ -338,9 +352,8 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '', onAccionEjecut
 
           {/* Timestamp */}
           <div
-            className={`text-xs mt-2 opacity-70 font-medium ${
-              isUser ? 'text-green-100' : 'text-gray-400'
-            }`}
+            className={`text-xs mt-2 opacity-70 font-medium ${isUser ? 'text-green-100' : 'text-gray-400'
+              }`}
           >
             {new Date(msg.timestamp).toLocaleTimeString('es-ES', {
               hour: '2-digit',

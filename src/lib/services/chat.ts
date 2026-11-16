@@ -125,8 +125,7 @@ export async function procesarImagenes(files: FileList): Promise<ImagenMensaje[]
       imagenes.push(imagen);
     } catch (error) {
       throw new Error(
-        `Error al procesar la imagen ${file.name}: ${
-          error instanceof Error ? error.message : 'Error desconocido'
+        `Error al procesar la imagen ${file.name}: ${error instanceof Error ? error.message : 'Error desconocido'
         }`
       );
     }
@@ -147,55 +146,17 @@ export async function enviarMensajeDetalladoIA(
   modo: PayloadOpenAI['modo'] = 'auto'
 ): Promise<ApiResponseChat<string>> {
   const tieneImagenes = Boolean(imagenes && imagenes.length > 0);
-
-  // Fast-path en cliente: si no hay imágenes y la Base de Conocimiento resuelve al 100% la consulta,
-  // devolvemos de inmediato sin latencia de red ni gasto de tokens.
   const localKB = generarRespuestaConocimientoLocal(mensaje, contexto, tieneImagenes);
-  if ((modo === 'kb_only' || localKB.esSuficienteSinLLM) && !tieneImagenes) {
-    return {
-      success: true,
-      data: localKB.respuesta,
-      message: 'Resuelto por Base de Conocimiento Local (0 tokens)',
-      accionesSugeridas: localKB.accionesSugeridas,
-      fuentesConocimiento: localKB.fuentesConocimiento,
-      tokens: {
-        prompt: 0,
-        completion: 0,
-        total: 0,
-        fuente: 'kb_local',
-      },
-    };
-  }
 
-  try {
-    const imagenesPayload: ImagenPayload[] | undefined = imagenes
-      ?.filter((img): img is ImagenMensaje & { base64: string } => Boolean(img.base64))
-      .map((img) => ({
-        base64: img.base64,
-        mimeType: img.mimeType,
-        nombre: img.name,
-      }));
-
-    const payload: PayloadOpenAI = {
-      message: mensaje,
-      email,
-      cultivoContext: contexto,
-      imagenes: imagenesPayload,
-      historialReciente: historial?.slice(-4),
-      modo,
-    };
-
-    const response = await fetch(`${API_BASE}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
+    // Solo si se solicita explícitamente modo 'kb_only' (sin LLM) se resuelve en cliente.
+    // Para todas las consultas del usuario en Chat IA y Doctor IA ('auto' o 'diagnostico'),
+    // enviamos al backend `/api/chat` para que ejecute el pipeline RAG completo:
+    // (1º Base de Conocimiento Bruce Bugbee + Athena + MongoDB -> 2º Contexto Completo Cultivo -> 3º IA con tokens).
+    if (modo === 'kb_only' && !tieneImagenes) {
       return {
         success: true,
         data: localKB.respuesta,
-        message: 'Resuelto por Base de Conocimiento Local (Fallback)',
+        message: 'Resuelto por Base de Conocimiento Local (0 tokens)',
         accionesSugeridas: localKB.accionesSugeridas,
         fuentesConocimiento: localKB.fuentesConocimiento,
         tokens: {
@@ -207,9 +168,66 @@ export async function enviarMensajeDetalladoIA(
       };
     }
 
-    const data: ApiResponseChat<string> = await response.json();
+    try {
+      const imagenesPayload: ImagenPayload[] | undefined = imagenes
+        ?.filter((img): img is ImagenMensaje & { base64: string } => Boolean(img.base64))
+        .map((img) => ({
+          base64: img.base64,
+          mimeType: img.mimeType,
+          nombre: img.name,
+        }));
 
-    if (!data.success || !data.data) {
+      const payload: PayloadOpenAI = {
+        message: mensaje,
+        email,
+        cultivoContext: contexto,
+        imagenes: imagenesPayload,
+        historialReciente: historial?.slice(-4),
+        modo,
+      };
+
+      const response = await fetch(`${API_BASE}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        return {
+          success: true,
+          data: localKB.respuesta,
+          message: 'Resuelto por Base de Conocimiento Local (Fallback)',
+          accionesSugeridas: localKB.accionesSugeridas,
+          fuentesConocimiento: localKB.fuentesConocimiento,
+          tokens: {
+            prompt: 0,
+            completion: 0,
+            total: 0,
+            fuente: 'kb_local',
+          },
+        };
+      }
+
+      const data: ApiResponseChat<string> = await response.json();
+
+      if (!data.success || !data.data) {
+        return {
+          success: true,
+          data: localKB.respuesta,
+          accionesSugeridas: localKB.accionesSugeridas,
+          fuentesConocimiento: localKB.fuentesConocimiento,
+          tokens: {
+            prompt: 0,
+            completion: 0,
+            total: 0,
+            fuente: 'kb_local',
+          },
+        };
+      }
+
+      return data;
+    } catch (error) {
+      console.warn('Usando respuesta de Base de Conocimiento Local ante error de red:', error);
       return {
         success: true,
         data: localKB.respuesta,
@@ -223,280 +241,263 @@ export async function enviarMensajeDetalladoIA(
         },
       };
     }
+  }
 
-    return data;
-  } catch (error) {
-    console.warn('Usando respuesta de Base de Conocimiento Local ante error de red:', error);
+  /**
+   * Envía mensaje al chat de IA con contexto del cultivo (retorna string para compatibilidad)
+   */
+  export async function enviarMensajeIA(
+    mensaje: string,
+    contexto: ContextoCultivo,
+    imagenes?: ImagenMensaje[],
+    historial?: MensajeChat[],
+    email?: string
+  ): Promise<string> {
+    const res = await enviarMensajeDetalladoIA(mensaje, contexto, imagenes, historial, email);
+    return res.data || '';
+  }
+
+  /**
+   * Crea un nuevo mensaje de chat del usuario
+   */
+  export function crearMensajeUsuario(
+    cultivoId: string,
+    contenido: string,
+    imagenes?: ImagenMensaje[]
+  ): MensajeChat {
     return {
-      success: true,
-      data: localKB.respuesta,
-      accionesSugeridas: localKB.accionesSugeridas,
-      fuentesConocimiento: localKB.fuentesConocimiento,
-      tokens: {
-        prompt: 0,
-        completion: 0,
-        total: 0,
-        fuente: 'kb_local',
-      },
-    };
-  }
-}
-
-/**
- * Envía mensaje al chat de IA con contexto del cultivo (retorna string para compatibilidad)
- */
-export async function enviarMensajeIA(
-  mensaje: string,
-  contexto: ContextoCultivo,
-  imagenes?: ImagenMensaje[],
-  historial?: MensajeChat[],
-  email?: string
-): Promise<string> {
-  const res = await enviarMensajeDetalladoIA(mensaje, contexto, imagenes, historial, email);
-  return res.data || '';
-}
-
-/**
- * Crea un nuevo mensaje de chat del usuario
- */
-export function crearMensajeUsuario(
-  cultivoId: string,
-  contenido: string,
-  imagenes?: ImagenMensaje[]
-): MensajeChat {
-  return {
-    id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-    cultivoId,
-    tipo: 'user',
-    contenido,
-    imagenes,
-    tipoContenido:
-      imagenes && imagenes.length > 0 ? (contenido.trim() ? 'mixed' : 'image') : 'text',
-    timestamp: new Date().toISOString(),
-    procesando: false,
-    activo: true,
-  };
-}
-
-/**
- * Crea un nuevo mensaje de respuesta de la IA enriquecido con acciones y fuentes de la KB
- */
-export function crearMensajeIA(
-  cultivoId: string,
-  contenido: string,
-  mensajeUsuarioId?: string,
-  extras?: {
-    accionesSugeridas?: AccionConocimiento[];
-    fuentesConocimiento?: string[];
-    tokensUsados?: MensajeChat['tokensUsados'];
-  }
-): MensajeChat {
-  return {
-    id: `ai_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-    cultivoId,
-    tipo: 'assistant',
-    contenido,
-    tipoContenido: 'text',
-    timestamp: new Date().toISOString(),
-    procesando: false,
-    respuestaA: mensajeUsuarioId,
-    accionesSugeridas: extras?.accionesSugeridas,
-    fuentesConocimiento: extras?.fuentesConocimiento,
-    tokensUsados: extras?.tokensUsados,
-    activo: true,
-  };
-}
-
-/**
- * Crea un mensaje del sistema (ej: "Analizando imagen...")
- */
-export function crearMensajeSistema(cultivoId: string, contenido: string): MensajeChat {
-  return {
-    id: `sys_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-    cultivoId,
-    tipo: 'system',
-    contenido,
-    tipoContenido: 'text',
-    timestamp: new Date().toISOString(),
-    procesando: true,
-    activo: true,
-  };
-}
-
-/**
- * Gestiona la conversación completa con la IA y adjunta las Acciones de la Base de Conocimiento
- */
-export async function gestionarConversacionIA(
-  cultivoId: string,
-  mensaje: string,
-  contexto: ContextoCultivo,
-  imagenes: ImagenMensaje[] | undefined,
-  historial: MensajeChat[],
-  onMensajeCreado: (mensaje: MensajeChat) => void,
-  email?: string
-): Promise<MensajeChat> {
-  const mensajeUsuario = crearMensajeUsuario(cultivoId, mensaje, imagenes);
-  onMensajeCreado(mensajeUsuario);
-
-  if (imagenes && imagenes.length > 0) {
-    const mensajeSistema = crearMensajeSistema(
+      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       cultivoId,
-      `Analizando ${imagenes.length} imagen${imagenes.length > 1 ? 'es' : ''} contra Base de Conocimiento...`
-    );
-    onMensajeCreado(mensajeSistema);
-  }
-
-  try {
-    const respuestaDetallada = await enviarMensajeDetalladoIA(
-      mensaje,
-      contexto,
+      tipo: 'user',
+      contenido,
       imagenes,
-      historial,
-      email
-    );
-
-    return crearMensajeIA(cultivoId, respuestaDetallada.data || '', mensajeUsuario.id, {
-      accionesSugeridas: respuestaDetallada.accionesSugeridas,
-      fuentesConocimiento: respuestaDetallada.fuentesConocimiento,
-      tokensUsados: respuestaDetallada.tokens,
-    });
-  } catch (error) {
-    const mensajeError = crearMensajeIA(
-      cultivoId,
-      `❌ Error: ${error instanceof Error ? error.message : 'No se pudo obtener respuesta de la IA'}`
-    );
-    mensajeError.error = error instanceof Error ? error.message : 'Error desconocido';
-    return mensajeError;
+      tipoContenido:
+        imagenes && imagenes.length > 0 ? (contenido.trim() ? 'mixed' : 'image') : 'text',
+      timestamp: new Date().toISOString(),
+      procesando: false,
+      activo: true,
+    };
   }
-}
 
-/**
- * Libera recursos de imágenes (URLs temporales)
- */
-export function limpiarImagenes(imagenes: ImagenMensaje[]): void {
-  imagenes.forEach((imagen) => {
-    if (imagen.url.startsWith('blob:')) {
-      URL.revokeObjectURL(imagen.url);
+  /**
+   * Crea un nuevo mensaje de respuesta de la IA enriquecido con acciones y fuentes de la KB
+   */
+  export function crearMensajeIA(
+    cultivoId: string,
+    contenido: string,
+    mensajeUsuarioId?: string,
+    extras?: {
+      accionesSugeridas?: AccionConocimiento[];
+      fuentesConocimiento?: string[];
+      tokensUsados?: MensajeChat['tokensUsados'];
     }
-  });
-}
-
-/**
- * Valida el contexto del cultivo antes de enviar a IA
- */
-export function validarContextoCultivo(contexto: ContextoCultivo): boolean {
-  return !!(contexto.id && contexto.nombre);
-}
-
-/**
- * Prepara el contexto del cultivo desde un objeto Cultivo
- */
-export function prepararContextoCultivo(cultivo: Cultivo): ContextoCultivo {
-  let diasDesdeInicio: number | undefined;
-  let plantasPorM2: number | undefined;
-  let wattsPorM2: number | undefined;
-  let litrosTotales: number | undefined;
-
-  if (cultivo.fechaComienzo) {
-    const inicio = new Date(cultivo.fechaComienzo);
-    const hoy = new Date();
-    const diffTime = Math.max(0, hoy.getTime() - inicio.getTime());
-    diasDesdeInicio = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  ): MensajeChat {
+    return {
+      id: `ai_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      cultivoId,
+      tipo: 'assistant',
+      contenido,
+      tipoContenido: 'text',
+      timestamp: new Date().toISOString(),
+      procesando: false,
+      respuestaA: mensajeUsuarioId,
+      accionesSugeridas: extras?.accionesSugeridas,
+      fuentesConocimiento: extras?.fuentesConocimiento,
+      tokensUsados: extras?.tokensUsados,
+      activo: true,
+    };
   }
 
-  if (cultivo.numeroplantas && cultivo.metrosCuadrados) {
-    plantasPorM2 = cultivo.numeroplantas / cultivo.metrosCuadrados;
+  /**
+   * Crea un mensaje del sistema (ej: "Analizando imagen...")
+   */
+  export function crearMensajeSistema(cultivoId: string, contenido: string): MensajeChat {
+    return {
+      id: `sys_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      cultivoId,
+      tipo: 'system',
+      contenido,
+      tipoContenido: 'text',
+      timestamp: new Date().toISOString(),
+      procesando: true,
+      activo: true,
+    };
   }
 
-  if (cultivo.potenciaLamparas && cultivo.metrosCuadrados) {
-    wattsPorM2 = cultivo.potenciaLamparas / cultivo.metrosCuadrados;
+  /**
+   * Gestiona la conversación completa con la IA y adjunta las Acciones de la Base de Conocimiento
+   */
+  export async function gestionarConversacionIA(
+    cultivoId: string,
+    mensaje: string,
+    contexto: ContextoCultivo,
+    imagenes: ImagenMensaje[] | undefined,
+    historial: MensajeChat[],
+    onMensajeCreado: (mensaje: MensajeChat) => void,
+    email?: string
+  ): Promise<MensajeChat> {
+    const mensajeUsuario = crearMensajeUsuario(cultivoId, mensaje, imagenes);
+    onMensajeCreado(mensajeUsuario);
+
+    if (imagenes && imagenes.length > 0) {
+      const mensajeSistema = crearMensajeSistema(
+        cultivoId,
+        `Analizando ${imagenes.length} imagen${imagenes.length > 1 ? 'es' : ''} contra Base de Conocimiento...`
+      );
+      onMensajeCreado(mensajeSistema);
+    }
+
+    try {
+      const respuestaDetallada = await enviarMensajeDetalladoIA(
+        mensaje,
+        contexto,
+        imagenes,
+        historial,
+        email
+      );
+
+      return crearMensajeIA(cultivoId, respuestaDetallada.data || '', mensajeUsuario.id, {
+        accionesSugeridas: respuestaDetallada.accionesSugeridas,
+        fuentesConocimiento: respuestaDetallada.fuentesConocimiento,
+        tokensUsados: respuestaDetallada.tokens,
+      });
+    } catch (error) {
+      const mensajeError = crearMensajeIA(
+        cultivoId,
+        `❌ Error: ${error instanceof Error ? error.message : 'No se pudo obtener respuesta de la IA'}`
+      );
+      mensajeError.error = error instanceof Error ? error.message : 'Error desconocido';
+      return mensajeError;
+    }
   }
 
-  if (cultivo.litrosMaceta && cultivo.numeroplantas) {
-    litrosTotales = cultivo.litrosMaceta * cultivo.numeroplantas;
+  /**
+   * Libera recursos de imágenes (URLs temporales)
+   */
+  export function limpiarImagenes(imagenes: ImagenMensaje[]): void {
+    imagenes.forEach((imagen) => {
+      if (imagen.url.startsWith('blob:')) {
+        URL.revokeObjectURL(imagen.url);
+      }
+    });
   }
 
-  const galeriaImagenes = cultivo.galeria?.map((imagen) => ({
-    id: imagen.id,
-    nombre: imagen.nombre,
-    descripcion: imagen.descripcion,
-    fechaTomada: imagen.fechaTomada,
-    fechaSubida: imagen.fechaSubida,
-  }));
+  /**
+   * Valida el contexto del cultivo antes de enviar a IA
+   */
+  export function validarContextoCultivo(contexto: ContextoCultivo): boolean {
+    return !!(contexto.id && contexto.nombre);
+  }
 
-  return {
-    id: cultivo.id,
-    nombre: cultivo.nombre,
-    genetica: cultivo.genetica,
-    sustrato: cultivo.sustrato,
-    fechaComienzo: cultivo.fechaComienzo,
-    fechaInicioFloracion: cultivo.fechaInicioFloracion,
-    metrosCuadrados: cultivo.metrosCuadrados,
-    numeroplantas: cultivo.numeroplantas,
-    litrosMaceta: cultivo.litrosMaceta,
-    potenciaLamparas: cultivo.potenciaLamparas,
-    phObjetivo: cultivo.phObjetivo,
-    ecObjetivo: cultivo.ecObjetivo,
-    tempObjetivoVegetacion: cultivo.tempObjetivoVegetacion,
-    tempObjetivoFloracion: cultivo.tempObjetivoFloracion,
-    humedadObjetivoVegetacion: cultivo.humedadObjetivoVegetacion,
-    humedadObjetivoFloracion: cultivo.humedadObjetivoFloracion,
-    diasDesdeInicio,
-    plantasPorM2,
-    wattsPorM2,
-    litrosTotales,
-    activo: cultivo.activo,
-    notas: cultivo.notas,
-    galeriaImagenes,
-  };
-}
+  /**
+   * Prepara el contexto del cultivo desde un objeto Cultivo
+   */
+  export function prepararContextoCultivo(cultivo: Cultivo): ContextoCultivo {
+    let diasDesdeInicio: number | undefined;
+    let plantasPorM2: number | undefined;
+    let wattsPorM2: number | undefined;
+    let litrosTotales: number | undefined;
 
-/**
- * Calcula todos los objetivos óptimos de nutrición, clima y riego de una sola vez
- * directamente desde la Base de Conocimiento Agronómica (0 tokens, 0ms, sin fallos de red).
- */
-export function consultarTodosLosObjetivosKB(
-  contexto: ContextoCultivo
-): ObjetivosCalculadosKB {
-  return calcularObjetivosAgronomicos(contexto);
-}
+    if (cultivo.fechaComienzo) {
+      const inicio = new Date(cultivo.fechaComienzo);
+      const hoy = new Date();
+      const diffTime = Math.max(0, hoy.getTime() - inicio.getTime());
+      diasDesdeInicio = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
 
-/**
- * Consulta recomendación específica de pH desde la Base de Conocimiento (0 tokens, consistente)
- */
-export async function consultarRecomendacionPH(contexto: ContextoCultivo): Promise<number | null> {
-  return calcularObjetivosAgronomicos(contexto).phObjetivo;
-}
+    if (cultivo.numeroplantas && cultivo.metrosCuadrados) {
+      plantasPorM2 = cultivo.numeroplantas / cultivo.metrosCuadrados;
+    }
 
-/**
- * Consulta recomendación específica de EC desde la Base de Conocimiento (0 tokens, consistente)
- */
-export async function consultarRecomendacionEC(contexto: ContextoCultivo): Promise<number | null> {
-  return calcularObjetivosAgronomicos(contexto).ecObjetivo;
-}
+    if (cultivo.potenciaLamparas && cultivo.metrosCuadrados) {
+      wattsPorM2 = cultivo.potenciaLamparas / cultivo.metrosCuadrados;
+    }
 
-/**
- * Consulta recomendación de temperatura para una fase específica desde la Base de Conocimiento (0 tokens)
- */
-export async function consultarRecomendacionTemperatura(
-  contexto: ContextoCultivo,
-  fase: 'vegetacion' | 'floracion'
-): Promise<number | null> {
-  const objetivos = calcularObjetivosAgronomicos(contexto);
-  return fase === 'vegetacion'
-    ? objetivos.tempObjetivoVegetacion
-    : objetivos.tempObjetivoFloracion;
-}
+    if (cultivo.litrosMaceta && cultivo.numeroplantas) {
+      litrosTotales = cultivo.litrosMaceta * cultivo.numeroplantas;
+    }
 
-/**
- * Consulta recomendación de humedad para una fase específica desde la Base de Conocimiento (0 tokens)
- */
-export async function consultarRecomendacionHumedad(
-  contexto: ContextoCultivo,
-  fase: 'vegetacion' | 'floracion'
-): Promise<number | null> {
-  const objetivos = calcularObjetivosAgronomicos(contexto);
-  return fase === 'vegetacion'
-    ? objetivos.humedadObjetivoVegetacion
-    : objetivos.humedadObjetivoFloracion;
-}
+    const galeriaImagenes = cultivo.galeria?.map((imagen) => ({
+      id: imagen.id,
+      nombre: imagen.nombre,
+      descripcion: imagen.descripcion,
+      fechaTomada: imagen.fechaTomada,
+      fechaSubida: imagen.fechaSubida,
+    }));
+
+    return {
+      id: cultivo.id,
+      nombre: cultivo.nombre,
+      genetica: cultivo.genetica,
+      sustrato: cultivo.sustrato,
+      fechaComienzo: cultivo.fechaComienzo,
+      fechaInicioFloracion: cultivo.fechaInicioFloracion,
+      metrosCuadrados: cultivo.metrosCuadrados,
+      numeroplantas: cultivo.numeroplantas,
+      litrosMaceta: cultivo.litrosMaceta,
+      potenciaLamparas: cultivo.potenciaLamparas,
+      phObjetivo: cultivo.phObjetivo,
+      ecObjetivo: cultivo.ecObjetivo,
+      tempObjetivoVegetacion: cultivo.tempObjetivoVegetacion,
+      tempObjetivoFloracion: cultivo.tempObjetivoFloracion,
+      humedadObjetivoVegetacion: cultivo.humedadObjetivoVegetacion,
+      humedadObjetivoFloracion: cultivo.humedadObjetivoFloracion,
+      diasDesdeInicio,
+      plantasPorM2,
+      wattsPorM2,
+      litrosTotales,
+      activo: cultivo.activo,
+      notas: cultivo.notas,
+      galeriaImagenes,
+    };
+  }
+
+  /**
+   * Calcula todos los objetivos óptimos de nutrición, clima y riego de una sola vez
+   * directamente desde la Base de Conocimiento Agronómica (0 tokens, 0ms, sin fallos de red).
+   */
+  export function consultarTodosLosObjetivosKB(
+    contexto: ContextoCultivo
+  ): ObjetivosCalculadosKB {
+    return calcularObjetivosAgronomicos(contexto);
+  }
+
+  /**
+   * Consulta recomendación específica de pH desde la Base de Conocimiento (0 tokens, consistente)
+   */
+  export async function consultarRecomendacionPH(contexto: ContextoCultivo): Promise<number | null> {
+    return calcularObjetivosAgronomicos(contexto).phObjetivo;
+  }
+
+  /**
+   * Consulta recomendación específica de EC desde la Base de Conocimiento (0 tokens, consistente)
+   */
+  export async function consultarRecomendacionEC(contexto: ContextoCultivo): Promise<number | null> {
+    return calcularObjetivosAgronomicos(contexto).ecObjetivo;
+  }
+
+  /**
+   * Consulta recomendación de temperatura para una fase específica desde la Base de Conocimiento (0 tokens)
+   */
+  export async function consultarRecomendacionTemperatura(
+    contexto: ContextoCultivo,
+    fase: 'vegetacion' | 'floracion'
+  ): Promise<number | null> {
+    const objetivos = calcularObjetivosAgronomicos(contexto);
+    return fase === 'vegetacion'
+      ? objetivos.tempObjetivoVegetacion
+      : objetivos.tempObjetivoFloracion;
+  }
+
+  /**
+   * Consulta recomendación de humedad para una fase específica desde la Base de Conocimiento (0 tokens)
+   */
+  export async function consultarRecomendacionHumedad(
+    contexto: ContextoCultivo,
+    fase: 'vegetacion' | 'floracion'
+  ): Promise<number | null> {
+    const objetivos = calcularObjetivosAgronomicos(contexto);
+    return fase === 'vegetacion'
+      ? objetivos.humedadObjetivoVegetacion
+      : objetivos.humedadObjetivoFloracion;
+  }
