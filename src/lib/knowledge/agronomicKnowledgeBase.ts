@@ -1083,7 +1083,19 @@ export function detectarIntencionConsulta(
 }
 
 /**
- * Construye una respuesta determinística completa desde el Corpus Bruce Bugbee + Athena Ag (0 Tokens)
+ * Calcula el VPD real (kPa) usando la ecuación de Tetens y el diferencial térmico foliar bajo LED (-1.5°C)
+ */
+function calcularVpdTetens(tempAire: number, hr: number, offsetHoja: number = -1.5): number {
+  const tempHoja = tempAire + offsetHoja;
+  const svpAire = 0.61078 * Math.exp((17.27 * tempAire) / (tempAire + 237.3));
+  const svpHoja = 0.61078 * Math.exp((17.27 * tempHoja) / (tempHoja + 237.3));
+  const avpAire = svpAire * (hr / 100);
+  return Math.max(0.1, Number((svpHoja - avpAire).toFixed(2)));
+}
+
+/**
+ * Construye una respuesta experta, conversacional y específica para la consulta del usuario
+ * basada 100% en el Corpus Dr. Bruce Bugbee (USU) + Athena Ag y el contexto real de la sala.
  */
 export function generarRespuestaConocimientoLocal(
   mensaje: string,
@@ -1102,12 +1114,187 @@ export function generarRespuestaConocimientoLocal(
   const intencion = detectarIntencionConsulta(mensaje, tieneImagenes);
   const apuntesUsuario = obtenerApuntesPersonalizadosBugbee();
 
+  const mNorm = mensaje
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  const matchNumero = mNorm.match(/(\d+(?:[.,]\d+)?)/);
+  const valorMencionado = matchNumero ? parseFloat(matchNumero[1].replace(',', '.')) : null;
+  const enFlora =
+    objetivos.subEtapaActual.includes('flora') ||
+    objetivos.subEtapaActual === 'stretch_preflora' ||
+    objetivos.subEtapaActual === 'lavado_maduracion' ||
+    mNorm.includes('flora');
+
   const fuentesConocimiento: string[] = [
     `Bruce Bugbee (USU) + Athena Ag: ${protocolo.codigoKB}`,
     `Steering: ${protocolo.tipoSteeringAthena}`,
   ];
   for (const pat of patologiasCoincidentes) {
     fuentesConocimiento.push(`${pat.codigoKB}: ${pat.nombre}`);
+  }
+
+  // ANÁLISIS ESPECÍFICO A: El usuario consulta o reporta un valor de TEMPERATURA (ej: "la temperatura en flora esta en 28 grados")
+  if (
+    (mNorm.includes('temperatura') || mNorm.includes('grados') || mNorm.includes('calor') || mNorm.includes('frio')) &&
+    valorMencionado !== null &&
+    valorMencionado >= 10 &&
+    valorMencionado <= 45
+  ) {
+    const tempActual = valorMencionado;
+    const tempIdeal = enFlora ? objetivos.tempObjetivoFloracion : objetivos.tempObjetivoVegetacion;
+    const hrSala = enFlora
+      ? contexto.humedadObjetivoFloracion || objetivos.humedadObjetivoFloracion
+      : contexto.humedadObjetivoVegetacion || objetivos.humedadObjetivoVegetacion;
+    const vpdCalculado = calcularVpdTetens(tempActual, hrSala, -1.5);
+    const tempHoja = (tempActual - 1.5).toFixed(1);
+
+    let diagnosticoTemp = '';
+    if (tempActual >= 27.5 && enFlora) {
+      if (objetivos.subEtapaActual === 'stretch_preflora') {
+        diagnosticoTemp = [
+          `🌡️ **Análisis para ${tempActual}°C en ${contexto.nombre} (${protocolo.titulo})**`,
+          ``,
+          `En este momento **${contexto.nombre}** está en **${protocolo.titulo}** con **${contexto.potenciaLamparas || 1600}W LED** (~${objetivos.ppfdEstimadoSala || 900} µmol/m²/s PPFD) y una humedad configurada de **${hrSala}% HR**:`,
+          ``,
+          `### 1. ¿Qué ocurre a ${tempActual}°C según Bruce Bugbee (USU) y Athena Ag?`,
+          `- **Física Foliar bajo LED (USU):** Bajo paneles LED la hoja está ~1.5°C más fría que el aire (**~${tempHoja}°C en hoja**). Según el Dr. Bruce Bugbee, 27–28°C solo es viable en las primeras semanas SI inyectas **CO2 suplementario (1000–1200 ppm)** y mantienes la humedad en **60–65% HR**.`,
+          `- **Alerta de VPD en tu sala (${vpdCalculado} kPa):** Con **${tempActual}°C** y tu humedad de **${hrSala}% HR**, el VPD se dispara a **${vpdCalculado} kPa** (por encima del rango óptimo de **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa**). Esto provoca cierre parcial de estomas, frena el transporte de Calcio y acelera la elongación de tallos (espigamiento).`,
+          ``,
+          `### 2. Qué hacer ahora en ${contexto.nombre}`,
+          `- **Opción A (Sin CO2 suplementario — Recomendada):** Baja la temperatura diurna de floración a **${tempIdeal}°C** y mantén la humedad en **${objetivos.humedadObjetivoFloracion}% HR** (VPD óptimo de **${objetivos.vpdObjetivoActual} kPa**).`,
+          `- **Opción B (Si hoy no puedes bajar de ${tempActual}°C):** Sube temporalmente la humedad relativa a **58–62% HR** para bajar el VPD a ~1.25 kPa, incrementa la extracción/ventilación intracanopia (>0.8 m/s) y aléjala/atenúa un 10-15% las lámparas.`,
+          `- **Importante para Semanas 6 a 9:** A partir de la semana 6 de floración debes bajar sí o sí a **22–24°C** (y **20–22°C** con Athena Fade en las últimas 2 semanas) para no volatilizar terpenos ni favorecer Araña Roja/Trips.`,
+        ].join('\n');
+      } else {
+        diagnosticoTemp = [
+          `🚨 **Alerta Térmica: ${tempActual}°C es excesivo para ${protocolo.titulo} en ${contexto.nombre}**`,
+          ``,
+          `Con **${tempActual}°C** y **${hrSala}% HR**, tu VPD actual es de **${vpdCalculado} kPa** (temperatura de hoja ~${tempHoja}°C):`,
+          ``,
+          `### 1. Impacto Fisiológico (Dr. Bruce Bugbee USU + Athena Handbook)`,
+          `- **Volatilización de Terpenos y Estrés Estomático:** En floración media/avanzada, superar los **25–26°C** evapora monoterpenos volátiles, reduce la densidad del cáliz (cogollos aireados/foxtailing) y eleva el VPD a **${vpdCalculado} kPa**, bloqueando la absorción de Calcio.`,
+          `- **Riesgo de Acumulación de Sales:** Al transpirar más agua por calor, la EC del poro en tu sustrato (${objetivos.sustratoDetectado.nombre.split('/')[0].trim()}) sube rápidamente y puede quemar puntas.`,
+          ``,
+          `### 2. Corrección Inmediata Recomendada`,
+          `- **Bajar Temperatura a ${tempIdeal}°C** y mantener humedad en **${objetivos.humedadObjetivoFloracion}% HR** (VPD meta: **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa**).`,
+          `- **Ajustar Riego Athena:** Si la temperatura supera 27°C, verifica que el drenaje (runoff) sea del **20–25%** con **Athena Cleanse (2-5 mL/gal)** para que no se concentren sales en la raíz.`,
+        ].join('\n');
+      }
+    } else if (tempActual < 20) {
+      diagnosticoTemp = [
+        `❄️ **Temperatura Baja (${tempActual}°C) detectada en ${contexto.nombre}**`,
+        ``,
+        `- **Física bajo LED (Bruce Bugbee USU):** Como los paneles LED no emiten radiación infrarroja cercana (NIR), con **${tempActual}°C** en el aire tus hojas están a solo **~${tempHoja}°C**, lo que ralentiza el metabolismo enzimático, frena la fotosíntesis y reduce el secado del sustrato (riesgo de asfixia radicular y Botrytis).`,
+        `- **Corrección:** Sube la temperatura diurna a **${tempIdeal}°C** (VPD objetivo **${objetivos.vpdObjetivoActual} kPa**).`,
+      ].join('\n');
+    } else {
+      diagnosticoTemp = [
+        `✅ **Evaluación de Temperatura (${tempActual}°C) en ${contexto.nombre}**`,
+        ``,
+        `- Con **${tempActual}°C** (temperatura foliar **~${tempHoja}°C** bajo LED) y **${hrSala}% HR**, tu VPD estimado es de **${vpdCalculado} kPa** (meta de la etapa **${protocolo.codigoKB}**: **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa**).`,
+        `- **Meta ideal Bruce Bugbee + Athena en esta fase:** **${tempIdeal}°C** diurnos y **${hrSala}% HR**, manteniendo flujo de aire intracanopia de 0.5–1.0 m/s.`,
+      ].join('\n');
+    }
+
+    const accionClima: AccionConocimiento = {
+      id: `kb-temp-fix-${Date.now()}`,
+      codigoKB: protocolo.codigoKB,
+      tipoAccion: 'actualizar_parametros',
+      titulo: `Fijar Meta Climática ${enFlora ? 'Floración' : 'Vegetación'} en ${tempIdeal}°C / ${
+        enFlora ? objetivos.humedadObjetivoFloracion : objetivos.humedadObjetivoVegetacion
+      }% HR`,
+      descripcion: `Actualiza el objetivo climático de ${contexto.nombre} según Bruce Bugbee + Athena para mantener VPD en ${objetivos.vpdObjetivoActual} kPa.`,
+      parametrosObjetivo: enFlora
+        ? {
+            tempObjetivoFloracion: tempIdeal,
+            humedadObjetivoFloracion: objetivos.humedadObjetivoFloracion,
+          }
+        : {
+            tempObjetivoVegetacion: tempIdeal,
+            humedadObjetivoVegetacion: objetivos.humedadObjetivoVegetacion,
+          },
+    };
+
+    const accionTareaClima: AccionConocimiento = {
+      id: `kb-task-temp-${Date.now()}`,
+      codigoKB: 'USU-ATH-CLIMA',
+      tipoAccion: 'crear_tarea',
+      titulo: `Ajustar extracción/clima de sala a ${tempIdeal}°C y verificar VPD (${objetivos.vpdObjetivoActual} kPa)`,
+      descripcion: `Protocolo Bugbee + Athena: Corregir temperatura actual (${tempActual}°C) hacia ${tempIdeal}°C, asegurar flujo de aire >0.8 m/s y controlar EC de drenaje.`,
+      categoriaTarea: 'mantenimiento',
+      prioridad: tempActual >= 28 ? 'urgente' : 'alta',
+      diasOffset: 0,
+      duracionEstimada: 20,
+    };
+
+    return {
+      respuesta: diagnosticoTemp,
+      accionesSugeridas: [accionClima, accionTareaClima],
+      fuentesConocimiento,
+      intencion,
+      esSuficienteSinLLM: false,
+    };
+  }
+
+  // ANÁLISIS ESPECÍFICO B: El usuario reporta un valor puntual de HUMEDAD
+  if (mNorm.includes('humedad') && valorMencionado !== null && valorMencionado >= 15 && valorMencionado <= 99) {
+    const hrActual = valorMencionado;
+    const tempSala = enFlora
+      ? contexto.tempObjetivoFloracion || objetivos.tempObjetivoFloracion
+      : contexto.tempObjetivoVegetacion || objetivos.tempObjetivoVegetacion;
+    const hrIdeal = enFlora ? objetivos.humedadObjetivoFloracion : objetivos.humedadObjetivoVegetacion;
+    const vpdCalculado = calcularVpdTetens(tempSala, hrActual, -1.5);
+
+    const respuestaHR = [
+      `💧 **Análisis de Humedad Relativa (${hrActual}% HR) en ${contexto.nombre}**`,
+      ``,
+      `- **VPD resultante a ${tempSala}°C y ${hrActual}% HR:** **${vpdCalculado} kPa** (Rango ideal **${protocolo.codigoKB}**: **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa**).`,
+      hrActual > 55 && enFlora
+        ? `- 🚨 **Riesgo Fúngico Alto (Bruce Bugbee + Athena):** Con **${hrActual}% HR** en floración existe alto riesgo de condensación en el interior del cogollo (*Botrytis cinerea*) y *Oídio*, además de frenar la transpiración y el transporte de Calcio. Baja la humedad a **${hrIdeal}% HR** y mantén deshumidificación activa en el apagado de luces.`
+        : hrActual < 42
+          ? `- ⚠️ **Ambiente demasiado seco (${hrActual}% HR):** Eleva el VPD a **${vpdCalculado} kPa**, cerrando estomas y favoreciendo *Araña Roja* y *Trips*. Ajusta hacia **${hrIdeal}% HR**.`
+          : `- ✅ **Humedad dentro de parámetros manejables.** Meta óptima para esta fase: **${hrIdeal}% HR** con ventilación oscilante continua.`,
+    ].join('\n');
+
+    return {
+      respuesta: respuestaHR,
+      accionesSugeridas: [objetivos.accionesSugeridas[0]],
+      fuentesConocimiento,
+      intencion,
+      esSuficienteSinLLM: false,
+    };
+  }
+
+  // ANÁLISIS ESPECÍFICO C: El usuario reporta un valor puntual de pH o EC
+  if ((mNorm.includes('ph') || mNorm.includes('ec')) && valorMencionado !== null) {
+    const esPH = mNorm.includes('ph') && valorMencionado >= 3 && valorMencionado <= 9;
+    const respuestaNutri = esPH
+      ? [
+          `🧪 **Evaluación de pH ${valorMencionado} en ${contexto.nombre} (${objetivos.sustratoDetectado.nombre})**`,
+          ``,
+          valorMencionado > 6.4
+            ? `- 🚨 **pH Elevado (${valorMencionado} > 6.4):** Según el **Dr. Bruce Bugbee (USU)** y **Athena Ag**, por encima de pH 6.4 precipitan el **Hierro (Fe), Manganeso (Mn), Boro, Cobre y Zinc**. Ajústalo a **${objetivos.phObjetivo}** (usando 1º Athena Balance en el tanque y corrigiendo pH al final).`
+            : valorMencionado < 5.5
+              ? `- ⚠️ **pH Ácido (${valorMencionado} < 5.5):** Reduce la disponibilidad de Calcio y Magnesio y puede dañar pelos absorbentes. Súbelo con **Athena Balance (Silicato de Potasio)** hasta **${objetivos.phObjetivo}**.`
+              : `- ✅ **pH ${valorMencionado} en rango óptimo** (meta exacta para tu etapa: **${objetivos.phObjetivo}**). Recuerda medir también el pH del drenaje (método *Pour-Through* USU).`,
+        ].join('\n')
+      : [
+          `⚡ **Evaluación de EC ${valorMencionado} mS/cm en ${contexto.nombre} (${protocolo.titulo})**`,
+          ``,
+          `- **Meta Oficial (${protocolo.codigoKB} · Steering ${protocolo.tipoSteeringAthena}):** **${objetivos.ecObjetivo} mS/cm** de entrada con **15–25% de drenaje (runoff)**.`,
+          valorMencionado > objetivos.ecObjetivo + 0.5
+            ? `- ⚠️ **EC por encima de la meta (${valorMencionado} mS vs ${objetivos.ecObjetivo} mS):** Riesgo de estrés osmótico y quemado de puntas (*tip burn*). Realiza un riego con **Athena Cleanse (5 mL/gal)** a pH **${objetivos.phObjetivo}** logrando 25% de drenaje.`
+            : `- Mantén el orden de mezcla estricto de Athena: **1º Balance -> 2º Pro Core -> 3º Pro Grow/Bloom -> 4º Cleanse**.`,
+        ].join('\n');
+
+    return {
+      respuesta: respuestaNutri,
+      accionesSugeridas: [objetivos.accionesSugeridas[0]],
+      fuentesConocimiento,
+      intencion,
+      esSuficienteSinLLM: false,
+    };
   }
 
   // CASO 1: Diagnóstico de síntomas según fisiología vegetal de Bruce Bugbee + Athena Handbook
@@ -1129,15 +1316,14 @@ export function generarRespuestaConocimientoLocal(
       ...pat.tratamientoOrganico.map((p) => `- ${p}`),
       ``,
       `### 3. Parámetros Objetivos de Control (${protocolo.codigoKB})`,
-      `- **pH Entrada:** ${objetivos.phObjetivo} | **EC Objetivo:** ${objetivos.ecObjetivo} mS/cm | **Crop Steering:** ${protocolo.tipoSteeringAthena}`,
-      `- **Clima y VPD:** ${objetivos.vpdObjetivoActual} kPa (${objetivos.subEtapaActual.includes('flora') || objetivos.subEtapaActual === 'stretch_preflora'
-        ? `${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR`
-        : `${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR`
+      `- **pH Entrada:** ${objetivos.phObjetivo} · **EC Objetivo:** ${objetivos.ecObjetivo} mS/cm · **Crop Steering:** ${protocolo.tipoSteeringAthena}`,
+      `- **Clima y VPD:** ${objetivos.vpdObjetivoActual} kPa (${
+        enFlora
+          ? `${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR`
+          : `${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR`
       })`,
       `- **Prevención:** ${pat.prevencion}`,
       apuntesUsuario ? `\n📌 **Tus Apuntes Activos de la KB:** ${apuntesUsuario}` : '',
-      ``,
-      `👇 *Ejecuta o agenda las acciones oficiales del protocolo con 1 clic:*`,
     ]
       .filter(Boolean)
       .join('\n');
@@ -1155,25 +1341,17 @@ export function generarRespuestaConocimientoLocal(
   if (intencion === 'plan_tareas_acciones') {
     const respuesta = [
       `📅 **Protocolo Operativo — ${protocolo.titulo} (${protocolo.codigoKB})**`,
-      `*Fuentes: Dr. Bruce Bugbee (Utah State University) & Athena Ag Official Handbook*`,
       ``,
-      `### 🧭 Direccionamiento de Cultivo (Athena Crop Steering): **${protocolo.tipoSteeringAthena}**`,
+      `### 🧭 Direccionamiento Athena Crop Steering: **${protocolo.tipoSteeringAthena}**`,
       `${protocolo.objetivoPrincipal}`,
       ``,
       `### 🔬 Directrices Científicas (Bugbee USU + Athena Ag)`,
       ...protocolo.reglasCriticas.map((r) => `- ${r}`),
       ``,
-      `### 🛠️ Acciones Estandarizadas para ${contexto.nombre}`,
-      ...protocolo.tareasEstandar.map(
-        (t, idx) => `${idx + 1}. **[${t.codigoKB}] ${t.titulo}** — *${t.descripcion}*`
-      ),
-      ``,
-      `### 🧪 Orden de Mezcla y Parámetros de Tanque Athena`,
+      `### 🧪 Orden de Mezcla y Metas de Tanque`,
       `- **Orden estricto:** 1º **Athena Balance** -> 2º **Pro Core** (o **Athena Fade** en sem 8-9) -> 3º **Pro Grow/Bloom** -> 4º **Athena Cleanse** (2-5 mL/gal).`,
-      `- **Metas:** pH **${objetivos.phObjetivo}** · EC **${objetivos.ecObjetivo} mS/cm** · PPFD **${protocolo.ppfdRecomendado}** (${protocolo.dliRecomendado}).`,
+      `- **Metas actuales:** pH **${objetivos.phObjetivo}** · EC **${objetivos.ecObjetivo} mS/cm** · PPFD **${protocolo.ppfdRecomendado}** (${protocolo.dliRecomendado}).`,
       apuntesUsuario ? `\n📌 **Tus Apuntes Activos de la KB:** ${apuntesUsuario}` : '',
-      ``,
-      `👇 *Haz clic abajo para agendar estas tareas en tu Calendario o sincronizar los parámetros de la sala:*`,
     ]
       .filter(Boolean)
       .join('\n');
@@ -1187,78 +1365,39 @@ export function generarRespuestaConocimientoLocal(
     };
   }
 
-  // CASO 3: Auditoría de Parámetros (Bruce Bugbee 9 Cardinal Parameters + Athena Handbook)
-  if (intencion === 'parametros_nutricion_clima' || intencion === 'auditoria_general') {
-    const respuesta = [
-      `📊 **Auditoría Técnica Dr. Bruce Bugbee (USU) + Athena Ag (${protocolo.codigoKB})**`,
-      ``,
-      `Análisis para **${contexto.nombre}** en **${objetivos.sustratoDetectado.nombre}** (${protocolo.titulo}):`,
-      ``,
-      `| Parámetro (Bugbee USU / Athena) | Meta Oficial KB | Configuración Actual |`,
-      `| :--- | :--- | :--- |`,
-      `| **pH de Entrada (Athena Balance)** | **${objetivos.phObjetivo}** *(rango 5.6–6.2)* | ${contexto.phObjetivo ?? 'Sin definir'} |`,
-      `| **EC Objetivo (Athena / USU)** | **${objetivos.ecObjetivo} mS/cm** | ${contexto.ecObjetivo ?? 'Sin definir'} |`,
-      `| **Modo Crop Steering Athena** | **${protocolo.tipoSteeringAthena}** | ${protocolo.tipoSteeringAthena.includes('Generativo')
-        ? 'Dryback 40–50% VWC'
-        : 'Dryback 20–30% VWC'
-      } |`,
-      `| **Clima Vegetación (Bajo LED)** | **${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR** | ${contexto.tempObjetivoVegetacion
+  // CASO 3: Auditoría General de la Sala (formato limpio en lista, sin tablas Markdown rotas)
+  const respuesta = [
+    `📊 **Auditoría Técnica Dr. Bruce Bugbee (USU) + Athena Ag (${protocolo.codigoKB})**`,
+    ``,
+    `Estado actual de **${contexto.nombre}** en **${protocolo.titulo}**:`,
+    `- **💧 pH de Entrada (Athena Balance):** Meta **${objetivos.phObjetivo}** *(actual: ${contexto.phObjetivo ?? 'Sin definir'})*`,
+    `- **⚡ EC Objetivo (${protocolo.tipoSteeringAthena}):** Meta **${objetivos.ecObjetivo} mS/cm** *(actual: ${contexto.ecObjetivo ?? 'Sin definir'})*`,
+    `- **🌱 Clima Vegetación (Bajo LED):** Meta **${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR** *(actual: ${
+      contexto.tempObjetivoVegetacion
         ? `${contexto.tempObjetivoVegetacion}°C / ${contexto.humedadObjetivoVegetacion}%`
         : 'Sin definir'
-      } |`,
-      `| **Clima Floración (Bajo LED)** | **${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR** | ${contexto.tempObjetivoFloracion
+    })*`,
+    `- **🌸 Clima Floración (Bajo LED):** Meta **${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR** *(actual: ${
+      contexto.tempObjetivoFloracion
         ? `${contexto.tempObjetivoFloracion}°C / ${contexto.humedadObjetivoFloracion}%`
         : 'Sin definir'
-      } |`,
-      `| **PPFD / DLI (Física USU)** | **${protocolo.ppfdRecomendado}** (${protocolo.dliRecomendado}) | ${objetivos.ppfdEstimadoSala
-        ? `~${objetivos.ppfdEstimadoSala} µmol/m²/s (DLI ~${objetivos.dliEstimadoSala})`
-        : 'Sin datos de W/m²'
-      } |`,
-      `| **VPD Meta / Fotoperíodo** | **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa** | ${protocolo.fotoperiodo} |`,
-      `| **Volumen Riego (15-25% Runoff)** | **~${objetivos.aguaDiariaObjetivo} L/día** | ${contexto.numeroplantas || '-'} plantas × ${contexto.litrosMaceta || '-'}L |`,
-      ``,
-      `### 🧪 Regla de Tanque Athena & Riego USU`,
-      `- **Orden de mezcla:** 1º Athena Balance (Silicio) -> 2º Pro Core (60% de Base, o Athena Fade en sem finales) -> 3º Pro Grow/Bloom -> 4º Athena Cleanse (2-5 mL/gal).`,
-      `- **Manejo del sustrato:** ${objetivos.sustratoDetectado.frecuenciaRiegoNota}`,
-      ``,
-      objetivos.alertasAuditoria.length > 0
-        ? `### ⚠️ Observaciones de Auditoría\n${objetivos.alertasAuditoria.map((a) => `- ${a}`).join('\n')}\n`
-        : '',
-      apuntesUsuario ? `📌 **Tus Apuntes Activos de la KB:** ${apuntesUsuario}\n` : '',
-      `👇 *Aplica los parámetros de Bruce Bugbee + Athena o agenda las tareas del protocolo con 1 clic:*`,
-    ]
-      .filter(Boolean)
-      .join('\n');
-
-    return {
-      respuesta,
-      accionesSugeridas: objetivos.accionesSugeridas,
-      fuentesConocimiento,
-      intencion,
-      esSuficienteSinLLM: true,
-    };
-  }
-
-  // CASO 4: Consulta abierta
-  const respuestaFallback = [
-    `🎓 **Motor Agronómico CanopIA — Dr. Bruce Bugbee (USU) + Athena Ag (${protocolo.codigoKB})**`,
+    })*`,
+    `- **☀️ Luz y Fotobiología (USU):** Sala con **~${objetivos.ppfdEstimadoSala ?? '-'} µmol/m²/s PPFD** (DLI ~${objetivos.dliEstimadoSala ?? '-'}) · Meta etapa: **${protocolo.ppfdRecomendado}**`,
+    `- **🌬️ VPD Meta y Riego:** **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa** · Volumen estimado **~${objetivos.aguaDiariaObjetivo} L/día** (con 15–25% runoff)`,
     ``,
-    `Para **${contexto.nombre}** (${objetivos.sustratoDetectado.nombre}, etapa **${protocolo.titulo}**):`,
-    ``,
-    `- **Parámetros Oficiales:** pH **${objetivos.phObjetivo}** · EC **${objetivos.ecObjetivo} mS/cm** · Steering **${protocolo.tipoSteeringAthena}** · VPD **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa**.`,
-    `- **Orden de Mezcla Athena:** 1º Balance -> 2º Core (o Fade en sem 8-9) -> 3º Grow/Bloom -> 4º Cleanse (2-5 mL/gal).`,
-    ``,
-    `### 📋 Reglas Críticas (USU + Athena Handbook)`,
-    ...protocolo.reglasCriticas.map((r) => `- ${r}`),
+    `### 🧪 Regla de Tanque Athena & Sustrato`,
+    `- **Orden de mezcla:** 1º Athena Balance -> 2º Pro Core (60% de Base) -> 3º Pro Grow/Bloom -> 4º Athena Cleanse (2-5 mL/gal).`,
+    `- **Manejo de riego:** ${objetivos.sustratoDetectado.frecuenciaRiegoNota}`,
+    objetivos.alertasAuditoria.length > 0
+      ? `\n### ⚠️ Observaciones Importantes en ${contexto.nombre}\n${objetivos.alertasAuditoria.map((a) => `- ${a}`).join('\n')}`
+      : '',
     apuntesUsuario ? `\n📌 **Tus Apuntes Activos de la KB:** ${apuntesUsuario}` : '',
-    ``,
-    `👇 *Acciones recomendadas desde la Base de Conocimiento:*`,
   ]
     .filter(Boolean)
     .join('\n');
 
   return {
-    respuesta: respuestaFallback,
+    respuesta,
     accionesSugeridas: objetivos.accionesSugeridas,
     fuentesConocimiento,
     intencion,

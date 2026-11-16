@@ -16,6 +16,7 @@ import {
  */
 const LaboratorioPage = () => {
   const [apuntesCustom, setApuntesCustom] = useState("");
+  const [openAiKeyInput, setOpenAiKeyInput] = useState("");
   const [guardadoOk, setGuardadoOk] = useState(false);
   const [guardandoDB, setGuardandoDB] = useState(false);
   const [iaActivaServer, setIaActivaServer] = useState<boolean | null>(null);
@@ -36,26 +37,36 @@ const LaboratorioPage = () => {
           setIaActivaServer(data.iaActivaEnServidor);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
-    const handleGuardarApuntes = async () => {
-      setGuardandoDB(true);
-      guardarApuntesPersonalizadosBugbee(apuntesCustom);
-      try {
-        await fetch("/api/conocimiento", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contenido: apuntesCustom }),
-        });
-      } catch {
-        // Fallback en localStorage ya guardado
-      } finally {
-        setGuardandoDB(false);
-        setGuardadoOk(true);
-        setTimeout(() => setGuardadoOk(false), 3000);
+  const handleGuardarApuntes = async () => {
+    setGuardandoDB(true);
+    guardarApuntesPersonalizadosBugbee(apuntesCustom);
+    try {
+      const res = await fetch("/api/conocimiento", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contenido: apuntesCustom,
+          ...(openAiKeyInput.trim() ? { openAiApiKey: openAiKeyInput.trim() } : {}),
+        }),
+      });
+      const data = await res.json();
+      if (typeof data?.iaActivaEnServidor === "boolean") {
+        setIaActivaServer(data.iaActivaEnServidor);
       }
-    };
+      if (openAiKeyInput.trim()) {
+        setOpenAiKeyInput("");
+      }
+    } catch {
+      // Fallback en localStorage ya guardado
+    } finally {
+      setGuardandoDB(false);
+      setGuardadoOk(true);
+      setTimeout(() => setGuardadoOk(false), 3000);
+    }
+  };
 
     return (
       <RequireAuth>
@@ -311,9 +322,28 @@ const LaboratorioPage = () => {
                         rows={3}
                         value={apuntesCustom}
                         onChange={(e) => setApuntesCustom(e.target.value)}
-                        placeholder="Ej: En mis salas usamos mezcla 50% turba + 50% vermiculita con 1.5 g/L de Wollastonita y fertilizante Peters 20-10-20 a 1.4 mS/cm constantes..."
+                        placeholder="Ej: En mis salas usamos mezcla 50% turba + 50% vermiculita con 1.5 g/L de Wollastonita y fertilizante Athena Pro Line a 2.2 mS/cm..."
                         className="w-full rounded-xl border border-emerald-200 bg-white p-3.5 text-sm text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
                       />
+
+                      <div className="pt-2 border-t border-emerald-200/60 flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div className="flex-1">
+                          <label className="block text-xs font-bold text-emerald-950 mb-1">
+                            🔑 API Key de OpenAI para Producción (MongoDB · Opcional si no está en variables del servidor)
+                          </label>
+                          <input
+                            type="password"
+                            value={openAiKeyInput}
+                            onChange={(e) => setOpenAiKeyInput(e.target.value)}
+                            placeholder={
+                              iaActivaServer
+                                ? "✓ API Key de OpenAI ya configurada y activa en el servidor (pega otra para reemplazarla)"
+                                : "Pega aquí tu sk-proj-... y haz clic en Guardar para activar el LLM en producción"
+                            }
+                            className="w-full rounded-xl border border-emerald-200 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-500 outline-none"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

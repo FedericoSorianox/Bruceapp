@@ -233,6 +233,52 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '', onAccionEjecut
     }
   };
 
+  const formatearInline = (linea: string): React.ReactNode[] => {
+    const partes = linea.split(/(\*\*[^*]+\*\*)/g);
+    return partes.map((parte, idx) => {
+      if (parte.startsWith('**') && parte.endsWith('**')) {
+        return (
+          <strong key={idx} className="font-bold">
+            {parte.slice(2, -2)}
+          </strong>
+        );
+      }
+      return <span key={idx}>{parte.replace(/\*/g, '')}</span>;
+    });
+  };
+
+  const renderContenidoFormateado = (texto: string, isUser: boolean) => {
+    if (isUser) {
+      return <div className="whitespace-pre-wrap text-sm sm:text-[15px] leading-relaxed">{texto}</div>;
+    }
+
+    const lineas = texto.split('\n');
+    return (
+      <div className="space-y-1.5 text-sm sm:text-[15px] leading-relaxed">
+        {lineas.map((linea, i) => {
+          const trim = linea.trim();
+          if (!trim) return <div key={i} className="h-1" />;
+          if (trim.startsWith('### ')) {
+            return (
+              <h4 key={i} className="font-extrabold text-slate-900 text-sm sm:text-base pt-2">
+                {formatearInline(trim.slice(4))}
+              </h4>
+            );
+          }
+          if (trim.startsWith('- ') || trim.startsWith('• ')) {
+            return (
+              <div key={i} className="flex items-start gap-2 pl-1">
+                <span className="text-emerald-600 font-bold mt-0.5">•</span>
+                <span className="flex-1">{formatearInline(trim.slice(2))}</span>
+              </div>
+            );
+          }
+          return <p key={i}>{formatearInline(trim)}</p>;
+        })}
+      </div>
+    );
+  };
+
   const renderMensaje = (msg: MensajeChat) => {
     const isUser = msg.tipo === 'user';
     const isSystem = msg.tipo === 'system';
@@ -291,9 +337,7 @@ const ChatIA: React.FC<ChatIAProps> = ({ cultivo, className = '', onAccionEjecut
           )}
 
           {/* Contenido del mensaje */}
-          <div className="whitespace-pre-wrap text-sm sm:text-[15px] leading-relaxed font-normal">
-            {msg.contenido}
-          </div>
+          {renderContenidoFormateado(msg.contenido, isUser)}
 
           {/* Acciones Estandarizadas de la Base de Conocimiento (1-Click Execution) */}
           {!isUser && msg.accionesSugeridas && msg.accionesSugeridas.length > 0 && (

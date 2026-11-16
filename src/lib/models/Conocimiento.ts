@@ -1,7 +1,7 @@
 /**
  * Modelo de Mongoose para la Base de Conocimiento Agronómica (MongoDB en Producción)
  * Permite almacenar y consultar reglas, protocolos y apuntes de Dr. Bruce Bugbee (USU)
- * y Athena Ag directamente en la base de datos de producción para el motor RAG de IA.
+ * y Athena Ag, así como la configuración del motor RAG en la base de datos de producción.
  */
 
 import mongoose, { Schema, Document, Model } from 'mongoose';
@@ -12,6 +12,7 @@ export interface ReglaConocimiento {
   titulo: string;
   fuente: string;
   contenido: string;
+  openAiApiKey?: string;
   actualizadoEn: string;
   actualizadoPor?: string;
   activo: boolean;
@@ -44,6 +45,11 @@ const ConocimientoSchema = new Schema<ConocimientoDocument>(
       type: String,
       default: '',
       maxlength: 20000,
+    },
+    openAiApiKey: {
+      type: String,
+      default: '',
+      trim: true,
     },
     actualizadoEn: {
       type: String,

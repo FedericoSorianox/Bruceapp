@@ -77,4 +77,35 @@ describe('CanopIA Agronomic Knowledge Base — Dr. Bruce Bugbee (USU) + Athena A
     expect(rag.systemPrompt).toContain('CONTEXTO COMPLETO DEL CULTIVO ACTUAL');
     expect(rag.systemPrompt.length).toBeLessThan(2200);
   });
+
+  it('analiza específicamente "la temperatura en flora esta en 28 grados" con VPD real y sin tablas rotas', () => {
+    const hace6Dias = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const lomas: ContextoCultivo = {
+      id: 'lomas1',
+      nombre: 'Lomas #1',
+      genetica: '24 kev',
+      sustrato: 'Coco+Perlita',
+      fechaComienzo: '2026-09-30',
+      fechaInicioFloracion: hace6Dias,
+      metrosCuadrados: 2.4,
+      numeroplantas: 12,
+      litrosMaceta: 7,
+      potenciaLamparas: 1600,
+      tempObjetivoFloracion: 23,
+      humedadObjetivoFloracion: 48,
+    };
+
+    const resTemp = generarRespuestaConocimientoLocal(
+      'la temperatura en flora esta en 28 grados',
+      lomas,
+      false
+    );
+
+    expect(resTemp.respuesta).toContain('28°C');
+    expect(resTemp.respuesta).toContain('Lomas #1');
+    expect(resTemp.respuesta).toContain('VPD');
+    expect(resTemp.respuesta).not.toContain('| :--- |');
+    expect(resTemp.accionesSugeridas.length).toBe(2);
+    expect(resTemp.accionesSugeridas[0].titulo).toContain('25°C');
+  });
 });
