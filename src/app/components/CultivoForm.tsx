@@ -214,16 +214,15 @@ export default function CultivoForm({
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wrapConsulta = async (
     setter: (val: string) => void,
     loader: (val: boolean) => void,
-    fetcher: (ctx: ContextoCultivo, ...args: any[]) => Promise<number | null>,
-    ...args: any[]
+    fetcher: (ctx: ContextoCultivo, fase: 'vegetacion' | 'floracion') => Promise<number | null>,
+    fase: 'vegetacion' | 'floracion'
   ) => {
     loader(true);
     try {
-      const res = await fetcher(crearContextoCultivo, ...args);
+      const res = await fetcher(crearContextoCultivo, fase);
       if (res !== null) {
         setter(res.toString());
         setProtocoloAplicadoMsg(
