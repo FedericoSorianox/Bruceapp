@@ -71,11 +71,17 @@ describe('CanopIA Agronomic Knowledge Base — Dr. Bruce Bugbee (USU) + Athena A
     expect(resPlan.respuesta).toContain('Athena Balance');
     expect(resPlan.accionesSugeridas.length).toBeGreaterThan(0);
 
-    const rag = construirPromptComprimidoRAG('¿Cómo optimizo el engorde con Athena?', contexto);
+    const rag = construirPromptComprimidoRAG('¿Cómo optimizo el engorde con Athena?', contexto, undefined, [
+      { tipo: 'user', contenido: 'la temperatura esta en 28' },
+      { tipo: 'user', contenido: 'tengo CO2 1200ppm y humedad 75' },
+    ]);
     expect(rag.systemPrompt).toContain('Bruce Bugbee');
     expect(rag.systemPrompt).toContain('Athena');
     expect(rag.systemPrompt).toContain('CONTEXTO COMPLETO DEL CULTIVO ACTUAL');
-    expect(rag.systemPrompt.length).toBeLessThan(2200);
+    expect(rag.systemPrompt).toContain('DATOS_REPORTADOS_EN_ESTA_CHARLA');
+    expect(rag.systemPrompt).toContain('Temp_Actual_Reportada=28°C');
+    expect(rag.systemPrompt).toContain('CO2_Reportado=1200ppm');
+    expect(rag.systemPrompt.length).toBeLessThan(2600);
   });
 
   it('analiza específicamente "la temperatura en flora esta en 28 grados" con VPD real y sin tablas rotas', () => {

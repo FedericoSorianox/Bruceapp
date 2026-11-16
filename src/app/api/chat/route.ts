@@ -21,6 +21,7 @@ import {
   generarRespuestaConocimientoLocal,
   construirPromptComprimidoRAG,
 } from '@/lib/knowledge/agronomicKnowledgeBase';
+import { resolveOpenAiApiKey } from '@/lib/knowledge/aiConfig';
 
 const N8N_WEBHOOK_URL =
   process.env.N8N_CHAT_WEBHOOK_URL || 'https://federicosoriano.app.n8n.cloud/webhook/chat-canopia';
@@ -87,12 +88,13 @@ export async function POST(request: NextRequest) {
     const rag = construirPromptComprimidoRAG(
       payload.message,
       payload.cultivoContext,
-      apuntesPersonalizadosDB
+      apuntesPersonalizadosDB,
+      payload.historialReciente
     );
 
-    const systemPromptConCalculo = `${rag.systemPrompt}\n--- 3. PRE-CÁLCULO CIENTÍFICO DE LA BASE DE CONOCIMIENTO PARA ESTA CONSULTA ---\n${resultadoKB.respuesta}\n\nINSTRUCCIÓN: Usa los datos exactos del Pre-Cálculo Científico y del Contexto del Cultivo para darle al usuario una respuesta directa, clara y personalizada a su mensaje. No uses tablas con barras "|", usa listas con viñetas claras.`;
+    const systemPromptConCalculo = `${rag.systemPrompt}\n--- 3. PRE-CÁLCULO CIENTÍFICO DE LA BASE DE CONOCIMIENTO PARA ESTA CONSULTA ---\n${resultadoKB.respuesta}\n\nINSTRUCCIÓN: Usa los datos exactos del Pre-Cálculo Científico y del Contexto del Cultivo para darle al usuario una respuesta directa, clara y conversacional a su mensaje, manteniendo continuidad con el historial. No uses tablas con barras "|", usa listas con viñetas claras.`;
 
-    const activeOpenAiKey = openAiKeyDB || process.env.OPENAI_API_KEY;
+    const activeOpenAiKey = resolveOpenAiApiKey(openAiKeyDB);
 
     // PASO 3A: Ejecutar IA con OpenAI (`gpt-4o-mini`) fundamentada en la Base de Conocimiento
     if (activeOpenAiKey) {
@@ -118,10 +120,11 @@ export async function POST(request: NextRequest) {
         const historialCompacto: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = (
           payload.historialReciente || []
         )
-          .slice(-3)
+          .filter((m) => m.tipo === 'user' || m.tipo === 'assistant')
+          .slice(-6)
           .map((m) => ({
             role: m.tipo === 'user' ? ('user' as const) : ('assistant' as const),
-            content: m.contenido.substring(0, 280),
+            content: m.contenido.substring(0, 450),
           }));
 
         const completion = await openai.chat.completions.create({
@@ -264,7 +267,7 @@ export async function GET() {
     success: true,
     message: 'Motor RAG CanopIA (Base de Conocimiento Bruce Bugbee + Athena Ag -> LLM) activo',
     kbActive: true,
-    openAiConfigured: Boolean(process.env.OPENAI_API_KEY),
+    openAiConfigured: Boolean(resolveOpenAiApiKey()),
     n8nWebhookUrl: N8N_WEBHOOK_URL,
   });
 }

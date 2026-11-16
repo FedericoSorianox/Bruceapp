@@ -182,7 +182,10 @@ export async function enviarMensajeDetalladoIA(
         email,
         cultivoContext: contexto,
         imagenes: imagenesPayload,
-        historialReciente: historial?.slice(-4),
+        historialReciente: historial
+          ?.filter((m) => m.tipo === 'user' || m.tipo === 'assistant')
+          .slice(-8)
+          .map((m) => ({ ...m, imagenes: undefined })),
         modo,
       };
 

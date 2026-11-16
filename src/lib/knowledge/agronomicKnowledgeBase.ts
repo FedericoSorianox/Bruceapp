@@ -1548,7 +1548,8 @@ export function generarRespuestaConocimientoLocal(
 export function construirPromptComprimidoRAG(
   mensaje: string,
   contexto: ContextoCultivo,
-  apuntesExtraDB?: string
+  apuntesExtraDB?: string,
+  historialReciente?: Array<{ tipo?: string; contenido?: string }>
 ): {
   systemPrompt: string;
   userPrompt: string;
@@ -1558,22 +1559,33 @@ export function construirPromptComprimidoRAG(
   const objetivos = calcularObjetivosAgronomicos(contexto);
   const protocolo = PROTOCOLOS_ETAPA_KB[objetivos.subEtapaActual];
   const patologias = buscarPatologiasKB(mensaje);
+  const telemetria = extraerTelemetriaConversacion(mensaje, historialReciente);
   const apuntesCombinados = [obtenerApuntesPersonalizadosBugbee(), apuntesExtraDB]
     .filter(Boolean)
     .join(' | ');
 
   const patologiaSnippet =
     patologias.length > 0
-        ? `PATOLOGIA_DETECTADA_KB(${patologias[0].codigoKB}): ${patologias[0].nombre} | Causa: ${patologias[0].causaRaiz} | Tratamiento: ${patologias[0].tratamientoMineral.join(' ')}`
-        : '';
+      ? `PATOLOGIA_DETECTADA_KB(${patologias[0].codigoKB}): ${patologias[0].nombre} | Causa: ${patologias[0].causaRaiz} | Tratamiento: ${patologias[0].tratamientoMineral.join(' ')}`
+      : '';
 
   const comentariosSnippet =
     contexto.comentariosRecientes && contexto.comentariosRecientes.length > 0
       ? `BITACORA_RECIENTE: ${contexto.comentariosRecientes
-        .slice(0, 4)
-        .map((c) => `[${c.fecha?.split('T')[0] || ''} - ${c.tipo}] ${c.titulo}: ${c.contenido.substring(0, 90)}`)
-        .join(' | ')}`
+          .slice(0, 4)
+          .map((c) => `[${c.fecha?.split('T')[0] || ''} - ${c.tipo}] ${c.titulo}: ${c.contenido.substring(0, 90)}`)
+          .join(' | ')}`
       : '';
+
+  const datosReportadosEnCharla = [
+    telemetria.temp !== undefined ? `Temp_Actual_Reportada=${telemetria.temp}°C` : '',
+    telemetria.hr !== undefined ? `HR_Actual_Reportada=${telemetria.hr}%` : '',
+    telemetria.co2 !== undefined ? `CO2_Reportado=${telemetria.co2}ppm` : '',
+    telemetria.ph !== undefined ? `pH_Reportado=${telemetria.ph}` : '',
+    telemetria.ec !== undefined ? `EC_Reportada=${telemetria.ec}mS` : '',
+  ]
+    .filter(Boolean)
+    .join(' | ');
 
   const accionesDisponibles = [
     ...patologias.flatMap((p) => p.accionesCorrectivas),
@@ -1581,20 +1593,24 @@ export function construirPromptComprimidoRAG(
   ];
 
   const systemPrompt = [
-    `Eres el Ingeniero Agrónomo IA de CanopIA. REGLA DE ORO: Toma SIEMPRE PRIMERO como fuente de verdad la Base de Conocimiento Oficial (Dr. Bruce Bugbee - Utah State University & Manual Oficial Athena Ag) y el Contexto Completo del Cultivo provistos abajo, y luego razona para responder la consulta del usuario con precisión científica (máx 220 palabras).`,
+    `Eres el Ingeniero Agrónomo Senior de CanopIA conversando en tiempo real con el cultivador de la sala "${contexto.nombre}".`,
+    `REGLAS DE CONVERSACIÓN E INTELIGENCIA:`,
+    `1. Mantén una CONVERSACIÓN FLUIDA Y CON MEMORIA: conecta siempre tu respuesta con lo que el usuario viene diciendo en los mensajes anteriores del historial y con los DATOS_REPORTADOS_EN_ESTA_CHARLA. NO repitas toda la ficha general de la sala si ya están hablando de un tema puntual (ej. temperatura, humedad, CO2, riego o una carencia).`,
+    `2. Tu fuente de verdad científica es 100% Dr. Bruce Bugbee ("The Science and Technology of Medical Cannabis Cultivation", Utah State University) y el Manual Oficial de Fertilizantes Athena Ag (Pro/Blended Line & Crop Steering).`,
+    `3. Usa formato limpio con subtítulos (###), viñetas (-) y negritas (**). Prohibido usar tablas con barras "|".`,
     `--- 1. REFERENCIA DE BASE DE CONOCIMIENTO (${protocolo.codigoKB}) ---`,
     `ETAPA: ${protocolo.titulo} | STEERING_ATHENA: ${protocolo.tipoSteeringAthena}.`,
-    `METAS_KB: pH=${objetivos.phObjetivo} (Mezcla Athena: 1ºBalance->2ºCore->3ºGrow/Bloom/Fade->4ºCleanse), EC=${objetivos.ecObjetivo}mS (Runoff 15-25%), Temp/HR_Vege=${objetivos.tempObjetivoVegetacion}C/${objetivos.humedadObjetivoVegetacion}%, Temp/HR_Flora=${objetivos.tempObjetivoFloracion}C/${objetivos.humedadObjetivoFloracion}%, VPD=${protocolo.vpdRango[0]}-${protocolo.vpdRango[1]}kPa, PPFD_Ideal=${protocolo.ppfdRecomendado} (${protocolo.dliRecomendado}), Agua_Sala=~${objetivos.aguaDiariaObjetivo}L/dia.`,
+    `METAS_KB: pH=${objetivos.phObjetivo} (Mezcla Athena: 1ºBalance->2ºCore->3ºGrow/Bloom/Fade->4ºCleanse), EC=${objetivos.ecObjetivo}mS (Runoff 15-25%), Temp/HR_Vege=${objetivos.tempObjetivoVegetacion}C/${objetivos.humedadObjetivoVegetacion}%, Temp/HR_Flora=${objetivos.tempObjetivoFloracion}C/${objetivos.humedadObjetivoFloracion}% (o 27-28C / 60% HR si inyecta 1000-1200ppm CO2 en Sem 1-5), VPD=${protocolo.vpdRango[0]}-${protocolo.vpdRango[1]}kPa, PPFD_Ideal=${protocolo.ppfdRecomendado} (${protocolo.dliRecomendado}), Agua_Sala=~${objetivos.aguaDiariaObjetivo}L/dia.`,
     `REGLAS_KB: ${protocolo.reglasCriticas.join(' | ')}`,
     patologiaSnippet,
     apuntesCombinados ? `REGLAS_PERSONALIZADAS_DB: ${apuntesCombinados.substring(0, 350)}` : '',
     `--- 2. CONTEXTO COMPLETO DEL CULTIVO ACTUAL ---`,
     `DATOS_SALA: Nombre="${contexto.nombre}" | Genética="${contexto.genetica || 'No especificada'}" (${objetivos.geneticaDetectada}) | Sustrato="${contexto.sustrato || 'Tierra'}" (${objetivos.sustratoDetectado.nombre}) | InicioVege=${contexto.fechaComienzo || 'N/A'} | InicioFlora=${contexto.fechaInicioFloracion || 'En Vegetación'} | DíasTotales=${contexto.diasDesdeInicio ?? '?'}d.`,
     `FISICA_SALA: Área=${contexto.metrosCuadrados ?? '?'}m2 | Plantas=${contexto.numeroplantas ?? '?'} (${contexto.plantasPorM2 ? Number(contexto.plantasPorM2).toFixed(1) : '?'}/m2) | Macetas=${contexto.litrosMaceta ?? '?'}L (Total=${contexto.litrosTotales ?? '?'}L) | Luz=${contexto.potenciaLamparas ?? '?'}W (${contexto.wattsPorM2 ? Math.round(contexto.wattsPorM2) : '?'}W/m2 -> PPFD_Est=${objetivos.ppfdEstimadoSala ?? '?'}umol/m2/s, DLI_Est=${objetivos.dliEstimadoSala ?? '?'}mol/m2/d).`,
-    `CONFIG_ACTUAL_SALA: pH_Actual=${contexto.phObjetivo ?? 'Sin definir'}, EC_Actual=${contexto.ecObjetivo ?? 'Sin definir'}, ClimaVege_Actual=${contexto.tempObjetivoVegetacion ?? '?'}C/${contexto.humedadObjetivoVegetacion ?? '?'}%, ClimaFlora_Actual=${contexto.tempObjetivoFloracion ?? '?'}C/${contexto.humedadObjetivoFloracion ?? '?'}%.`,
+    `CONFIG_GUARDADA_SALA: pH=${contexto.phObjetivo ?? 'Sin definir'}, EC=${contexto.ecObjetivo ?? 'Sin definir'}, ClimaVege=${contexto.tempObjetivoVegetacion ?? '?'}C/${contexto.humedadObjetivoVegetacion ?? '?'}%, ClimaFlora=${contexto.tempObjetivoFloracion ?? '?'}C/${contexto.humedadObjetivoFloracion ?? '?'}%.`,
+    datosReportadosEnCharla ? `DATOS_REPORTADOS_EN_ESTA_CHARLA: ${datosReportadosEnCharla}` : '',
     contexto.notas ? `NOTAS_OPERATIVAS_SALA: ${contexto.notas.substring(0, 250)}` : '',
     comentariosSnippet,
-    objetivos.alertasAuditoria.length > 0 ? `ALERTAS_AUDITORIA: ${objetivos.alertasAuditoria.join(' | ')}` : '',
   ]
     .filter(Boolean)
     .join('\n');
