@@ -136,7 +136,17 @@ describe('CanopIA Agronomic Knowledge Base — Dr. Bruce Bugbee (USU) + Athena A
     );
     expect(resAgua.respuesta).toContain('1.78 litros/día');
     expect(resAgua.respuesta).toContain('21.3 L/día');
-    expect(resAgua.respuesta).toContain('Dryback nocturno del 40–50%');
+    expect(resAgua.respuesta).toContain('Dryback nocturno');
     expect(resAgua.accionesSugeridas[0].titulo).toContain('1.78 L/planta');
+
+    // Pregunta conversacional abierta: NO debe volcar toda la ficha de auditoría de sala
+    const resAbierta = generarRespuestaConocimientoLocal(
+      'gracias, perfecto',
+      lomas,
+      false,
+      [{ tipo: 'user', contenido: 'la temperatura esta en 28' }]
+    );
+    expect(resAbierta.respuesta).not.toContain('Auditoría Técnica');
+    expect(resAbierta.accionesSugeridas.length).toBe(0);
   });
 });

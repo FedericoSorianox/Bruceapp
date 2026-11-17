@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       payload.historialReciente
     );
 
-    const systemPromptConCalculo = `${rag.systemPrompt}\n--- 3. PRE-CÁLCULO CIENTÍFICO DE LA BASE DE CONOCIMIENTO PARA ESTA CONSULTA ---\n${resultadoKB.respuesta}\n\nINSTRUCCIÓN: Usa los datos exactos del Pre-Cálculo Científico y del Contexto del Cultivo para darle al usuario una respuesta directa, clara y conversacional a su mensaje, manteniendo continuidad con el historial. No uses tablas con barras "|", usa listas con viñetas claras.`;
+    const systemPromptConCalculo = rag.systemPrompt;
 
     const activeOpenAiKey = resolveOpenAiApiKey(openAiKeyDB);
 
