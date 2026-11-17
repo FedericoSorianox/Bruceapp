@@ -1016,16 +1016,10 @@ export function detectarIntencionConsulta(
     .replace(/[\u0300-\u036f]/g, '');
 
   if (
-    m.includes('tarea') ||
-    m.includes('accion') ||
+    /\b(tarea|tareas|accion|acciones|planificar|planifica|calendario|checklist)\b/.test(m) ||
     m.includes('que hacer') ||
     m.includes('que le hago') ||
-    m.includes('planifica') ||
-    m.includes('calendario') ||
-    m.includes('checklist') ||
-    m.includes('semana') ||
-    m.includes('steering') ||
-    m.includes('dryback')
+    m.includes('plan de acciones')
   ) {
     return 'plan_tareas_acciones';
   }
@@ -1261,6 +1255,38 @@ export function generarRespuestaConocimientoLocal(
       mNorm.includes('luces') ||
       mNorm.includes('panel') ||
       mNorm.includes('watts'));
+
+  // ANÁLISIS ESPECÍFICO DE VENTILACIÓN / EXTRACCIÓN / INTRACCIÓN / SALA CERRADA
+  if (
+    mNorm.includes('extraccion') ||
+    mNorm.includes('intraccion') ||
+    mNorm.includes('ventilacion') ||
+    mNorm.includes('ventilador') ||
+    mNorm.includes('sala cerrada') ||
+    mNorm.includes('capa limite') ||
+    /\baire\b/.test(mNorm)
+  ) {
+    const tieneCo2Previo = Boolean(telemetria.co2 && telemetria.co2 >= 800);
+    const respuestaAire = [
+      `🌬️ **Manejo de Aire, Extracción e Intracción en ${contexto.nombre} (Dr. Bruce Bugbee USU)**`,
+      ``,
+      tieneCo2Previo
+        ? `Como mencionaste que trabajas con **${telemetria.co2} ppm de CO2**, tu sala funciona como **Sala Cerrada (Sealed Room)**:`
+        : `Depende de si tu sala es **Abierta** o **Cerrada con CO2**:`,
+      ``,
+      `- **Si es Sala Abierta (sin inyección de CO2):** **NO está bien** no tener extracción/intracción. Las plantas consumen el CO2 ambiental (~420 ppm) en pocos minutos tras encender los **${contexto.potenciaLamparas || 1600}W LED**, frenando la fotosíntesis y acumulando calor y humedad (riesgo de *Botrytis*). Necesitas renovación de aire continua.`,
+      `- **Si es Sala Cerrada (con CO2 suplementario 1000–1200 ppm):** **SÍ puede funcionar sin extracción ni intracción hacia el exterior**, siempre que tengas **Aire Acondicionado + Deshumidificador** dimensionados para controlar temperatura y humedad internamente.`,
+      `- **Regla Obligatoria de Bruce Bugbee (Velocidad del Viento):** Tanto en sala abierta como cerrada, necesitas **ventiladores oscilantes internos** que muevan el aire a **0.5–1.0 m/s** sobre e interior de la canopia para romper la **capa límite estomática**, permitir la entrada de CO2/salida de vapor y evitar bolsas de humedad en las flores.`,
+    ].join('\n');
+
+    return {
+      respuesta: respuestaAire,
+      accionesSugeridas: [],
+      fuentesConocimiento,
+      intencion,
+      esSuficienteSinLLM: false,
+    };
+  }
 
   // ANÁLISIS MULTIVARIABLE DE CLIMA (Temperatura + Humedad + CO2 cruzados con el historial del chat)
   if (telemetria.mencionoClimaActual || esPreguntaSeguimientoClima) {

@@ -139,6 +139,18 @@ describe('CanopIA Agronomic Knowledge Base — Dr. Bruce Bugbee (USU) + Athena A
     expect(resAgua.respuesta).toContain('Dryback nocturno');
     expect(resAgua.accionesSugeridas[0].titulo).toContain('1.78 L/planta');
 
+    // Pregunta sobre intracción/extracción: NO debe confundirse con "accion" -> plan_tareas_acciones
+    const resAire = generarRespuestaConocimientoLocal(
+      'esta bien que no tenga intraccion ni extraccion de aire de la sala?',
+      lomas,
+      false,
+      [{ tipo: 'user', contenido: 'tengo CO2 1200ppm en el cultivo' }]
+    );
+    expect(resAire.respuesta).toContain('Sala Cerrada');
+    expect(resAire.respuesta).toContain('0.5–1.0 m/s');
+    expect(resAire.respuesta).not.toContain('Protocolo Operativo');
+    expect(resAire.accionesSugeridas.length).toBe(0);
+
     // Pregunta conversacional abierta: NO debe volcar toda la ficha de auditoría de sala
     const resAbierta = generarRespuestaConocimientoLocal(
       'gracias, perfecto',
