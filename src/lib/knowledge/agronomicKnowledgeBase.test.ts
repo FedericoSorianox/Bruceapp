@@ -161,4 +161,40 @@ describe('CanopIA Agronomic Knowledge Base — Dr. Bruce Bugbee (USU) + Athena A
     expect(resAbierta.respuesta).not.toContain('Auditoría Técnica');
     expect(resAbierta.accionesSugeridas.length).toBe(0);
   });
+
+  it('responde con precisión sobre poda/defoliación (incluso con errores de ortografía), cosecha y patologías en 0 tokens y RAG', () => {
+    const hace6Dias = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const lomas: ContextoCultivo = {
+      id: 'lomas1',
+      nombre: 'Lomas #1',
+      genetica: '24 kev',
+      sustrato: 'Coco+Perlita',
+      fechaComienzo: '2026-09-30',
+      fechaInicioFloracion: hace6Dias,
+      metrosCuadrados: 2.4,
+      numeroplantas: 12,
+      litrosMaceta: 7,
+      potenciaLamparas: 1600,
+    };
+
+    const resPoda = generarRespuestaConocimientoLocal('cuando me combiene hacer poda ?', lomas, false);
+    expect(resPoda.esSuficienteSinLLM).toBe(true);
+    expect(resPoda.respuesta).toContain('Día 21');
+    expect(resPoda.respuesta).toContain('Lollipopping');
+    expect(resPoda.respuesta).toContain('NO hagas poda apical');
+    expect(resPoda.accionesSugeridas.length).toBe(1);
+    expect(resPoda.accionesSugeridas[0].categoriaTarea).toBe('poda');
+
+    const ragPoda = construirPromptComprimidoRAG('cuando me combiene hacer poda ?', lomas);
+    expect(ragPoda.systemPrompt).toContain('GUIA_PODA');
+    expect(ragPoda.systemPrompt.length).toBeLessThan(2800);
+
+    const resCosecha = generarRespuestaConocimientoLocal('cuando cosecho y como seco?', lomas, false);
+    expect(resCosecha.respuesta).toContain('Athena Fade');
+    expect(resCosecha.respuesta).toContain('tricomas');
+
+    const patologiasOidio = buscarPatologiasKB('tengo oideo en las hojas');
+    expect(patologiasOidio.length).toBeGreaterThan(0);
+    expect(patologiasOidio[0].codigoKB).toBe('USU-ATH-PAT-FUNGI');
+  });
 });

@@ -972,10 +972,7 @@ export function calcularObjetivosAgronomicos(
  */
 export function buscarPatologiasKB(texto: string): PatologiaKB[] {
   if (!texto.trim()) return [];
-  const norm = texto
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+  const norm = normalizarTextoConsulta(texto);
 
   const puntuadas = PATOLOGIAS_KB.map((pat) => {
     let score = 0;
@@ -1195,6 +1192,243 @@ export function extraerTelemetriaConversacion(
  * Construye una respuesta experta, conversacional y específica para la consulta del usuario
  * basada 100% en el Corpus Dr. Bruce Bugbee (USU) + Athena Ag y el contexto + historial real de la sala.
  */
+/**
+ * Normaliza texto en español tolerando errores ortográficos comunes de cultivadores
+ */
+function normalizarTextoConsulta(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\bcombiene\b/g, 'conviene')
+    .replace(/\boideo\b/g, 'oidio')
+    .replace(/\blolipop\b/g, 'lollipop')
+    .replace(/\btransplan/g, 'trasplan')
+    .replace(/\baranuela\b/g, 'arana')
+    .replace(/\bbotrit/g, 'botryt')
+    .replace(/\bhechar\b/g, 'echar');
+}
+
+function calcularDiasEnFloracion(fechaInicioFloracion?: string): number | undefined {
+  if (!fechaInicioFloracion) return undefined;
+  const inicio = new Date(fechaInicioFloracion).getTime();
+  if (Number.isNaN(inicio)) return undefined;
+  const diffDias = Math.floor((Date.now() - inicio) / (1000 * 60 * 60 * 24));
+  return diffDias >= 0 ? diffDias : undefined;
+}
+
+interface RespuestaTemaAgronomico {
+  respuesta: string;
+  accionesSugeridas: AccionConocimiento[];
+  resumenRAG: string;
+}
+
+function resolverTemaAgronomicoLocal(
+  mNorm: string,
+  contexto: ContextoCultivo,
+  objetivos: ObjetivosCalculadosKB,
+  protocolo: ProtocoloEtapaKB
+): RespuestaTemaAgronomico | null {
+  const diasFlora = calcularDiasEnFloracion(contexto.fechaInicioFloracion);
+  const esAuto = objetivos.geneticaDetectada === 'auto';
+  const subEtapa = objetivos.subEtapaActual;
+
+  // 1. PODA / DEFOLIACIÓN / LOLLIPOPPING / APICAL / LST / SCROG
+  if (
+    /\b(poda|podar|pode|podo|defoli\w*|deshoj\w*|lollipop\w*|apical\w*|topping|fimming|fim|lst|scrog|entrenudo\w*)\b/.test(
+      mNorm
+    ) ||
+    mNorm.includes('limpieza de bajos') ||
+    mNorm.includes('sacar hojas') ||
+    mNorm.includes('cortar hojas') ||
+    mNorm.includes('malla')
+  ) {
+    const lineas: string[] = [
+      `✂️ **Estrategia de Poda y Manejo de Canopia para ${contexto.nombre} (${protocolo.titulo})**`,
+      ``,
+    ];
+    const acciones: AccionConocimiento[] = [];
+    let resumenRAG = '';
+
+    if (subEtapa === 'germinacion_esquejes') {
+      lineas.push(
+        `- **Todavía NO podes:** En esta etapa la prioridad es expandir masa radicular y lograr al menos **4–5 nudos reales** antes de intervenir.`,
+        `- **Cuándo empezar:** En **vegetación temprana** (4º–5º nudo) podrás hacer **LST suave**${esAuto ? ' (en autoflorecientes evita podas apicales agresivas)' : ' o **poda apical (topping)**'}.`
+      );
+      resumenRAG = 'GUIA_PODA: Etapa germinación/esquejes -> NO podar aún; esperar 4-5 nudos reales.';
+    } else if (subEtapa === 'vegetacion_temprana' || subEtapa === 'vegetacion_avanzada') {
+      lineas.push(
+        esAuto
+          ? `- **Genética Autofloreciente:** Prioriza **LST (amarre de bajo estrés)** y defolia solo hojas abanico puntuales que tapen brotes. Evita podas apicales tardías para no frenar el ciclo.`
+          : `- **Poda Apical (Topping) / LST / SCROG:** Estás en la ventana correcta. Haz poda apical sobre el **4º–6º nudo** para multiplicar colas principales y nivela la canopia bajo los **~${objetivos.ppfdEstimadoSala ?? 550} µmol/m²/s** de tu sala.`,
+        `- **Limpieza Pre-Flora (Lollipopping suave):** Realiza la poda de ramas bajas débiles **5 a 7 días antes de pasar a 12/12**, dándole tiempo a la planta de recuperarse antes del *stretch*.`,
+        `- **Post-poda (Bugbee + Athena):** Mantén **VPD en ${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa** y **Athena Balance** en tanque para reforzar pared celular con Silicio.`
+      );
+      acciones.push({
+        id: `kb-poda-vege-${Date.now()}`,
+        codigoKB: 'USU-ATH-PODA-VEGE',
+        tipoAccion: 'crear_tarea',
+        titulo: `Limpieza de bajos y nivelación de canopia pre-flora en ${contexto.nombre}`,
+        descripcion:
+          'Retirar brotes inferiores sin llegada de luz y nivelar ramas principales 5-7 días antes del cambio a 12/12.',
+        categoriaTarea: 'poda',
+        prioridad: 'alta',
+        diasOffset: 2,
+        duracionEstimada: 40,
+      });
+      resumenRAG =
+        'GUIA_PODA: En Vegetación -> Topping en 4-6 nudo (no en autos), LST/SCROG para uniformidad PPFD, limpieza de bajos 5-7 días antes de 12/12.';
+    } else if (subEtapa === 'stretch_preflora') {
+      const diasRestantesDia21 = diasFlora !== undefined ? Math.max(0, 21 - diasFlora) : 7;
+      const infoDia =
+        diasFlora !== undefined
+          ? `Llevas **${diasFlora} días de floración**${diasFlora >= 18 && diasFlora <= 23 ? ' (estás justo en la ventana óptima del Día 21)' : ''}.`
+          : `Estás en **Semanas 1–3 de Floración (Stretch)**. `;
+
+      lineas.push(
+        `- **Momento exacto:** ${infoDia} La ventana comercial ideal para la poda fuerte (**Defoliación estratégica + Lollipopping**) es el **Día 21 de floración** (al terminar el estiramiento / *stretch*).`,
+        diasFlora !== undefined && diasFlora < 18
+          ? `- **Qué hacer hoy (Día ${diasFlora}):** Evita podas drásticas ahora mismo. Solo retira alguna hoja grande que bloquee brotes centrales y espera **~${diasRestantesDia21} días** hasta el **Día 21** para limpiar el tercio inferior completo.`
+          : `- **Qué podar en Día 21:** Limpia el **tercio inferior (lollipopping)** de ramas y brotes que no reciben PPFD útil, y retira hojas abanico grandes del tercio medio que sombreen sitios florales o frenen el flujo de aire (**>0.5–0.8 m/s**, regla Bugbee).`,
+        `- **Prohibido en esta etapa:** **NO hagas poda apical (topping)** ni podas estructurales pesadas una vez iniciada la floración, porque desvías energía hormonal cuando la planta está formando los sitios florales.`,
+        `- **Recuperación:** Tras defoliar en Día 21, mantén **VPD ${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa**, **EC ${objetivos.ecObjetivo} mS/cm** y tu **Dryback Generativo (40–50%)** sin estrés hídrico extremo las primeras 48h.`
+      );
+      acciones.push({
+        id: `kb-poda-dia21-${Date.now()}`,
+        codigoKB: 'USU-ATH-PODA-D21',
+        tipoAccion: 'crear_tarea',
+        titulo:
+          diasFlora !== undefined && diasFlora >= 18
+            ? `Ejecutar Defoliación + Lollipopping (Día 21 de Flora) en ${contexto.nombre}`
+            : `Programar Defoliación + Lollipopping al Día 21 de Flora (en ${diasRestantesDia21} días)`,
+        descripcion:
+          'Protocolo Athena + USU: Limpiar tercio inferior improductivo y retirar hojas abanico que sombreen sitios florales para maximizar PPFD útil y flujo de aire intracanopia.',
+        categoriaTarea: 'poda',
+        prioridad: diasFlora !== undefined && diasFlora >= 18 ? 'urgente' : 'alta',
+        diasOffset: diasRestantesDia21,
+        duracionEstimada: 45,
+      });
+      resumenRAG = `GUIA_PODA: En Stretch (Sem 1-3 Flora, día ${diasFlora ?? '?'}) -> Ventana ideal Defoliación + Lollipopping es DÍA 21 de flora (limpiar tercio inferior + hojas que sombreen flores, mejorar flujo aire >0.8 m/s). PROHIBIDO topping en flora.`;
+    } else if (subEtapa === 'floracion_temprana') {
+      lineas.push(
+        `- **Ventana límite (Semanas 4–5):** Si no hiciste la limpieza del **Día 21**, puedes hacer una **defoliación selectiva ligera** esta semana (solo hojas abanico que tapen cogollos directos o bloqueen ventilación).`,
+        `- **Evita cortes pesados:** Ya estás en fase **Bulking (Engorde)**; podar ramas o quitar demasiada masa foliar ahora reduce la capacidad fotosintética y frena el calibre floral.`
+      );
+      resumenRAG =
+        'GUIA_PODA: Semanas 4-5 (Bulking) -> Solo defoliación selectiva ligera si faltó en Día 21; evitar podas pesadas para no frenar engorde.';
+    } else {
+      lineas.push(
+        `- **NO podar ni defoliar fuerte en ${protocolo.titulo}:** En semanas avanzadas de floración o maduración, cualquier poda genera estrés innecesario y reduce el peso final y los terpenos.`,
+        `- **Única excepción:** Retirar manualmente solo **hojas amarillas/senescentes** o alguna hoja pegada a una cola densa que pueda retener humedad y provocar *Botrytis*.`
+      );
+      resumenRAG =
+        'GUIA_PODA: Flora avanzada/maduración -> NO podar; solo retirar hojas senescentes o que generen riesgo de Botrytis.';
+    }
+
+    return { respuesta: lineas.join('\n'), accionesSugeridas: acciones, resumenRAG };
+  }
+
+  // 2. CAMBIO A FLORACIÓN / FOTOPERÍODO / STRETCH / SEXADO
+  if (
+    mNorm.includes('12/12') ||
+    mNorm.includes('18/6') ||
+    mNorm.includes('fotoperiodo') ||
+    mNorm.includes('cambio a flora') ||
+    mNorm.includes('pasar a flora') ||
+    mNorm.includes('cuando floro') ||
+    mNorm.includes('stretch') ||
+    mNorm.includes('estiramiento') ||
+    mNorm.includes('hermafrodita') ||
+    mNorm.includes('macho')
+  ) {
+    const factorStretch =
+      objetivos.geneticaDetectada === 'sativa'
+        ? '2.5x a 3x su altura actual'
+        : objetivos.geneticaDetectada === 'indica'
+          ? '1.5x a 2x su altura actual'
+          : '1.8x a 2.2x su altura actual';
+    const lineas = [
+      `🌗 **Fotoperíodo, Cambio a Floración y Control de Stretch (${contexto.nombre})**`,
+      ``,
+      esAuto
+        ? `- **Genética Autofloreciente:** No requiere cambio a 12/12; florece por edad (~día 21–28) manteniendo **18/6 o 20/4** todo el ciclo.`
+        : `- **Cuándo pasar a 12/12:** Cambia a floración cuando la canopia cubra el **70–80% del área útil** (${contexto.metrosCuadrados ?? '?'} m²), considerando que tu genética (${objetivos.geneticaDetectada}) estirará **${factorStretch}** en las primeras 3 semanas.`,
+      `- **Manejo Athena del Stretch (Sem 1–3):** Aplica **Steering Generativo** (Dryback nocturno **40–50%**, primer pulso **2–3h** tras encender luces) y mantén **diferencial térmico día/noche (DIF) cercano a 0–2°C** para compactar entrenudos.`,
+      `- **DLI bajo 12/12 (Bugbee USU):** Al bajar de 18h a 12h de luz, sube progresivamente el PPFD hacia **${protocolo.ppfdRecomendado}** para sostener un DLI de **${protocolo.dliRecomendado}**.`,
+    ];
+    return {
+      respuesta: lineas.join('\n'),
+      accionesSugeridas: [],
+      resumenRAG: `GUIA_FOTOPERIODO: Genética ${objetivos.geneticaDetectada} (stretch ${factorStretch}); Steering Generativo Sem 1-3 (Dryback 40-50%, DIF bajo).`,
+    };
+  }
+
+  // 3. COSECHA / TRICOMAS / LAVADO / FADE / SECADO Y CURADO
+  if (
+    /\b(cosech\w*|cortar|corte|tricom\w*|ambar|lechoso\w*|lupa|lavado|flush|secado|secar|curado|curar|manicur\w*|clorofila)\b/.test(
+      mNorm
+    )
+  ) {
+    const lineas = [
+      `🌾 **Protocolo de Cosecha, Maduración y Secado (${contexto.nombre})**`,
+      ``,
+      `- **Finalización sin Bloqueo (Athena Fade + Bugbee):** En las últimas **2 semanas**, reemplaza **Pro Core** por **Athena Fade** (0% Nitrógeno manteniendo Calcio y micronutrientes para evitar *Botrytis* y degradar clorofila). Reduce la EC gradualmente los últimos 5–7 días.`,
+      `- **Punto de Corte (Tricomas):** Observa los cálices (no las hojas de azúcar) con lupa 60x: cosecha con **80–90% de tricomas lechosos** y **10–20% ámbar** según el perfil de efecto buscado.`,
+      `- **Clima Pre-Cosecha (Últimas 2 semanas):** Baja a **20–23°C** y **45% HR** para preservar monoterpenos volátiles.`,
+      `- **Secado y Curado (10–14 días):** Seca a **18–20°C / 55–60% HR** en oscuridad total con circulación de aire indirecta (nunca ventilador directo a las flores) hasta que el tallo haga *snap*, y luego cura en frascos manteniendo **58–62% HR**.`,
+    ];
+    return {
+      respuesta: lineas.join('\n'),
+      accionesSugeridas: [],
+      resumenRAG:
+        'GUIA_COSECHA: Últimas 2 sem Athena Fade (0% N + Ca), corte con 80-90% tricomas lechosos / 10-20% ámbar, clima 20-23C/45%HR, secado 18-20C/55-60%HR 10-14d.',
+    };
+  }
+
+  // 4. TRASPLANTE / MACETAS / RAÍCES / INOCULANTES
+  if (
+    /\b(trasplan\w*|maceta\w*|raiz|raices|radicular\w*|micorriza\w*|trichoderma\w*|enzima\w*|enraizar|esqueje\w*|clon\w*)\b/.test(
+      mNorm
+    )
+  ) {
+    const lineas = [
+      `🪴 **Manejo Radicular, Trasplante y Sustrato (${objetivos.sustratoDetectado.nombre.split('/')[0].trim()})**`,
+      ``,
+      `- **Cuándo trasplantar:** Hazlo antes de que las raíces den vueltas en espiral (*root-bound*), idealmente **3 a 5 días antes de pasar a 12/12** para que colonicen la maceta definitiva (**${contexto.litrosMaceta ?? 7} L** actuales) durante el inicio del *stretch*.`,
+      `- **Oxígeno Radicular (Bruce Bugbee USU):** En **${objetivos.sustratoDetectado.id === 'coco' ? 'Coco/Perlita' : objetivos.sustratoDetectado.nombre.split('/')[0].trim()}**, nunca dejes agua estancada en platos; asegura drenaje libre y buena aireación para evitar *Pythium*.`,
+      `- **Cleanse vs Biológicos:** Si usas **Athena Cleanse** (ácido hipocloroso para ORP >350 mV y raíces blancas), **no lo mezcles** en el mismo tanque con micorrizas/trichodermas vivos porque el HOCl los oxida.`,
+    ];
+    return {
+      respuesta: lineas.join('\n'),
+      accionesSugeridas: [],
+      resumenRAG:
+        'GUIA_RAICES: Trasplantar 3-5 días antes de 12/12 antes de root-bound; evitar agua estancada; Cleanse (HOCl) incompatible con inoculantes vivos.',
+    };
+  }
+
+  // 5. DRENAJE / POUR-THROUGH / BLOQUEO / CALMAG / SILICIO / FOLIAR
+  if (
+    /\b(drenaje|pour through|salinidad|acumulacion|lockout|calmag|silicio|wollastonita|foliar\w*|pulveriz\w*)\b/.test(
+      mNorm
+    )
+  ) {
+    const lineas = [
+      `🧪 **Control de Rizosfera, Drenaje (Pour-Through) y Suplementación (${contexto.nombre})**`,
+      ``,
+      `- **Auditoría de Drenaje (Athena + USU):** Mide EC y pH del lixiviado (15–25% de runoff). Si la **EC de salida supera en +0.5 a +0.8 mS/cm** a la de entrada (**${objetivos.ecObjetivo} mS/cm**), haz riegos de refresco con **Athena Cleanse (5–10 mL/gal)** a **pH ${objetivos.phObjetivo}**.`,
+      `- **Silicio y Calcio:** Usa **Athena Balance** (1º en el tanque) o **Wollastonita** en sustrato para fortalecer pared celular. Bajo LED de alta potencia en coco, si ves déficit de Ca/Mg, revisa primero el VPD (**${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa**) antes de sobrecargar CalMag.`,
+      `- **Aplicaciones Foliares:** Permitidas solo en vegetación y hasta **Día 14 de floración** con luces apagadas; después de semana 2–3 de flora está prohibido pulverizar sobre flores.`,
+    ];
+    return {
+      respuesta: lineas.join('\n'),
+      accionesSugeridas: [],
+      resumenRAG: `GUIA_RIZOSFERA: Meta pH=${objetivos.phObjetivo}, EC=${objetivos.ecObjetivo}mS (runoff 15-25%); delta EC >+0.5-0.8 -> reset con Cleanse. No foliar tras día 14 flora.`,
+    };
+  }
+
+  return null;
+}
+
 export function generarRespuestaConocimientoLocal(
   mensaje: string,
   contexto: ContextoCultivo,
@@ -1213,10 +1447,7 @@ export function generarRespuestaConocimientoLocal(
   const intencion = detectarIntencionConsulta(mensaje, tieneImagenes);
   const apuntesUsuario = obtenerApuntesPersonalizadosBugbee();
 
-  const mNorm = mensaje
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+  const mNorm = normalizarTextoConsulta(mensaje);
   const telemetria = extraerTelemetriaConversacion(mensaje, historialReciente);
 
   const enFlora =
@@ -1697,15 +1928,33 @@ export function generarRespuestaConocimientoLocal(
     };
   }
 
-  // CASO 4: Conversación abierta / seguimiento cuando no se pidió auditoría ni coincide una regla fija
+  // CASO 3.5: Temas Agronómicos Especializados (Poda/Defoliación, Fotoperíodo, Cosecha/Secado, Trasplante, Rizosfera)
+  const temaEspecializado = resolverTemaAgronomicoLocal(mNorm, contexto, objetivos, protocolo);
+  if (temaEspecializado) {
+    return {
+      respuesta: temaEspecializado.respuesta,
+      accionesSugeridas: temaEspecializado.accionesSugeridas,
+      fuentesConocimiento,
+      intencion,
+      esSuficienteSinLLM: true,
+    };
+  }
+
+  // CASO 4: Conversación abierta / seguimiento cuando no coincide una regla fija
+  const reglaClaveEtapa = protocolo.reglasCriticas[0] || protocolo.objetivoPrincipal;
   const respuestaConversacional = esContinuacion
-    ? `Entendido sobre **${contexto.nombre}**. ${tieneTelemetriaPreviaClima
-      ? `Con los datos que venimos manejando (${telemetria.temp ? `${telemetria.temp}°C` : `${enFlora ? objetivos.tempObjetivoFloracion : objetivos.tempObjetivoVegetacion}°C`
-      }${telemetria.hr ? ` / ${telemetria.hr}% HR` : ''}${telemetria.co2 ? ` / ${telemetria.co2} ppm CO2` : ''
-      }), `
-      : ''
-    }¿qué ajuste puntual quieres revisar ahora (clima/VPD, riego por planta, mezcla Athena o síntomas en hojas)?`
-    : `Estoy conectado al contexto de **${contexto.nombre}** (**${protocolo.titulo}**). Pregúntame directamente por **riego por planta**, **temperatura/humedad/CO2**, **mezcla Athena** o **síntomas en hojas** para darte una respuesta puntual.`;
+    ? [
+        `Sobre **${contexto.nombre}** (**${protocolo.titulo}**):`,
+        tieneTelemetriaPreviaClima
+          ? `- Con la telemetría que venimos manejando (**${telemetria.temp ?? (enFlora ? objetivos.tempObjetivoFloracion : objetivos.tempObjetivoVegetacion)}°C**${telemetria.hr ? ` / **${telemetria.hr}% HR**` : ''}${telemetria.co2 ? ` / **${telemetria.co2} ppm CO2**` : ''}), el foco actual es **${protocolo.tipoSteeringAthena}**.`
+          : `- **Foco actual (${protocolo.tipoSteeringAthena}):** ${reglaClaveEtapa}`,
+        `- Puedo ayudarte con algo puntual sobre **poda/defoliación**, **riego por planta**, **clima/VPD**, **mezcla Athena**, **cosecha/secado** o **síntomas en hojas**. ¿Qué necesitas ajustar ahora?`,
+      ].join('\n')
+    : [
+        `Estoy conectado a **${contexto.nombre}** (**${protocolo.titulo}** · **${protocolo.tipoSteeringAthena}**).`,
+        `- **Prioridad actual:** ${reglaClaveEtapa}`,
+        `- Pregúntame por **poda/defoliación**, **riego por planta**, **clima/VPD/CO2**, **mezcla Athena**, **cosecha/secado** o **síntomas en hojas** para darte indicaciones exactas.`,
+      ].join('\n');
 
   return {
     respuesta: respuestaConversacional,
@@ -1736,6 +1985,9 @@ export function construirPromptComprimidoRAG(
   const protocolo = PROTOCOLOS_ETAPA_KB[objetivos.subEtapaActual];
   const patologias = buscarPatologiasKB(mensaje);
   const telemetria = extraerTelemetriaConversacion(mensaje, historialReciente);
+  const mNorm = normalizarTextoConsulta(mensaje);
+  const temaEspecializado = resolverTemaAgronomicoLocal(mNorm, contexto, objetivos, protocolo);
+  const diasFlora = calcularDiasEnFloracion(contexto.fechaInicioFloracion);
   const apuntesCombinados = [obtenerApuntesPersonalizadosBugbee(), apuntesExtraDB]
     .filter(Boolean)
     .join(' | ');
@@ -1764,6 +2016,7 @@ export function construirPromptComprimidoRAG(
     .join(' | ');
 
   const accionesDisponibles = [
+    ...(temaEspecializado?.accionesSugeridas || []),
     ...patologias.flatMap((p) => p.accionesCorrectivas),
     ...objetivos.accionesSugeridas,
   ];
@@ -1771,18 +2024,19 @@ export function construirPromptComprimidoRAG(
   const systemPrompt = [
     `Eres el Ingeniero Agrónomo Senior de CanopIA conversando en tiempo real con el cultivador de la sala "${contexto.nombre}".`,
     `REGLAS DE CONVERSACIÓN E INTELIGENCIA:`,
-    `1. Responde ÚNICAMENTE a lo que preguntó el usuario en este turno, de forma natural, directa y conversacional (máximo 4-6 líneas o viñetas cortas). PROHIBIDO volcar fichas completas de toda la sala, tablas o información que el usuario NO pidió.`,
-    `2. Mantén continuidad con el historial y con los DATOS_REPORTADOS_EN_ESTA_CHARLA.`,
-    `3. Tu fuente de verdad científica es 100% Dr. Bruce Bugbee (Utah State University) y el Manual Oficial Athena Ag (Pro/Blended Line & Crop Steering).`,
+    `1. Responde con precisión técnica y profundidad práctica EXACTAMENTE a lo que preguntó el usuario (incluyendo preguntas sobre poda, defoliación, entrenamiento, cosecha, nutrición, riego, clima o plagas). Tolera errores de ortografía. PROHIBIDO responder con evasivas genéricas o volcar fichas completas no pedidas.`,
+    `2. Cruza siempre tu respuesta con la etapa exacta (${protocolo.titulo}${diasFlora !== undefined ? `, Día ${diasFlora} de flora` : ''}), genética, sustrato y DATOS_REPORTADOS_EN_ESTA_CHARLA; da números, tiempos y pasos accionables.`,
+    `3. Tu fuente de verdad científica es Dr. Bruce Bugbee (USU) y el Manual Oficial Athena Ag (Pro/Blended Line & Crop Steering).`,
     `4. Usa formato limpio con negritas (**) y viñetas (-). Prohibido usar tablas con barras "|".`,
     `--- 1. REFERENCIA DE BASE DE CONOCIMIENTO (${protocolo.codigoKB}) ---`,
     `ETAPA: ${protocolo.titulo} | STEERING_ATHENA: ${protocolo.tipoSteeringAthena}.`,
-    `METAS_KB: pH=${objetivos.phObjetivo} (Mezcla Athena: 1ºBalance->2ºCore->3ºGrow/Bloom/Fade->4ºCleanse), EC=${objetivos.ecObjetivo}mS (Runoff 15-25%), Temp/HR_Vege=${objetivos.tempObjetivoVegetacion}C/${objetivos.humedadObjetivoVegetacion}%, Temp/HR_Flora=${objetivos.tempObjetivoFloracion}C/${objetivos.humedadObjetivoFloracion}% (o 27-28C / 60% HR si inyecta 1000-1200ppm CO2 en Sem 1-5), VPD=${protocolo.vpdRango[0]}-${protocolo.vpdRango[1]}kPa, PPFD_Ideal=${protocolo.ppfdRecomendado} (${protocolo.dliRecomendado}), Agua_Sala=~${objetivos.aguaDiariaObjetivo}L/dia.`,
+    `METAS_KB: pH=${objetivos.phObjetivo}, EC=${objetivos.ecObjetivo}mS (Runoff 15-25%), ClimaVege=${objetivos.tempObjetivoVegetacion}C/${objetivos.humedadObjetivoVegetacion}%, ClimaFlora=${objetivos.tempObjetivoFloracion}C/${objetivos.humedadObjetivoFloracion}% (o 27-28C/60%HR con CO2 1000-1200ppm), VPD=${protocolo.vpdRango[0]}-${protocolo.vpdRango[1]}kPa, PPFD=${protocolo.ppfdRecomendado}, Agua=~${objetivos.aguaDiariaObjetivo}L/dia.`,
     `REGLAS_KB: ${protocolo.reglasCriticas.join(' | ')}`,
+    temaEspecializado ? temaEspecializado.resumenRAG : '',
     patologiaSnippet,
-    apuntesCombinados ? `REGLAS_PERSONALIZADAS_DB: ${apuntesCombinados.substring(0, 350)}` : '',
+    apuntesCombinados ? `REGLAS_PERSONALIZADAS_DB: ${apuntesCombinados.substring(0, 300)}` : '',
     `--- 2. CONTEXTO COMPLETO DEL CULTIVO ACTUAL ---`,
-    `DATOS_SALA: Nombre="${contexto.nombre}" | Genética="${contexto.genetica || 'No especificada'}" (${objetivos.geneticaDetectada}) | Sustrato="${contexto.sustrato || 'Tierra'}" (${objetivos.sustratoDetectado.nombre}) | InicioVege=${contexto.fechaComienzo || 'N/A'} | InicioFlora=${contexto.fechaInicioFloracion || 'En Vegetación'} | DíasTotales=${contexto.diasDesdeInicio ?? '?'}d.`,
+    `DATOS_SALA: Nombre="${contexto.nombre}" | Genética="${contexto.genetica || 'No especificada'}" (${objetivos.geneticaDetectada}) | Sustrato="${contexto.sustrato || 'Tierra'}" (${objetivos.sustratoDetectado.nombre}) | InicioVege=${contexto.fechaComienzo || 'N/A'} | InicioFlora=${contexto.fechaInicioFloracion || 'En Vegetación'} | DíasTotales=${contexto.diasDesdeInicio ?? '?'}d${diasFlora !== undefined ? ` | DíasFlora=${diasFlora}d` : ''}.`,
     `FISICA_SALA: Área=${contexto.metrosCuadrados ?? '?'}m2 | Plantas=${contexto.numeroplantas ?? '?'} (${contexto.plantasPorM2 ? Number(contexto.plantasPorM2).toFixed(1) : '?'}/m2) | Macetas=${contexto.litrosMaceta ?? '?'}L (Total=${contexto.litrosTotales ?? '?'}L) | Luz=${contexto.potenciaLamparas ?? '?'}W (${contexto.wattsPorM2 ? Math.round(contexto.wattsPorM2) : '?'}W/m2 -> PPFD_Est=${objetivos.ppfdEstimadoSala ?? '?'}umol/m2/s, DLI_Est=${objetivos.dliEstimadoSala ?? '?'}mol/m2/d).`,
     `CONFIG_GUARDADA_SALA: pH=${contexto.phObjetivo ?? 'Sin definir'}, EC=${contexto.ecObjetivo ?? 'Sin definir'}, ClimaVege=${contexto.tempObjetivoVegetacion ?? '?'}C/${contexto.humedadObjetivoVegetacion ?? '?'}%, ClimaFlora=${contexto.tempObjetivoFloracion ?? '?'}C/${contexto.humedadObjetivoFloracion ?? '?'}%.`,
     datosReportadosEnCharla ? `DATOS_REPORTADOS_EN_ESTA_CHARLA: ${datosReportadosEnCharla}` : '',

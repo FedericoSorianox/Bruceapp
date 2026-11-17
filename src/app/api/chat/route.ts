@@ -124,13 +124,13 @@ export async function POST(request: NextRequest) {
           .slice(-6)
           .map((m) => ({
             role: m.tipo === 'user' ? ('user' as const) : ('assistant' as const),
-            content: m.contenido.substring(0, 450),
+            content: m.contenido.substring(0, 600),
           }));
 
         const completion = await openai.chat.completions.create({
           model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-          temperature: 0.25,
-          max_tokens: 450,
+          temperature: 0.35,
+          max_tokens: 850,
           messages: [
             { role: 'system', content: systemPromptConCalculo },
             ...historialCompacto,
