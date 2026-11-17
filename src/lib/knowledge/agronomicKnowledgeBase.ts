@@ -1290,8 +1290,7 @@ export function generarRespuestaConocimientoLocal(
     const lineasDiagnostico: string[] = [
       `🌡️ **Análisis Climático Integrado para ${contexto.nombre} (${protocolo.titulo})**`,
       ``,
-      ` Cruzando los datos de tu sala (**${tempSala}°C** aire / **~${tempHoja}°C** hoja bajo LED · **${hrSala}% HR**${
-        co2Sala ? ` · **${co2Sala} ppm CO2**` : ''
+      ` Cruzando los datos de tu sala (**${tempSala}°C** aire / **~${tempHoja}°C** hoja bajo LED · **${hrSala}% HR**${co2Sala ? ` · **${co2Sala} ppm CO2**` : ''
       } · **~${objetivos.ppfdEstimadoSala || 900} µmol/m²/s PPFD**), tu **VPD actual es de ${vpdCalculado} kPa** (rango ideal de etapa: **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa**):`,
       ``,
       `### 1. Diagnóstico Fisiológico (Dr. Bruce Bugbee USU + Athena Ag)`,
@@ -1315,8 +1314,7 @@ export function generarRespuestaConocimientoLocal(
     // Evaluación de Humedad y VPD resultante
     if (vpdCalculado < protocolo.vpdRango[0] || (hrSala >= 68 && enFlora)) {
       lineasDiagnostico.push(
-        `- **🚨 Alerta Crítica por Humedad Alta (${hrSala}% HR -> VPD ${vpdCalculado} kPa muy bajo):** Con **${tempSala}°C** y **${hrSala}% HR**, el aire está demasiado saturado (**VPD ${vpdCalculado} kPa < ${protocolo.vpdRango[0]} kPa**). Esto frena el flujo transpirativo xilemático (**bloqueando la absorción de Calcio y Boro** aunque tengas ${
-          co2Sala ? `${co2Sala} ppm de CO2 y ` : ''
+        `- **🚨 Alerta Crítica por Humedad Alta (${hrSala}% HR -> VPD ${vpdCalculado} kPa muy bajo):** Con **${tempSala}°C** y **${hrSala}% HR**, el aire está demasiado saturado (**VPD ${vpdCalculado} kPa < ${protocolo.vpdRango[0]} kPa**). Esto frena el flujo transpirativo xilemático (**bloqueando la absorción de Calcio y Boro** aunque tengas ${co2Sala ? `${co2Sala} ppm de CO2 y ` : ''
         }buena nutrición), impide lograr el **Dryback Generativo de 40–50%** que exige **Athena**, y dispara el riesgo de **Botrytis y Oídio** al apagarse las luces.`
       );
     } else if (vpdCalculado > protocolo.vpdRango[1] + 0.15) {
@@ -1357,18 +1355,17 @@ export function generarRespuestaConocimientoLocal(
       codigoKB: protocolo.codigoKB,
       tipoAccion: 'actualizar_parametros',
       titulo: `Fijar Meta Climática ${enFlora ? 'Floración' : 'Vegetación'} en ${tempMetaReal}°C / ${hrMetaReal}% HR (VPD ${vpdMetaReal} kPa)`,
-      descripcion: `Sincroniza el objetivo climático de ${contexto.nombre} según Bruce Bugbee + Athena${
-        co2Sala ? ` (optimizado para ${co2Sala} ppm CO2)` : ''
-      }.`,
+      descripcion: `Sincroniza el objetivo climático de ${contexto.nombre} según Bruce Bugbee + Athena${co2Sala ? ` (optimizado para ${co2Sala} ppm CO2)` : ''
+        }.`,
       parametrosObjetivo: enFlora
         ? {
-            tempObjetivoFloracion: tempMetaReal,
-            humedadObjetivoFloracion: hrMetaReal,
-          }
+          tempObjetivoFloracion: tempMetaReal,
+          humedadObjetivoFloracion: hrMetaReal,
+        }
         : {
-            tempObjetivoVegetacion: tempMetaReal,
-            humedadObjetivoVegetacion: hrMetaReal,
-          },
+          tempObjetivoVegetacion: tempMetaReal,
+          humedadObjetivoVegetacion: hrMetaReal,
+        },
     };
 
     const accionTareaClima: AccionConocimiento = {
@@ -1585,10 +1582,9 @@ export function generarRespuestaConocimientoLocal(
       ``,
       `### 3. Parámetros Objetivos de Control (${protocolo.codigoKB})`,
       `- **pH Entrada:** ${objetivos.phObjetivo} · **EC Objetivo:** ${objetivos.ecObjetivo} mS/cm · **Crop Steering:** ${protocolo.tipoSteeringAthena}`,
-      `- **Clima y VPD:** ${objetivos.vpdObjetivoActual} kPa (${
-        enFlora
-          ? `${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR`
-          : `${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR`
+      `- **Clima y VPD:** ${objetivos.vpdObjetivoActual} kPa (${enFlora
+        ? `${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR`
+        : `${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR`
       })`,
       `- **Prevención:** ${pat.prevencion}`,
       apuntesUsuario ? `\n📌 **Tus Apuntes Activos de la KB:** ${apuntesUsuario}` : '',
@@ -1649,15 +1645,13 @@ export function generarRespuestaConocimientoLocal(
       `Estado actual de **${contexto.nombre}** en **${protocolo.titulo}**:`,
       `- **💧 pH de Entrada (Athena Balance):** Meta **${objetivos.phObjetivo}** *(actual: ${contexto.phObjetivo ?? 'Sin definir'})*`,
       `- **⚡ EC Objetivo (${protocolo.tipoSteeringAthena}):** Meta **${objetivos.ecObjetivo} mS/cm** *(actual: ${contexto.ecObjetivo ?? 'Sin definir'})*`,
-      `- **🌱 Clima Vegetación (Bajo LED):** Meta **${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR** *(actual: ${
-        contexto.tempObjetivoVegetacion
-          ? `${contexto.tempObjetivoVegetacion}°C / ${contexto.humedadObjetivoVegetacion}%`
-          : 'Sin definir'
+      `- **🌱 Clima Vegetación (Bajo LED):** Meta **${objetivos.tempObjetivoVegetacion}°C / ${objetivos.humedadObjetivoVegetacion}% HR** *(actual: ${contexto.tempObjetivoVegetacion
+        ? `${contexto.tempObjetivoVegetacion}°C / ${contexto.humedadObjetivoVegetacion}%`
+        : 'Sin definir'
       })*`,
-      `- **🌸 Clima Floración (Bajo LED):** Meta **${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR** *(actual: ${
-        contexto.tempObjetivoFloracion
-          ? `${contexto.tempObjetivoFloracion}°C / ${contexto.humedadObjetivoFloracion}%`
-          : 'Sin definir'
+      `- **🌸 Clima Floración (Bajo LED):** Meta **${objetivos.tempObjetivoFloracion}°C / ${objetivos.humedadObjetivoFloracion}% HR** *(actual: ${contexto.tempObjetivoFloracion
+        ? `${contexto.tempObjetivoFloracion}°C / ${contexto.humedadObjetivoFloracion}%`
+        : 'Sin definir'
       })*`,
       `- **☀️ Luz y Fotobiología (USU):** Sala con **~${objetivos.ppfdEstimadoSala ?? '-'} µmol/m²/s PPFD** (DLI ~${objetivos.dliEstimadoSala ?? '-'}) · Meta etapa: **${protocolo.ppfdRecomendado}**`,
       `- **🌬️ VPD Meta y Riego:** **${protocolo.vpdRango[0]}–${protocolo.vpdRango[1]} kPa** · Volumen estimado **~${objetivos.aguaDiariaObjetivo} L/día** (con 15–25% runoff)`,
@@ -1679,15 +1673,12 @@ export function generarRespuestaConocimientoLocal(
 
   // CASO 4: Conversación abierta / seguimiento cuando no se pidió auditoría ni coincide una regla fija
   const respuestaConversacional = esContinuacion
-    ? `Entendido sobre **${contexto.nombre}**. ${
-        tieneTelemetriaPreviaClima
-          ? `Con los datos que venimos manejando (${
-              telemetria.temp ? `${telemetria.temp}°C` : `${enFlora ? objetivos.tempObjetivoFloracion : objetivos.tempObjetivoVegetacion}°C`
-            }${telemetria.hr ? ` / ${telemetria.hr}% HR` : ''}${
-              telemetria.co2 ? ` / ${telemetria.co2} ppm CO2` : ''
-            }), `
-          : ''
-      }¿qué ajuste puntual quieres revisar ahora (clima/VPD, riego por planta, mezcla Athena o síntomas en hojas)?`
+    ? `Entendido sobre **${contexto.nombre}**. ${tieneTelemetriaPreviaClima
+      ? `Con los datos que venimos manejando (${telemetria.temp ? `${telemetria.temp}°C` : `${enFlora ? objetivos.tempObjetivoFloracion : objetivos.tempObjetivoVegetacion}°C`
+      }${telemetria.hr ? ` / ${telemetria.hr}% HR` : ''}${telemetria.co2 ? ` / ${telemetria.co2} ppm CO2` : ''
+      }), `
+      : ''
+    }¿qué ajuste puntual quieres revisar ahora (clima/VPD, riego por planta, mezcla Athena o síntomas en hojas)?`
     : `Estoy conectado al contexto de **${contexto.nombre}** (**${protocolo.titulo}**). Pregúntame directamente por **riego por planta**, **temperatura/humedad/CO2**, **mezcla Athena** o **síntomas en hojas** para darte una respuesta puntual.`;
 
   return {
@@ -1731,9 +1722,9 @@ export function construirPromptComprimidoRAG(
   const comentariosSnippet =
     contexto.comentariosRecientes && contexto.comentariosRecientes.length > 0
       ? `BITACORA_RECIENTE: ${contexto.comentariosRecientes
-          .slice(0, 4)
-          .map((c) => `[${c.fecha?.split('T')[0] || ''} - ${c.tipo}] ${c.titulo}: ${c.contenido.substring(0, 90)}`)
-          .join(' | ')}`
+        .slice(0, 4)
+        .map((c) => `[${c.fecha?.split('T')[0] || ''} - ${c.tipo}] ${c.titulo}: ${c.contenido.substring(0, 90)}`)
+        .join(' | ')}`
       : '';
 
   const datosReportadosEnCharla = [
