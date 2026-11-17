@@ -127,5 +127,16 @@ describe('CanopIA Agronomic Knowledge Base — Dr. Bruce Bugbee (USU) + Athena A
     expect(resTurno2.respuesta).toContain('1200 ppm');
     expect(resTurno2.respuesta).toContain('0.63 kPa');
     expect(resTurno2.accionesSugeridas[0].titulo).toContain('28°C / 60% HR');
+
+    // Pregunta puntual sobre cuánta agua regar por día a cada planta
+    const resAgua = generarRespuestaConocimientoLocal(
+      'cuanta agua le tengo que regar por dia a cada planta?',
+      lomas,
+      false
+    );
+    expect(resAgua.respuesta).toContain('1.78 litros/día');
+    expect(resAgua.respuesta).toContain('21.3 L/día');
+    expect(resAgua.respuesta).toContain('Dryback nocturno del 40–50%');
+    expect(resAgua.accionesSugeridas[0].titulo).toContain('1.78 L/planta');
   });
 });

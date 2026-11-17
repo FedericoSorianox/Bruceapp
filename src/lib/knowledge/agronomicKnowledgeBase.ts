@@ -1432,6 +1432,146 @@ export function generarRespuestaConocimientoLocal(
     };
   }
 
+  // ANÁLISIS ESPECÍFICO D: Pregunta directa sobre RIEGO / AGUA POR PLANTA / PULSOS / FRECUENCIA
+  if (
+    mNorm.includes('agua') ||
+    mNorm.includes('regar') ||
+    mNorm.includes('riego') ||
+    mNorm.includes('litro') ||
+    mNorm.includes('pulso') ||
+    mNorm.includes('runoff') ||
+    mNorm.includes('dryback')
+  ) {
+    const numPlantas = contexto.numeroplantas || 6;
+    const litrosMaceta = contexto.litrosMaceta || 7;
+    const litrosTotalesSala = objetivos.aguaDiariaObjetivo;
+    const litrosPorPlanta = Number((litrosTotalesSala / numPlantas).toFixed(2));
+    const mlPorPlanta = Math.round(litrosPorPlanta * 1000);
+    const porcentajeMaceta = Math.round((litrosPorPlanta / litrosMaceta) * 100);
+    const esGenerativo = protocolo.tipoSteeringAthena.includes('Generativo');
+    const esCocoOHidro =
+      objetivos.sustratoDetectado.id === 'coco' || objetivos.sustratoDetectado.id === 'hidro';
+
+    const pulsosRecomendados = esCocoOHidro
+      ? esGenerativo
+        ? `2 a 3 pulsos/día (ej. ~${Math.round(mlPorPlanta / 2)}–${Math.round(mlPorPlanta / 3)} mL por pulso)`
+        : `3 a 5 pulsos/día (ej. ~${Math.round(mlPorPlanta / 4)} mL por pulso P1/P2)`
+      : `1 riego cada 24–48h (~${litrosPorPlanta} L por planta al regar)`;
+
+    const respuestaRiego = [
+      `💧 **Volumen y Estrategia de Riego para ${contexto.nombre} (${protocolo.titulo})**`,
+      ``,
+      `Calculado para **${numPlantas} plantas** en macetas de **${litrosMaceta} L** de **${objetivos.sustratoDetectado.nombre.split('/')[0].trim()}**:`,
+      ``,
+      `### 1. Cantidad Exacta de Agua por Día`,
+      `- **Por cada planta:** **~${litrosPorPlanta} litros/día** (**${mlPorPlanta} mL/día**, equivalente al ~${porcentajeMaceta}% del volumen de tu maceta de ${litrosMaceta} L).`,
+      `- **Total diario para toda la sala (${numPlantas} plantas):** **~${litrosTotalesSala} L/día** (incluyendo **15–20% de drenaje / runoff** exigido por Bruce Bugbee y Athena para evitar acumulación de sales).`,
+      ``,
+      `### 2. Cómo repartirlo según Athena Crop Steering (${protocolo.tipoSteeringAthena})`,
+      `- **Frecuencia / Pulsos:** **${pulsosRecomendados}**.`,
+      esGenerativo
+        ? `- **Ventana Generativa (Sem 1–3 Flora):** Empieza el primer riego (**P1**) **2 a 3 horas después de encender las luces** y corta el último riego **3 a 4 horas antes del apagado** para lograr un **Dryback nocturno del 40–50%** y frenar el estiramiento.`
+        : `- **Ventana Vegetativa / Bulking:** Empieza el primer riego **1 a 1.5 horas tras encender las luces** con pulsos de mantenimiento (**P2**) y un **Dryback moderado del 20–30%** para maximizar el calibre floral.`,
+      `- **Solución de Tanque:** Prepara el agua a **pH ${objetivos.phObjetivo}** y **EC ${objetivos.ecObjetivo} mS/cm** (Orden Athena: *1º Balance → 2º Core → 3º Grow/Bloom → 4º Cleanse 2–5 mL/gal*).`,
+    ].join('\n');
+
+    const accionRiego: AccionConocimiento = {
+      id: `kb-riego-task-${Date.now()}`,
+      codigoKB: 'USU-ATH-RIEGO',
+      tipoAccion: 'crear_tarea',
+      titulo: `Programar riego diario: ${litrosPorPlanta} L/planta (${litrosTotalesSala} L sala · pH ${objetivos.phObjetivo} · EC ${objetivos.ecObjetivo} mS)`,
+      descripcion: `Protocolo Bugbee + Athena (${protocolo.tipoSteeringAthena}): ${pulsosRecomendados} asegurando 15–20% de runoff y controlando EC de drenaje.`,
+      categoriaTarea: 'riego',
+      prioridad: 'alta',
+      diasOffset: 0,
+      duracionEstimada: 25,
+    };
+
+    return {
+      respuesta: respuestaRiego,
+      accionesSugeridas: [accionRiego, objetivos.accionesSugeridas[0]],
+      fuentesConocimiento,
+      intencion,
+      esSuficienteSinLLM: false,
+    };
+  }
+
+  // ANÁLISIS ESPECÍFICO E: Pregunta directa sobre MEZCLA / FERTILIZANTES ATHENA
+  if (
+    mNorm.includes('mezcla') ||
+    mNorm.includes('tanque') ||
+    mNorm.includes('athena') ||
+    mNorm.includes('fertiliz') ||
+    mNorm.includes('abono') ||
+    mNorm.includes('balance') ||
+    mNorm.includes('fade') ||
+    mNorm.includes('cleanse')
+  ) {
+    const formulaEtapa =
+      objetivos.subEtapaActual === 'lavado_maduracion'
+        ? 'Athena Fade + Pro Bloom (0% Nitrógeno en las últimas 2 semanas)'
+        : enFlora
+          ? 'Athena Pro Core (60%) + Athena Pro Bloom (100%)'
+          : 'Athena Pro Core (60%) + Athena Pro Grow (100%)';
+
+    const respuestaMezcla = [
+      `🧪 **Protocolo de Mezcla Athena Ag + Bruce Bugbee para ${contexto.nombre} (${protocolo.titulo})**`,
+      ``,
+      `- **Fórmula de Etapa:** **${formulaEtapa}**`,
+      `- **Metas de Tanque:** **pH ${objetivos.phObjetivo}** · **EC ${objetivos.ecObjetivo} mS/cm** · Volumen diario **~${objetivos.aguaDiariaObjetivo} L**`,
+      ``,
+      `### Orden Estricto de Mezcla (Evita Precipitación de Calcio)`,
+      `- **1º Athena Balance (Silicato):** Agregar primero al agua RO y mezclar bien para estabilizar pH y aportar Silicio (efecto similar a la Wollastonita de Bruce Bugbee).`,
+      `- **2º ${objetivos.subEtapaActual === 'lavado_maduracion' ? 'Athena Fade' : 'Athena Pro Core'}:** Disolver completamente antes de agregar el siguiente componente.`,
+      `- **3º ${enFlora ? 'Athena Pro Bloom' : 'Athena Pro Grow'}:** Incorporar y homogeneizar la EC hasta **${objetivos.ecObjetivo} mS/cm**.`,
+      `- **4º Athena Cleanse (2–5 mL/gal):** Mantiene líneas limpias, ORP >350 mV y raíces oxigenadas.`,
+      `- **5º Ajuste Final de pH:** Calibrar a **${objetivos.phObjetivo}** (nunca >6.4 para evitar precipitación de Fe/Mn/Zn según USU).`,
+    ].join('\n');
+
+    return {
+      respuesta: respuestaMezcla,
+      accionesSugeridas: [objetivos.accionesSugeridas[0]],
+      fuentesConocimiento,
+      intencion,
+      esSuficienteSinLLM: false,
+    };
+  }
+
+  // ANÁLISIS ESPECÍFICO F: Pregunta directa sobre LUZ / PPFD / DLI / WATTS
+  if (
+    mNorm.includes('luz') ||
+    mNorm.includes('luces') ||
+    mNorm.includes('lampara') ||
+    mNorm.includes('watts') ||
+    mNorm.includes('ppfd') ||
+    mNorm.includes('dli') ||
+    mNorm.includes('dimmer') ||
+    mNorm.includes('atenuar')
+  ) {
+    const wattsM2 =
+      contexto.potenciaLamparas && contexto.metrosCuadrados
+        ? Math.round(contexto.potenciaLamparas / contexto.metrosCuadrados)
+        : undefined;
+    const respuestaLuz = [
+      `☀️ **Auditoría Fotobiológica (Dr. Bruce Bugbee USU) para ${contexto.nombre}**`,
+      ``,
+      `- **Potencia Instalada:** **${contexto.potenciaLamparas ?? '-'} W** en **${contexto.metrosCuadrados ?? '-'} m²** (${wattsM2 ?? '-'} W/m²).`,
+      `- **PPFD y DLI Estimados en Canopia:** **~${objetivos.ppfdEstimadoSala ?? '-'} µmol·m⁻²·s⁻¹** (DLI **~${objetivos.dliEstimadoSala ?? '-'} mol·m⁻²·d⁻¹**).`,
+      `- **Meta Oficial de ${protocolo.titulo}:** **${protocolo.ppfdRecomendado}** (${protocolo.dliRecomendado}).`,
+      objetivos.ppfdEstimadoSala && objetivos.ppfdEstimadoSala > 950
+        ? `- **⚠️ Recomendación USU:** Estás por encima de **950 µmol/m²/s**. Si inyectas **1000–1200 ppm de CO2** y mantienes **27–28°C / 60% HR**, tus plantas lo aprovecharán al máximo; si NO usas CO2 suplementario, atenúa los paneles al **75–80%** (o súbelos) para quedar cerca de **850–900 µmol/m²/s**.`
+        : `- **✅ Intensidad dentro de rango manejable.** Mantén la canopia nivelada para uniformidad lumínica.`,
+    ].join('\n');
+
+    return {
+      respuesta: respuestaLuz,
+      accionesSugeridas: [objetivos.accionesSugeridas[0]],
+      fuentesConocimiento,
+      intencion,
+      esSuficienteSinLLM: false,
+    };
+  }
+
   // CASO 1: Diagnóstico de síntomas según fisiología vegetal de Bruce Bugbee + Athena Handbook
   if (intencion === 'diagnostico_sintomas' && patologiasCoincidentes.length > 0) {
     const pat = patologiasCoincidentes[0];
