@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
     const systemPromptConCalculo = rag.systemPrompt;
 
     const activeOpenAiKey = resolveOpenAiApiKey(openAiKeyDB);
+    let llmFallbackReason = activeOpenAiKey ? '' : 'Sin OPENAI_API_KEY configurada';
 
     // PASO 3A: Ejecutar IA con OpenAI (`gpt-4o-mini`) fundamentada en la Base de Conocimiento
     if (activeOpenAiKey) {
@@ -155,6 +156,8 @@ export async function POST(request: NextRequest) {
           });
         }
       } catch (openAiError) {
+        const errMsg = openAiError instanceof Error ? openAiError.message : 'Error OpenAI desconocido';
+        llmFallbackReason = `OpenAI error: ${errMsg.substring(0, 120)}`;
         console.warn('⚠️ OpenAI directo falló, probando webhook n8n o motor local:', openAiError);
       }
     }
@@ -239,7 +242,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json<ApiResponseChat>({
       success: true,
       data: resultadoKB.respuesta,
-      message: 'Respuesta generada por Analizador de Base de Conocimiento (Bruce Bugbee + Athena)',
+      message: `Respuesta generada por Analizador de Base de Conocimiento (${llmFallbackReason || 'n8n no disponible'})`,
       accionesSugeridas: resultadoKB.accionesSugeridas,
       fuentesConocimiento: resultadoKB.fuentesConocimiento,
       tokens: {
@@ -263,11 +266,22 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  let openAiKeyDB = '';
+  try {
+    await connectDB();
+    const docKB = await Conocimiento.findOne({ clave: 'corpus_custom_bugbee_athena' }).lean();
+    if (docKB?.openAiApiKey) {
+      openAiKeyDB = docKB.openAiApiKey;
+    }
+  } catch {
+    // Ignorar error de lectura DB en healthcheck
+  }
+
   return NextResponse.json({
     success: true,
     message: 'Motor RAG CanopIA (Base de Conocimiento Bruce Bugbee + Athena Ag -> LLM) activo',
     kbActive: true,
-    openAiConfigured: Boolean(resolveOpenAiApiKey()),
+    openAiConfigured: Boolean(resolveOpenAiApiKey(openAiKeyDB)),
     n8nWebhookUrl: N8N_WEBHOOK_URL,
   });
 }

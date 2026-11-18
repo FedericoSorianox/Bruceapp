@@ -196,5 +196,23 @@ describe('CanopIA Agronomic Knowledge Base — Dr. Bruce Bugbee (USU) + Athena A
     const patologiasOidio = buscarPatologiasKB('tengo oideo en las hojas');
     expect(patologiasOidio.length).toBeGreaterThan(0);
     expect(patologiasOidio[0].codigoKB).toBe('USU-ATH-PAT-FUNGI');
+
+    // Preguntas específicas de Día 14 y puntas con flor formada (no deben devolver la misma respuesta genérica)
+    const resDia14 = generarRespuestaConocimientoLocal(
+      'esta bien hacer una poda el dia 14 de flora ?',
+      lomas,
+      false
+    );
+    expect(resDia14.respuesta).toContain('Día 14');
+    expect(resDia14.respuesta).toContain('doble estrés');
+
+    const resPuntas = generarRespuestaConocimientoLocal(
+      'Vi que se hace poda en dia 14 de flora de las puntas de los tallos con la flor formada igual',
+      lomas,
+      false
+    );
+    expect(resPuntas.respuesta).toContain('Supercropping');
+    expect(resPuntas.respuesta).toContain('Backbuilding');
+    expect(resPuntas.respuesta).not.toBe(resDia14.respuesta);
   });
 });

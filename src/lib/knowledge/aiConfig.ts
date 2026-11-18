@@ -5,12 +5,19 @@
  * 2. Variable de entorno `process.env.OPENAI_API_KEY` en el servidor
  */
 
+function sanitizeKey(raw?: string): string {
+  if (!raw) return '';
+  return raw.trim().replace(/^["']|["']$/g, '').trim();
+}
+
 export function resolveOpenAiApiKey(dbKey?: string): string {
-  if (dbKey && dbKey.trim().startsWith('sk-')) {
-    return dbKey.trim();
+  const cleanDb = sanitizeKey(dbKey);
+  if (cleanDb.startsWith('sk-')) {
+    return cleanDb;
   }
-  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim().startsWith('sk-')) {
-    return process.env.OPENAI_API_KEY.trim();
+  const cleanEnv = sanitizeKey(process.env.OPENAI_API_KEY);
+  if (cleanEnv.startsWith('sk-')) {
+    return cleanEnv;
   }
   return '';
 }

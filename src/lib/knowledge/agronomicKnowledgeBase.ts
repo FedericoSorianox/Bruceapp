@@ -1235,14 +1235,72 @@ function resolverTemaAgronomicoLocal(
 
   // 1. PODA / DEFOLIACIÓN / LOLLIPOPPING / APICAL / LST / SCROG
   if (
-    /\b(poda|podar|pode|podo|defoli\w*|deshoj\w*|lollipop\w*|apical\w*|topping|fimming|fim|lst|scrog|entrenudo\w*)\b/.test(
+    /\b(poda|podar|pode|podo|defoli\w*|deshoj\w*|lollipop\w*|apical\w*|topping|fimming|fim|lst|scrog|entrenudo\w*|supercrop\w*|backbuild\w*|pinchar|despunt\w*)\b/.test(
       mNorm
     ) ||
     mNorm.includes('limpieza de bajos') ||
     mNorm.includes('sacar hojas') ||
     mNorm.includes('cortar hojas') ||
+    mNorm.includes('puntas de los tallos') ||
+    mNorm.includes('flor formada') ||
     mNorm.includes('malla')
   ) {
+    // Sub-caso 1A: Pregunta específica sobre cortar PUNTAS de tallos con flor ya formada (apical en flora / backbuilding / supercropping)
+    const preguntaPuntasFlor =
+      (mNorm.includes('punta') || mNorm.includes('apical') || mNorm.includes('topping') || mNorm.includes('backbuild')) &&
+      (mNorm.includes('flor') || mNorm.includes('tallo') || mNorm.includes('cogollo') || mNorm.includes('dia 14') || mNorm.includes('14'));
+
+    if (preguntaPuntasFlor) {
+      const lineasPuntas = [
+        `🔬 **Cortar Puntas de Tallos con Flor Formada (Día 14 de Flora) — Análisis Técnico**`,
+        ``,
+        `- **Veredicto (Bruce Bugbee USU + Athena Ag):** **NO es recomendable cortar la punta apical de un tallo que ya formó flor en Día 14.** A diferencia de la vegetación (donde el *topping* divide la dominancia hormonal en 2 ramas nuevas), en Día 14 los meristemos ya están diferenciados a flor: cortar la punta **elimina tu futura cola principal**, reduce el rendimiento total y abre una herida en tejido floral propensa a *Botrytis*.`,
+        `- **Por qué viste que algunos lo hacen en Día 14 (técnicas que suelen confundirse):**`,
+        `  - **1. Supercropping (doblar SIN cortar):** Si una punta se disparó en el *stretch* y queda muy cerca del LED (>1100 µmol/m²/s), se masajea/dobla el tallo 90° en Día 14 para nivelar la canopia **sin amputar la flor**.`,
+        `  - **2. Defoliación / Lollipopping (Día 14 o Día 21):** Lo que se poda en Día 14–21 son **hojas abanico y brotes bajos débiles**, dejando intactas las puntas superiores.`,
+        `  - **3. Backbuilding (despunte tardío):** Algunos cultivadores recortan solo 2–3 mm de la punta del cogollo en **Semana 6–7** (nunca en Día 14) buscando ensanchar la flor, pero aumenta el riesgo de hongos en salas densas.`,
+        `- **Recomendación para ${contexto.nombre}${diasFlora !== undefined ? ` (estás en Día ${diasFlora})` : ''}:** Deja intactas las puntas florales; si alguna rama se estira de más usa **LST o supercropping suave**, y reserva la limpieza de hojas/bajos para el **Día 21**.`,
+      ];
+      return {
+        respuesta: lineasPuntas.join('\n'),
+        accionesSugeridas: [],
+        resumenRAG:
+          'GUIA_PODA_PUNTAS: NO cortar puntas con flor formada en día 14 (pierde cola principal y abre puerta a Botrytis). Si altura excede PPFD usar supercropping sin cortar; poda de día 14/21 es solo hojas y bajos.',
+      };
+    }
+
+    // Sub-caso 1B: Pregunta específica sobre PODAR EN DÍA 14 vs DÍA 21
+    const preguntaDia14 = /\b(dia 14|14 de flora|14 dias|semana 2)\b/.test(mNorm);
+    if (preguntaDia14 && (subEtapa === 'stretch_preflora' || subEtapa === 'floracion_temprana')) {
+      const diasRestantesDia21 = diasFlora !== undefined ? Math.max(0, 21 - diasFlora) : 7;
+      const lineasDia14 = [
+        `📅 **¿Conviene podar en el Día 14 de Floración o esperar al Día 21? (${contexto.nombre})**`,
+        ``,
+        `- **Respuesta directa:** En **Día 14** la planta sigue en pleno *stretch* (estiramiento). **Hacer una defoliación fuerte en Día 14 tiene una contra:** entre el Día 14 y el 21 volverá a sacar hojas nuevas que sombreen los brotes, obligándote a podar dos veces (doble estrés).`,
+        `- **Cuándo SÍ conviene en Día 14:** Solo si tienes un **dosel extremadamente denso**, alta potencia LED (**~${objetivos.ppfdEstimadoSala ?? 900} µmol/m²/s**) con CO2 y humedad alta (>65% HR). En ese caso haz **solo un 30% de despeje ligero** (hojas grandes que tapen flores centrales) y deja las puntas intactas.`,
+        `- **Estándar comercial Athena / USU (Día 21):** Lo más eficiente para ${contexto.nombre}${diasFlora !== undefined ? ` (llevas **Día ${diasFlora}**)` : ''} es hacer **una sola limpieza completa en el Día 21** (defoliación estratégica + *lollipopping* del tercio inferior), justo cuando frena el estiramiento.`,
+      ];
+      return {
+        respuesta: lineasDia14.join('\n'),
+        accionesSugeridas: [
+          {
+            id: `kb-poda-dia21-${Date.now()}`,
+            codigoKB: 'USU-ATH-PODA-D21',
+            tipoAccion: 'crear_tarea',
+            titulo: `Programar Defoliación + Lollipopping al Día 21 de Flora (en ${diasRestantesDia21} días)`,
+            descripcion:
+              'Protocolo Athena + USU: Limpiar tercio inferior improductivo y retirar hojas abanico que sombreen sitios florales en Día 21 sin tocar puntas apicales.',
+            categoriaTarea: 'poda',
+            prioridad: 'alta',
+            diasOffset: diasRestantesDia21,
+            duracionEstimada: 45,
+          },
+        ],
+        resumenRAG:
+          'GUIA_PODA_DIA14: En día 14 sigue el stretch; poda fuerte rebrota y genera doble estrés. Solo despeje ligero si hay exceso de follaje/humedad; limpieza definitiva en Día 21.',
+      };
+    }
+
     const lineas: string[] = [
       `✂️ **Estrategia de Poda y Manejo de Canopia para ${contexto.nombre} (${protocolo.titulo})**`,
       ``,
